@@ -18,11 +18,27 @@ class JobApplication extends Model
         'sop',
         'research_interest',
         'status',
+        'submitted_at', 
     ];
 
-    // This tells Laravel to automatically convert the JSON string
-    // from the database into a usable Array/Object in our code.
     protected $casts = [
         'form_data' => 'array',
+        'submitted_at' => 'datetime',
     ];
+
+    /**
+     * Get the user that owns the application.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the advertisement that this application is for.
+     */
+    public function advertisement()
+    {
+        return $this->belongsTo(Advertisement::class);
+    }
 }
