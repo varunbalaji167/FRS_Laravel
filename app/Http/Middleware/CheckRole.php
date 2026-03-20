@@ -10,8 +10,9 @@ class CheckRole
 {
     public function handle(Request $request, Closure $next, string $role): Response
     {
-        // If the user is not logged in, or their role doesn't match the required role, throw a 403 Forbidden error
-        if (! $request->user() || $request->user()->role !== $role) {
+        $allowedRoles = explode('|', $role);
+
+        if (! $request->user() || ! in_array($request->user()->role, $allowedRoles)) {
             abort(403, 'Unauthorized action. You do not have the correct permissions.');
         }
 

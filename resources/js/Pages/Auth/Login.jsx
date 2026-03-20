@@ -340,7 +340,7 @@ export default function Login() {
                                         Admin
                                     </p>
                                     <p className="text-slate-500 font-medium">
-                                        admin@test.com
+                                        admin@iiti.ac.in
                                     </p>
                                     <p className="text-slate-400">password</p>
                                 </div>

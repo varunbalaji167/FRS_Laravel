@@ -9,17 +9,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('job_applications', function (Blueprint $table) {
-            $table->json('form_data')->nullable()->after('grade');
-
-            $table->text('sop')->nullable();
-            $table->text('research_interest')->nullable();
+            // Change status from plain string to controlled values
+            $table->enum('status', ['draft', 'submitted', 'shortlisted', 'rejected'])
+                  ->default('draft')
+                  ->change();
         });
     }
 
-        public function down(): void
+    public function down(): void
     {
         Schema::table('job_applications', function (Blueprint $table) {
-            $table->dropColumn(['form_data', 'sop', 'research_interest']);
+            $table->string('status')->default('pending')->change();
         });
     }
 };

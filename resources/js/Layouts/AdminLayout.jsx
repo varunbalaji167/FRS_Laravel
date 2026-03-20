@@ -3,6 +3,7 @@ import { Link, usePage } from "@inertiajs/react";
 import {
     LayoutDashboard,
     FilePlus,
+    FileText,
     Users,
     Settings,
     LogOut,
@@ -17,8 +18,11 @@ export default function AdminLayout({ children }) {
     const { auth } = usePage().props;
     const user = auth?.user || {};
     const email = user.email;
+    const role = user.role;
 
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    const isAdmin = role === 'admin';
 
     const navLinks = [
         {
@@ -26,26 +30,44 @@ export default function AdminLayout({ children }) {
             href: route("admin.dashboard"),
             icon: LayoutDashboard,
             active: route().current("admin.dashboard"),
+            show: true,
         },
         {
             name: "Post New Job",
-            href: route("jobs.create"),
+            href: route("admin.jobs.create"),
             icon: FilePlus,
-            active: route().current("jobs.create"),
+            active: route().current("admin.jobs.create"),
+            show: isAdmin,
+        },
+        {
+            name: "Advertisements",
+            href: route("admin.jobs.index"),
+            icon: FileText,
+            active: route().current("admin.jobs.index"),
+            show: isAdmin,
         },
         {
             name: "Review Applications",
-            href: route("admin.applications"),
+            href: route("admin.applications.index"),
             icon: Users,
-            active: route().current("admin.applications"),
+            active: route().current("admin.applications.index"),
+            show: true,
+        },
+        {
+            name: "Manage Users",
+            href: route("admin.users.index"),
+            icon: Shield,
+            active: route().current("admin.users.index"),
+            show: isAdmin,
         },
         {
             name: "Portal Settings",
             href: "#",
             icon: Settings,
             active: false,
+            show: true,
         },
-    ];
+    ].filter(link => link.show);
 
     return (
         <div className="min-h-screen bg-slate-50 flex">

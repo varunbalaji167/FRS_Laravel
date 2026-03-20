@@ -19,16 +19,16 @@ class DatabaseSeeder extends Seeder
         // 1. Faculty Affairs Admin
         User::factory()->create([
             'name' => 'Faculty Affairs Admin',
-            'email' => 'admin@test.com',
-            'password' => Hash::make('password'),
+            'email' => 'admin@iiti.ac.in',
+            'password' => Hash::make('admin123'),
             'role' => 'admin',
         ]);
 
         // 2. Department HOD
         User::factory()->create([
             'name' => 'CS Dept HOD',
-            'email' => 'hod@test.com',
-            'password' => Hash::make('password'),
+            'email' => 'hod@iiti.ac.in',
+            'password' => Hash::make('hod123'),
             'role' => 'hod',
         ]);
 
