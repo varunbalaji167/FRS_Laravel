@@ -46,18 +46,20 @@ export default function UpdatePasswordForm({ className = '' }) {
 
     return (
         <section className={className}>
-            <header>
-                <h2 className="text-lg font-medium text-gray-900">
-                    Update Password
+            <header className="space-y-2">
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-indigo-600">
+                    Security
+                </p>
+                <h2 className="text-2xl font-black tracking-tight text-slate-900">
+                    Update password
                 </h2>
 
-                <p className="mt-1 text-sm text-gray-600">
-                    Ensure your account is using a long, random password to stay
-                    secure.
+                <p className="max-w-2xl text-sm leading-6 text-slate-500">
+                    Use a strong password to keep the account secure.
                 </p>
             </header>
 
-            <form onSubmit={updatePassword} className="mt-6 space-y-6">
+            <form onSubmit={updatePassword} className="mt-8 space-y-6">
                 <div>
                     <InputLabel
                         htmlFor="current_password"
@@ -72,7 +74,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                             setData('current_password', e.target.value)
                         }
                         type="password"
-                        className="mt-1 block w-full"
+                        className="mt-1 block w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 shadow-sm transition focus:border-indigo-500 focus:bg-white focus:ring-indigo-500"
                         autoComplete="current-password"
                     />
 
@@ -91,7 +93,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                         value={data.password}
                         onChange={(e) => setData('password', e.target.value)}
                         type="password"
-                        className="mt-1 block w-full"
+                        className="mt-1 block w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 shadow-sm transition focus:border-indigo-500 focus:bg-white focus:ring-indigo-500"
                         autoComplete="new-password"
                     />
 
@@ -111,7 +113,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                             setData('password_confirmation', e.target.value)
                         }
                         type="password"
-                        className="mt-1 block w-full"
+                        className="mt-1 block w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 shadow-sm transition focus:border-indigo-500 focus:bg-white focus:ring-indigo-500"
                         autoComplete="new-password"
                     />
 
@@ -122,7 +124,9 @@ export default function UpdatePasswordForm({ className = '' }) {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
+                    <PrimaryButton className="rounded-full bg-indigo-600 px-6 py-2.5 text-sm font-bold uppercase tracking-widest text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-500 focus:ring-indigo-500" disabled={processing}>
+                        Save password
+                    </PrimaryButton>
 
                     <Transition
                         show={recentlySuccessful}
@@ -131,9 +135,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                         leave="transition ease-in-out"
                         leaveTo="opacity-0"
                     >
-                        <p className="text-sm text-gray-600">
-                            Saved.
-                        </p>
+                        <p className="text-sm font-semibold text-emerald-600">Saved.</p>
                     </Transition>
                 </div>
             </form>
