@@ -8,10 +8,14 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CheckRole
 {
-    public function handle(Request $request, Closure $next, string $role): Response
+    /**
+     * Handle an incoming request.
+     * Use the spread operator (...$roles) to accept multiple roles as an array.
+     */
+    public function handle(Request $request, Closure $next, string ...$roles): Response
     {
-        // If the user is not logged in, or their role doesn't match the required role, throw a 403 Forbidden error
-        if (! $request->user() || $request->user()->role !== $role) {
+        // Check if user is logged in, and if their role exists in the allowed $roles array
+        if (! $request->user() || ! in_array($request->user()->role, $roles)) {
             abort(403, 'Unauthorized action. You do not have the correct permissions.');
         }
 

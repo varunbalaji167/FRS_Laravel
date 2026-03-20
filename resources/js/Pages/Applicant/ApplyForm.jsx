@@ -322,6 +322,7 @@ export default function ApplyForm({
                 return (
                     <Step2Personal
                         data={data}
+                        setData={setData}
                         updateFormData={updateFormData}
                         localErrors={localErrors}
                     />

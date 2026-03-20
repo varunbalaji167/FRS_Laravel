@@ -78,7 +78,7 @@ class JobOpeningController extends Controller
             'document_path' => $filePath,
         ]);
 
-        return redirect()->route('jobs.create')->with('success', 'Advertisement published successfully!');
+        return redirect()->route('admin.jobs.create')->with('success', 'Advertisement published successfully!');
     }
 
     /**
@@ -181,5 +181,17 @@ class JobOpeningController extends Controller
 
         // 5. Redirect User
         return redirect()->route('dashboard')->with('success', 'Application submitted successfully! A copy has been sent to your email.');
+    }
+
+    /**
+     * Admin: List all advertisements
+     */
+    public function adminIndex()
+    {
+        $advertisements = Advertisement::latest()->get();
+
+        return Inertia::render('Admin/Jobs/Index', [
+            'advertisements' => $advertisements,
+        ]);
     }
 }

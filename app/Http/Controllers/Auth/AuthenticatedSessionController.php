@@ -64,10 +64,10 @@ class AuthenticatedSessionController extends Controller
          */
         switch ($user->role) {
             case 'admin':
-                return redirect()->route('jobs.create')->with('success', 'Login successful! Welcome to the Admin portal.');
+                return redirect()->route('admin.dashboard')->with('success', 'Login successful! Welcome to the Admin portal.');
 
             case 'hod':
-                return redirect('/hod/dashboard')->with('success', 'Login successful! Welcome to the HOD portal.');
+                return redirect()->route('admin.dashboard')->with('success', 'Login successful! Welcome to the HOD portal.');
 
             case 'applicant':
             default:

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\ApplicationController;
 use App\Http\Controllers\JobOpeningController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
@@ -34,18 +36,23 @@ Route::middleware(['auth', 'role:applicant'])->group(function () {
     Route::post('/apply/{advertisement}/submit', [JobOpeningController::class, 'submitApplication'])->name('applicant.store');
 });
 
-// Admin Job Routes
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin/jobs/create', [JobOpeningController::class, 'create'])->name('jobs.create');
-    Route::post('/admin/jobs', [JobOpeningController::class, 'store'])->name('jobs.store');
+// Shared Admin + HOD Routes
+Route::middleware(['auth', 'role:admin,hod'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
 
-    // Placeholder routes
-    Route::get('/admin', function () {
-        return 'Admin Dashboard Overview (Coming Soon)';
-    })->name('admin.dashboard');
-    Route::get('/admin/applications', function () {
-        return 'Review Applications (Coming Soon)';
-    })->name('admin.applications');
+    // Applications (both admin and hod can access)
+    Route::get('/applications', [ApplicationController::class, 'index'])->name('applications.index');
+    Route::get('/applications/{id}', [ApplicationController::class, 'show'])->name('applications.show');
+    Route::patch('/applications/{id}', [ApplicationController::class, 'updateStatus'])->name('applications.update');
+
+    // Admin-only routes (nested)
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/jobs', [JobOpeningController::class, 'adminIndex'])->name('jobs.index');
+        Route::get('/jobs/create', [JobOpeningController::class, 'create'])->name('jobs.create');
+        Route::post('/jobs', [JobOpeningController::class, 'store'])->name('jobs.store');
+        Route::patch('/users/{user}/role', [AdminController::class, 'updateRole'])->name('users.update-role');
+        Route::get('/users', [AdminController::class, 'users'])->name('users.index');
+    });
 });
 
 require __DIR__.'/auth.php';

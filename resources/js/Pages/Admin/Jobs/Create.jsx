@@ -105,7 +105,7 @@ export default function CreateJob() {
             }
         }
 
-        post(route("jobs.store"), {
+        post(route("admin.jobs.store"), {
             preserveScroll: true,
             forceFormData: true,
             onSuccess: () => {
