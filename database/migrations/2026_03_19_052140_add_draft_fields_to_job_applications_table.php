@@ -10,16 +10,17 @@ return new class extends Migration
     {
         Schema::table('job_applications', function (Blueprint $table) {
             $table->json('form_data')->nullable()->after('grade');
-
-            $table->text('sop')->nullable();
-            $table->text('research_interest')->nullable();
+            $table->text('sop')->nullable()->change();
+            $table->text('research_interest')->nullable()->change();
         });
     }
 
         public function down(): void
     {
         Schema::table('job_applications', function (Blueprint $table) {
-            $table->dropColumn(['form_data', 'sop', 'research_interest']);
+            $table->dropColumn('form_data');
+            $table->text('sop')->nullable(false)->change();
+            $table->text('research_interest')->nullable(false)->change();
         });
     }
 };
