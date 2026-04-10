@@ -1,9 +1,10 @@
 <?php
 
+use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use App\Http\Middleware\CheckRole;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,11 +13,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        
-        // 1. Reconnect Inertia! This tells Laravel to append the Inertia data 
+        // Trust all proxies (Cloudflare, Load Balancers, etc.)
+        $middleware->trustProxies(at: '*');
+        // 1. Reconnect Inertia! This tells Laravel to append the Inertia data
         // (including flash messages and errors) to every single web request.
         $middleware->web(append: [
-            \App\Http\Middleware\HandleInertiaRequests::class,
+            HandleInertiaRequests::class,
         ]);
 
         // 2. Keep your custom role middleware alias intact
