@@ -13,12 +13,14 @@ import {
     Building2,
     AlertCircle,
     Eye,
-    XCircle
+    XCircle,
 } from "lucide-react";
 
 export default function MyApplications({ applications }) {
     // Ensure applications is an array (handle pagination if necessary)
-    const appsList = Array.isArray(applications) ? applications : applications?.data || [];
+    const appsList = Array.isArray(applications)
+        ? applications
+        : applications?.data || [];
 
     // Separate drafts from submitted applications
     const drafts = appsList.filter((app) => app.status === "draft");
@@ -185,7 +187,12 @@ function ApplicationCard({ app }) {
                     </div>
                     <div className="flex items-center text-xs text-slate-400">
                         <CalendarDays className="h-3.5 w-3.5 mr-2 shrink-0" />
-                        <span>Last updated: {new Date(app.updated_at).toLocaleDateString('en-GB')}</span>
+                        <span>
+                            Last updated:{" "}
+                            {new Date(app.updated_at).toLocaleDateString(
+                                "en-GB",
+                            )}
+                        </span>
                     </div>
                 </div>
 
@@ -193,13 +200,19 @@ function ApplicationCard({ app }) {
                 {status === "shortlisted" && (
                     <div className="mb-4 bg-emerald-100/50 border border-emerald-200 rounded-lg p-3 text-xs text-emerald-800 flex gap-2 items-start">
                         <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
-                        <p><strong>Congratulations!</strong> You have been shortlisted. The department will contact you soon.</p>
+                        <p>
+                            <strong>Congratulations!</strong> You have been
+                            shortlisted. The department will contact you soon.
+                        </p>
                     </div>
                 )}
                 {status === "rejected" && (
                     <div className="mb-4 bg-slate-100 border border-slate-200 rounded-lg p-3 text-xs text-slate-600 flex gap-2 items-start">
                         <XCircle className="h-4 w-4 shrink-0 text-slate-400 mt-0.5" />
-                        <p>Thank you for your interest. Unfortunately, you were not selected for further progression.</p>
+                        <p>
+                            Thank you for your interest. Unfortunately, you were
+                            not selected for further progression.
+                        </p>
                     </div>
                 )}
 
@@ -209,15 +222,21 @@ function ApplicationCard({ app }) {
                         <>
                             <div className="flex items-center text-xs font-medium text-amber-700 bg-amber-100/50 border border-amber-200 px-2 py-1 rounded">
                                 <AlertCircle className="h-3 w-3 mr-1.5" /> Step{" "}
-                                {app.form_data?.current_step || 1} of 11
+                                {app.current_step || 1} of 11
                             </div>
                             <Button
                                 asChild
                                 size="sm"
                                 className="bg-amber-500 hover:bg-amber-600 text-white shadow-none"
                             >
-                                <Link href={`/apply/${app.advertisement_id}`}>
-                                    Resume Draft <ArrowRight className="h-4 w-4 ml-1.5" />
+                                <Link
+                                    href={route(
+                                        "applicant.apply",
+                                        app.advertisement?.id,
+                                    )}
+                                >
+                                    Resume Draft{" "}
+                                    <ArrowRight className="h-4 w-4 ml-1.5" />
                                 </Link>
                             </Button>
                         </>
@@ -225,9 +244,15 @@ function ApplicationCard({ app }) {
                         <div className="w-full flex items-center justify-between">
                             <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
                                 {status === "submitted" ? (
-                                    <><Clock className="h-3.5 w-3.5" /> Locked & Under Review</>
+                                    <>
+                                        <Clock className="h-3.5 w-3.5" /> Locked
+                                        & Under Review
+                                    </>
                                 ) : (
-                                    <><CheckCircle2 className="h-3.5 w-3.5" /> Application Closed</>
+                                    <>
+                                        <CheckCircle2 className="h-3.5 w-3.5" />{" "}
+                                        Application Closed
+                                    </>
                                 )}
                             </span>
                             <div className="flex gap-2">
@@ -237,18 +262,32 @@ function ApplicationCard({ app }) {
                                     variant="outline"
                                     className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-none"
                                 >
-                                    <Link href={`/applications/${app.id}`}>
-                                        <Eye className="h-4 w-4 mr-1.5 text-indigo-500" /> View
+                                    <Link
+                                        href={route(
+                                            "applicant.applications.show",
+                                            app.id,
+                                        )}
+                                    >
+                                        <Eye className="h-4 w-4 mr-1.5 text-indigo-500" />{" "}
+                                        View
                                     </Link>
                                 </Button>
                                 <Button
                                     asChild
                                     size="sm"
                                     variant="outline"
-                                    className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-none"
+                                    className="..."
                                 >
-                                    <a href={`/applications/${app.id}/export/pdf`} target="_blank" rel="noreferrer">
-                                        <Download className="h-4 w-4 mr-1.5 text-red-500" /> PDF
+                                    <a
+                                        href={route(
+                                            "applicant.applications.export.pdf",
+                                            app.id,
+                                        )}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        <Download className="h-4 w-4 mr-1.5 text-red-500" />{" "}
+                                        PDF
                                     </a>
                                 </Button>
                             </div>
