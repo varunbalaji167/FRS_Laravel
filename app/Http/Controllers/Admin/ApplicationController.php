@@ -47,17 +47,37 @@ class ApplicationController extends Controller
             $query->where('status', $request->status);
         }
 
-        $applications = $query->latest()->paginate(20)->withQueryString();
-        $advertisements = Advertisement::select('id', 'title', 'reference_number')->get();
+        // paginate() + withQueryString() bakes active filter params into next_page_url
+        // so the frontend never has to manually reconstruct the URL on each scroll fetch.
+        $applications = $query->latest()->paginate(5)->withQueryString();
 
-        // Dynamically choose view folder
+        // CHANGE 1: Removed the stale $advertisements variable that sat on the
+        // original line 51. It fetched from DB and was immediately thrown away
+        // because the identical query was repeated inside the return block.
+
         $viewFolder = $request->user()->role === 'admin' ? 'Admin' : 'Hod';
 
         return Inertia::render("{$viewFolder}/Applications/Index", [
+            // Always a plain value — evaluated and sent on every request.
+            // On scroll the frontend sends only:['applications'], so Inertia
+            // returns only this key in the JSON, keeping the payload tiny.
             'applications' => $applications,
-            'advertisements' => Advertisement::select('id', 'title', 'reference_number')->get(),
-            'departments' => Department::orderBy('name')->get(),
-            'filters' => $request->only(['advertisement_id', 'department', 'status']),
+
+            // CHANGE 2: Converted to closures (fn() =>).
+            //
+            // Inertia behaviour for closures vs plain values:
+            //   Plain value  → PHP evaluates it immediately on every request,
+            //                  regardless of whether the frontend asked for it.
+            //   Closure      → Inertia calls it ONLY when the frontend explicitly
+            //                  requests that prop. On a scroll request that sends
+            //                  only:['applications'], these three closures are
+            //                  never called — zero DB queries for ads/depts/filters.
+            //
+            // On the initial full page load all props are requested, so all three
+            // closures run and their data reaches the frontend as normal.
+            'advertisements' => fn () => Advertisement::select('id', 'title', 'reference_number')->get(),
+            'departments' => fn () => Department::orderBy('name')->get(),
+            'filters' => fn () => $request->only(['advertisement_id', 'department', 'status']),
         ]);
     }
 
@@ -196,7 +216,6 @@ class ApplicationController extends Controller
 
             fputcsv($file, ['═══ SECTION 2: EDUCATIONAL QUALIFICATIONS ═══']);
 
-            // PhD
             fputcsv($file, ['--- (A) Ph.D. Details ---']);
             fputcsv($file, ['Field', 'Value']);
             fputcsv($file, ['University / Institute', $phd['university'] ?? 'N/A']);
@@ -208,7 +227,6 @@ class ApplicationController extends Controller
             fputcsv($file, ['Thesis Title',           $phd['title'] ?? 'N/A']);
             $blank();
 
-            // PG
             fputcsv($file, ['--- (B) Post-Graduate (PG) Details ---']);
             fputcsv($file, ['#', 'Degree', 'University/Institute', 'Subjects', 'Year Joined', 'Year Graduated', 'Percentage/CGPA', 'Division/Class']);
             foreach ($edu['pg'] ?? [] as $i => $row) {
@@ -228,7 +246,6 @@ class ApplicationController extends Controller
             }
             $blank();
 
-            // UG
             fputcsv($file, ['--- (C) Under-Graduate (UG) Details ---']);
             fputcsv($file, ['#', 'Degree', 'University/Institute', 'Subjects', 'Year Joined', 'Year Graduated', 'Percentage/CGPA', 'Division/Class']);
             foreach ($edu['ug'] ?? [] as $i => $row) {
@@ -248,7 +265,6 @@ class ApplicationController extends Controller
             }
             $blank();
 
-            // School
             fputcsv($file, ['--- (D) School Details ---']);
             fputcsv($file, ['Level', 'School / Board', 'Year of Passing', 'Percentage/CGPA', 'Division/Class']);
             foreach ($edu['school'] ?? [] as $row) {

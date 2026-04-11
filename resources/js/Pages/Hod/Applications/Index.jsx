@@ -1,6 +1,6 @@
 import HodLayout from "@/Layouts/HodLayout";
 import { Head, Link, router } from "@inertiajs/react";
-import { useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 const statusColors = {
     submitted: "bg-blue-100 text-blue-700 border-blue-200",
@@ -16,14 +16,96 @@ export default function HodApplicationsIndex({
     const [advFilter, setAdvFilter] = useState(filters.advertisement_id || "");
     const [statusFilter, setStatusFilter] = useState(filters.status || "");
 
-    function applyFilters() {
+    // Infinite-scroll state
+    const [allItems, setAllItems] = useState(applications.data);
+    const [loading, setLoading] = useState(false);
+
+    const hasNextPage = applications.next_page_url !== null;
+    const nextPageRef = useRef(applications.current_page + 1);
+    const sentinelRef = useRef(null);
+
+    // Sync incoming Inertia prop → local accumulated list
+    useEffect(() => {
+        if (applications.current_page === 1) {
+            // Filter change — start fresh
+            setAllItems(applications.data);
+        } else {
+            // Scroll load — append deduplicated rows
+            setAllItems((prev) => {
+                const seen = new Set(prev.map((a) => a.id));
+                const fresh = applications.data.filter((a) => !seen.has(a.id));
+                return [...prev, ...fresh];
+            });
+        }
+        nextPageRef.current = applications.current_page + 1;
+        setLoading(false);
+    }, [applications]);
+
+    // Fetch next page
+    const loadNextPage = useCallback(() => {
+        if (loading || !hasNextPage) return;
+        setLoading(true);
         router.get(
             "/hod/applications",
             {
                 advertisement_id: advFilter,
                 status: statusFilter,
+                page: nextPageRef.current,
             },
-            { preserveState: true },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                only: ["applications"], // partial reload — skip advertisements/filters
+            },
+        );
+    }, [loading, hasNextPage, advFilter, statusFilter]);
+
+    // IntersectionObserver
+    useEffect(() => {
+        const sentinel = sentinelRef.current;
+        if (!sentinel) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) loadNextPage();
+            },
+            { rootMargin: "200px" },
+        );
+
+        observer.observe(sentinel);
+        return () => observer.disconnect();
+    }, [loadNextPage]);
+
+    // Filter helpers
+    function applyFilters() {
+        setAllItems([]);
+        router.get(
+            "/hod/applications",
+            {
+                advertisement_id: advFilter,
+                status: statusFilter,
+                page: 1,
+            },
+            {
+                preserveState: true,
+                preserveScroll: false,
+                only: ["applications"],
+            },
+        );
+    }
+
+    function clearFilters() {
+        setAdvFilter("");
+        setStatusFilter("");
+        setAllItems([]);
+        router.get(
+            "/hod/applications",
+            { page: 1 },
+            {
+                preserveState: true,
+                preserveScroll: false,
+                only: ["applications"],
+            },
         );
     }
 
@@ -41,7 +123,7 @@ export default function HodApplicationsIndex({
                     </p>
                 </div>
 
-                {/* Filters */}
+                {/* ── Filters ── */}
                 <div className="flex flex-wrap gap-3 bg-white p-4 rounded-xl shadow-sm border border-slate-200 items-center">
                     <div className="flex-1 min-w-[200px]">
                         <select
@@ -58,7 +140,7 @@ export default function HodApplicationsIndex({
                         </select>
                     </div>
 
-                    <div className="w-48">
+                    <div className="w-52">
                         <select
                             className="w-full border-slate-300 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-indigo-500 focus:border-indigo-500"
                             value={statusFilter}
@@ -81,22 +163,14 @@ export default function HodApplicationsIndex({
                     </button>
 
                     <button
-                        onClick={() => {
-                            setAdvFilter("");
-                            setStatusFilter("");
-                            router.get(
-                                "/hod/applications",
-                                {},
-                                { preserveState: true },
-                            );
-                        }}
+                        onClick={clearFilters}
                         className="bg-slate-100 text-slate-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-200 transition-colors"
                     >
                         Clear
                     </button>
                 </div>
 
-                {/* Table */}
+                {/* ── Table ── */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
@@ -120,7 +194,7 @@ export default function HodApplicationsIndex({
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {applications.data.map((app) => (
+                                {allItems.map((app) => (
                                     <tr
                                         key={app.id}
                                         className="hover:bg-slate-50/80 transition-colors"
@@ -165,7 +239,8 @@ export default function HodApplicationsIndex({
                                         </td>
                                     </tr>
                                 ))}
-                                {applications.data.length === 0 && (
+
+                                {allItems.length === 0 && !loading && (
                                     <tr>
                                         <td
                                             colSpan={5}
@@ -181,27 +256,47 @@ export default function HodApplicationsIndex({
                             </tbody>
                         </table>
                     </div>
-                </div>
 
-                {/* Pagination */}
-                {applications.links.length > 3 && (
-                    <div className="flex gap-1.5 justify-end">
-                        {applications.links.map((link, i) => (
-                            <button
-                                key={i}
-                                disabled={!link.url}
-                                onClick={() => link.url && router.get(link.url)}
-                                className={`px-3 py-1.5 rounded-md text-sm border font-medium transition-colors ${
-                                    link.active
-                                        ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
-                                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                                } disabled:opacity-40 disabled:hover:bg-white`}
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
-                        ))}
+                    {/* ── Infinite-scroll sentinel ── */}
+                    <div ref={sentinelRef}>
+                        {loading && <LoadingRow />}
+                        {!loading && !hasNextPage && allItems.length > 0 && (
+                            <p className="text-center text-xs text-slate-300 py-5 border-t border-slate-100">
+                                All {allItems.length} application
+                                {allItems.length !== 1 ? "s" : ""} loaded
+                            </p>
+                        )}
                     </div>
-                )}
+                </div>
             </div>
         </HodLayout>
+    );
+}
+
+function LoadingRow() {
+    return (
+        <div className="flex items-center justify-center gap-2 py-6 text-slate-400 text-sm border-t border-slate-100">
+            <svg
+                className="animate-spin h-4 w-4 text-indigo-500"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+            >
+                <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                />
+                <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                />
+            </svg>
+            Loading more applications…
+        </div>
     );
 }
