@@ -414,7 +414,7 @@ export default function Login() {
                                         hod.cse@iiti.ac.in
                                     </p>
                                     <p className="text-slate-400">
-                                        password123
+                                        password
                                     </p>
                                 </div>
                             </div>

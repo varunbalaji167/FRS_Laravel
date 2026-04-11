@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
         // 2. Department HOD
         User::factory()->create([
             'name' => 'CS Dept HOD',
-            'email' => 'hod@test.com',
+            'email' => 'hod.cse@iiti.ac.in',
             'password' => Hash::make('password'),
             'role' => 'hod',
         ]);
