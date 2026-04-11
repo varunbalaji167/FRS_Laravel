@@ -55,13 +55,16 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/applications/{id}/export/pdf', [ApplicationController::class, 'exportPdf'])->name('applications.export.pdf');
     Route::get('/applications/{id}/export/excel', [ApplicationController::class, 'exportExcel'])->name('applications.export.excel');
 
-    // Jobs & Users
+    // Jobs
     Route::get('/jobs', [RecruitmentController::class, 'adminIndex'])->name('jobs.index');
     Route::get('/jobs/create', [RecruitmentController::class, 'create'])->name('jobs.create');
     Route::post('/jobs', [RecruitmentController::class, 'store'])->name('jobs.store');
-    Route::patch('/users/{user}/role', [AdminController::class, 'updateRole'])->name('users.update-role');
+    
+    // Users Management 
     Route::get('/users', [AdminController::class, 'users'])->name('users.index');
-
+    Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
+    Route::patch('/users/{user}/role', [AdminController::class, 'updateRole'])->name('users.update-role');
+    Route::delete('/users/{user}', [AdminController::class, 'destroyUser'])->name('users.destroy');
 });
 
 // --- HOD ONLY ROUTES ---

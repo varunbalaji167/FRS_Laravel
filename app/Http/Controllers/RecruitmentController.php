@@ -220,9 +220,7 @@ class RecruitmentController extends Controller
         return $errors;
     }
 
-    
     // PUBLIC ROUTES
-    
 
     /**
      * Dashboard: Display active advertisements.
@@ -326,13 +324,13 @@ class RecruitmentController extends Controller
      * Applicant: Securely export their own Excel data.
      */
     public function exportExcel(Request $request, $id) // 1. Inject the Request here
-{
-    // Ensure the applicant actually owns this application
-    $application = JobApplication::where('user_id', Auth::id())->findOrFail($id);
+    {
+        // Ensure the applicant actually owns this application
+        $application = JobApplication::where('user_id', Auth::id())->findOrFail($id);
 
-    // 2. Pass both $request and $id to the target controller
-    return app(ApplicationController::class)->exportExcel($request, $id);
-}
+        // 2. Pass both $request and $id to the target controller
+        return app(ApplicationController::class)->exportExcel($request, $id);
+    }
 
     /**
      * Show the application form wizard.
@@ -356,9 +354,8 @@ class RecruitmentController extends Controller
         ]);
     }
 
-    
     // SAVE AS DRAFT — No required-field validation; just persist.
-    
+
     public function saveDraft(Request $request, Advertisement $advertisement)
     {
         $data = collect($request->only(['department', 'grade']))
@@ -384,7 +381,6 @@ class RecruitmentController extends Controller
         return redirect()->back();
     }
 
-    
     // PER-STEP BACKEND VALIDATION (optional/future use).
     // All step rules are pure data checks that the frontend already enforces,
     // so this endpoint is NOT called during normal wizard navigation — backend
@@ -395,7 +391,7 @@ class RecruitmentController extends Controller
     //   Route::post('/jobs/{advertisement}/validate-step',
     //       [RecruitmentController::class, 'validateStep'])
     //       ->name('applicant.validateStep')->middleware('auth');
-    
+
     public function validateStep(Request $request, Advertisement $advertisement): JsonResponse
     {
         // Basic sanity: step must be a valid integer
@@ -412,9 +408,8 @@ class RecruitmentController extends Controller
         ], empty($errors) ? 200 : 422);
     }
 
-    
     // FINAL SUBMIT — Full server-side validation across every required step.
-    
+
     public function submitApplication(Request $request, Advertisement $advertisement)
     {
         // ── Top-level required fields
@@ -427,7 +422,7 @@ class RecruitmentController extends Controller
         $user = Auth::user();
         $formData = $validated['form_data'];
 
-        // ── Deep validation — mirror every frontend required field check 
+        // ── Deep validation — mirror every frontend required field check
         $allErrors = [];
         foreach ([1, 2, 3, 4, 5, 8, 10] as $step) {
             $stepErrors = $this->errorsForStep($step, $request);
@@ -523,13 +518,12 @@ class RecruitmentController extends Controller
             'data' => $formData,
         ]);
 
-        Storage::disk('public')->put(
-            "applications/{$user->id}/{$advertisement->id}/Final_Application_Form.pdf",
-            $pdf->output()
-        );
+        // 1. Define the path and save the PDF to the disk
+        $pdfPath = "applications/{$user->id}/{$advertisement->id}/Final_Application_Form.pdf";
+        Storage::disk('public')->put($pdfPath, $pdf->output());
 
-        // ── Confirmation email to applicant─
-        Mail::to($user->email)->send(new ApplicationSubmitted($application, $pdf->output()));
+        // 2. QUEUE the confirmation email, passing the PATH, not the raw output!
+        Mail::to($user->email)->queue(new ApplicationSubmitted($application, $pdfPath));
 
         // ── Referee notification emails
         $referees = $formData['referees_section']['referees'] ?? [];
@@ -540,7 +534,8 @@ class RecruitmentController extends Controller
 
         foreach ($referees as $referee) {
             if (! empty($referee['email']) && filter_var($referee['email'], FILTER_VALIDATE_EMAIL)) {
-                Mail::to($referee['email'])->send(
+                // 3. QUEUE the referee emails
+                Mail::to($referee['email'])->queue(
                     new RefereeNotification($application, $applicantName, $referee)
                 );
             }
@@ -550,9 +545,7 @@ class RecruitmentController extends Controller
             ->with('success', 'Application Submitted! A confirmation copy has been sent to your email.');
     }
 
-    
     // ADMIN — Advertisement management
-    
 
     public function adminIndex()
     {

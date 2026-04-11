@@ -116,7 +116,9 @@ class ApplicationController extends Controller
      */
     public function exportExcel(Request $request, $id)
     {
-        $application = clone $this->getScopedQuery($request)->findOrFail($id);
+        $application = clone $this->getScopedQuery($request)
+            ->with('advertisement')
+            ->findOrFail($id);
 
         $data = $application->form_data ?? [];
         $p = $data['personal_details'] ?? [];
