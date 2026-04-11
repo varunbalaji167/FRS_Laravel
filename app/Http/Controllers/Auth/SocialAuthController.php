@@ -44,20 +44,24 @@ class SocialAuthController extends Controller
             $user = User::where('email', $email)->first();
 
             if ($user) {
-                // User exists: Just update their Google ID in case this is their first time using the Google button,
-                // but DO NOT touch their password or their existing role.
+                // User exists: Just update their Google ID in case this is their first time using the Google button.
                 $user->update([
                     'google_id' => $googleUser->getId(),
-                    // Optional: You can update their name if they changed it on Google
-                    // 'name' => $googleUser->getName(),
                 ]);
             } else {
-                // User is brand new: Create them with the requested role and a secure, random dummy password.
+                // --- THE SECURITY FIX IS HERE ---
+                // If they don't exist in the DB, check what role they are trying to claim.
+                // Admins and HODs CANNOT self-register. They must be provisioned by the Super Admin.
+                if (in_array($intendedRole, ['admin', 'hod'])) {
+                    return redirect()->route('login')->with('error', 'Access Denied. Administrative accounts must be pre-provisioned by the IT Center. You cannot self-register.');
+                }
+
+                // If we get here, they are an applicant. It is safe to create a brand new account.
                 $user = User::create([
                     'email' => $email,
                     'name' => $googleUser->getName(),
                     'google_id' => $googleUser->getId(),
-                    'role' => $intendedRole,
+                    'role' => 'applicant', // Hardcoded safely to applicant to prevent privilege escalation
                     'password' => Hash::make(Str::random(32)), // 32-character secure random string
                 ]);
             }
@@ -71,8 +75,9 @@ class SocialAuthController extends Controller
             Auth::login($user);
 
             // 5. Redirect them to their proper dashboard
-            if ($user->role === 'admin') {
-                return redirect()->route('admin.dashboard')->with('success', 'Welcome back to the Institute Portal!');
+            if (in_array($user->role, ['admin', 'hod'])) {
+                // Redirecting directly to the URL path (e.g., /admin/dashboard or /hod/dashboard)
+                return redirect("/{$user->role}/dashboard")->with('success', 'Welcome back to the Institute Portal!');
             }
 
             return redirect()->route('dashboard')->with('success', 'Logged in successfully!');

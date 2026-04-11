@@ -8,7 +8,6 @@ import {
 } from "@/Components/ui/card";
 import { Button } from "@/Components/ui/button";
 import {
-    Briefcase,
     CalendarDays,
     Building2,
     ArrowRight,
@@ -82,7 +81,7 @@ export default function Dashboard({
                                         {hasSubmitted && (
                                             <span className="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-bold text-emerald-600">
                                                 <CheckCircle2 className="h-3 w-3 mr-1" />{" "}
-                                                Submitted
+                                                Applied
                                             </span>
                                         )}
                                         {hasDraft && (
@@ -170,7 +169,7 @@ export default function Dashboard({
                                             className="w-full sm:w-1/2 bg-slate-200 text-slate-500 font-bold cursor-not-allowed"
                                         >
                                             <CheckCircle2 className="mr-2 h-4 w-4" />{" "}
-                                            Submitted
+                                            Application Locked
                                         </Button>
                                     ) : hasDraft ? (
                                         <Link

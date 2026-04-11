@@ -236,7 +236,8 @@ class RecruitmentController extends Controller
                 ->get(['advertisement_id', 'status']);
 
             foreach ($applications as $app) {
-                if ($app->status === 'submitted') {
+                // Treat submitted, shortlisted, and rejected all as "Locked" applications
+                if (in_array($app->status, ['submitted', 'shortlisted', 'rejected'])) {
                     $submittedAdvtIds[] = $app->advertisement_id;
                 } elseif ($app->status === 'draft') {
                     $draftAdvtIds[] = $app->advertisement_id;
