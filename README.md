@@ -1,23 +1,32 @@
-
 # Faculty Recruitment System (FRS)
 
-![Laravel](https://img.shields.io/badge/Laravel-11.x-FF2D20?style=for-the-badge&logo=laravel)
+<div align="center">
+
+![PHP](https://img.shields.io/badge/PHP-8.4+-777BB4?style=for-the-badge&logo=php&logoColor=white)
+![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel)
 ![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4+-38B2AC?style=for-the-badge&logo=tailwind-css)
-![Docker](https://img.shields.io/badge/Docker-Sail-2496ED?style=for-the-badge&logo=docker)
+![Redis](https://img.shields.io/badge/Redis-DD0031?style=for-the-badge&logo=redis&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-FRS is an enterprise-grade recruitment engine designed to modernize academic hiring workflows through secure, state-persistent application pipelines. Built for IIT Indore, it empowers institutions to manage high-volume faculty applications with departmental precision, bridging the gap between complex data collection and rapid, role-based decision-making.
+</div>
+
+<br>
+
+**The Faculty Recruitment System (FRS)** is an enterprise-grade recruitment engine designed to modernize academic hiring workflows through secure, state-persistent application pipelines. Built exclusively for **IIT Indore**, it empowers the institute to manage high-volume faculty applications with departmental precision. FRS bridges the gap between complex data collection and rapid, role-based decision-making by utilizing robust background queuing, real-time caching, and dynamic PDF generation.
 
 ## Tech Stack
 
 | Layer | Technology |
-|------|-----------|
-| Backend | Laravel 11 |
-| Frontend | React (Inertia.js) |
-| Styling | Tailwind CSS & Shadcn UI |
-| Database | MySQL |
-| DevOps | Docker (Laravel Sail) |
+| :--- | :--- |
+| **Backend Core** | PHP 8.4.10, Laravel 12.54.1 |
+| **Frontend** | React 18, Inertia.js |
+| **UI & Styling** | Tailwind CSS, Shadcn UI, Framer Motion |
+| **Database** | MySQL |
+| **Cache, Session & Queue**| Redis |
+| **PDF Generation** | DomPDF |
+| **Infrastructure** | CloudPanel (Nginx, PHP-FPM), Docker (Sail for local dev) |
 
 ## System Architecture
 
@@ -30,7 +39,7 @@ This system leverages **Inertia.js** to bridge the gap between Laravel and React
 
 ### Dockerized Environment (Laravel Sail)
 The entire development stack is containerized using **Laravel Sail**, ensuring environment parity across all development machines.
-* **PHP Runtime:** PHP 8.5.
+* **PHP Runtime:** PHP 8.4.10.
 * **Database:** MySQL 8.4.
 * **Email Testing:** Mailpit integration for capturing outgoing recruitment and referee notifications.
 * **Utilities:** phpMyAdmin is included for direct database management during development.
@@ -43,7 +52,7 @@ To support the intensive data collection required for academic hiring, the syste
 
 ## Visual Workflow
 
-The following Mermaid diagram illustrates the data flow and role interactions.
+The following Sequence diagram illustrates the data flow and role interactions.
 
 ```mermaid
 sequenceDiagram
