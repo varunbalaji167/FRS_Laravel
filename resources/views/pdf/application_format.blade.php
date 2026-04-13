@@ -368,10 +368,8 @@
     </tr>
     @forelse($edu['school'] ?? [] as $school)
     <tr>
-        <td>{{ $school['level'] ?? 'N/A' }}</td>
-        {{-- Step3 stores 'school' as the school name field --}}
+        <td>{{ $school['level'] ?? ($loop->index === 0 ? '12th/HSC/Diploma' : '10th') }}</td>
         <td>{{ $school['school'] ?? $school['board'] ?? 'N/A' }}</td>
-        {{-- Step3 stores 'year_passing' --}}
         <td>{{ $school['year_passing'] ?? $school['year_graduation'] ?? 'N/A' }}</td>
         <td>{{ $school['percentage'] ?? 'N/A' }}</td>
         <td>{{ $school['division'] ?? 'N/A' }}</td>

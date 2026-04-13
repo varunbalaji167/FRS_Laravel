@@ -309,16 +309,18 @@ export default function ApplicationShow({ application }) {
                                 value={p.fathers_name}
                             />
                             <DataBox label="Date of Birth" value={p.dob} />
-                            <DataBox 
-    label="Age" 
-    value={
-        p.dob ? (
-            <span className="inline-flex items-center text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 shadow-sm">
-                {calculateAge(p.dob)}
-            </span>
-        ) : "—"
-    } 
-/>
+                            <DataBox
+                                label="Age"
+                                value={
+                                    p.dob ? (
+                                        <span className="inline-flex items-center text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 shadow-sm">
+                                            {calculateAge(p.dob)}
+                                        </span>
+                                    ) : (
+                                        "—"
+                                    )
+                                }
+                            />
                             <DataBox label="Gender" value={p.gender} />
                             <DataBox label="Category" value={p.category} />
                             <DataBox
@@ -548,8 +550,12 @@ export default function ApplicationShow({ application }) {
                         {schoolList.length > 0 &&
                             schoolList.map((row, i) => (
                                 <tr key={i}>
-                                    <td className="px-4 py-2.5 font-medium">
-                                        {row.level || "—"}
+                                    <td className="px-4 py-2.5 font-medium text-slate-900">
+                                        {/* Smart Fallback based on index */}
+                                        {row.level ||
+                                            (i === 0
+                                                ? "12th/HSC/Diploma"
+                                                : "10th")}
                                     </td>
                                     <td className="px-4 py-2.5">
                                         {row.school || "—"}

@@ -516,8 +516,12 @@ export default function ApplicationShow({ application }) {
                         {schoolList.length > 0 &&
                             schoolList.map((row, i) => (
                                 <tr key={i}>
-                                    <td className="px-4 py-2.5 font-medium">
-                                        {row.level || "—"}
+                                    <td className="px-4 py-2.5 font-medium text-slate-900">
+                                        {/* Smart Fallback based on index */}
+                                        {row.level ||
+                                            (i === 0
+                                                ? "12th/HSC/Diploma"
+                                                : "10th")}
                                     </td>
                                     <td className="px-4 py-2.5">
                                         {row.school || "—"}

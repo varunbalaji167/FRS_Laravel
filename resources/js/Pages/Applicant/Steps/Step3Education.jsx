@@ -16,22 +16,29 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
     };
     const pg = edu.pg || [];
     const ug = edu.ug || [];
-    const school = edu.school || [
-        {
-            level: "12th/HSC/Diploma",
-            school: "",
-            year_passing: "",
-            percentage: "",
-            division: "",
-        },
-        {
-            level: "10th",
-            school: "",
-            year_passing: "",
-            percentage: "",
-            division: "",
-        },
-    ];
+    const school =
+        edu.school && edu.school.length > 0
+            ? edu.school.map((item, index) => ({
+                  ...item,
+                  level:
+                      item.level || (index === 0 ? "12th/HSC/Diploma" : "10th"),
+              }))
+            : [
+                  {
+                      level: "12th/HSC/Diploma",
+                      school: "",
+                      year_passing: "",
+                      percentage: "",
+                      division: "",
+                  },
+                  {
+                      level: "10th",
+                      school: "",
+                      year_passing: "",
+                      percentage: "",
+                      division: "",
+                  },
+              ];
     const updateEduSection = (section, newValue) =>
         setData("form_data", {
             ...data.form_data,
@@ -41,8 +48,11 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
         updateEduSection("phd", { ...phd, [field]: value });
 
     const handleArrayChange = (section, index, field, value) => {
-        const arr = [...(edu[section] || [])];
+        const sourceArray = section === "school" ? school : edu[section] || [];
+
+        const arr = [...sourceArray];
         arr[index] = { ...arr[index], [field]: value };
+
         updateEduSection(section, arr);
     };
 
