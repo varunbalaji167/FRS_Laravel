@@ -1,6 +1,7 @@
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, router } from "@inertiajs/react";
 import { useState } from "react";
+import { calculateAge } from "@/lib/dateUtils";
 import {
     CheckCircle,
     XCircle,
@@ -308,6 +309,16 @@ export default function ApplicationShow({ application }) {
                                 value={p.fathers_name}
                             />
                             <DataBox label="Date of Birth" value={p.dob} />
+                            <DataBox 
+    label="Age" 
+    value={
+        p.dob ? (
+            <span className="inline-flex items-center text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 shadow-sm">
+                {calculateAge(p.dob)}
+            </span>
+        ) : "—"
+    } 
+/>
                             <DataBox label="Gender" value={p.gender} />
                             <DataBox label="Category" value={p.category} />
                             <DataBox
@@ -435,6 +446,7 @@ export default function ApplicationShow({ application }) {
                             "Subjects",
                             "Joined",
                             "Graduated",
+                            "Duration (Months)",
                             "% / CGPA",
                             "Division",
                         ]}
@@ -461,6 +473,9 @@ export default function ApplicationShow({ application }) {
                                         {row.year_graduation || "—"}
                                     </td>
                                     <td className="px-4 py-2.5">
+                                        {row.duration || "—"}
+                                    </td>
+                                    <td className="px-4 py-2.5">
                                         {row.percentage || "—"}
                                     </td>
                                     <td className="px-4 py-2.5">
@@ -480,6 +495,7 @@ export default function ApplicationShow({ application }) {
                             "Subjects",
                             "Joined",
                             "Graduated",
+                            "Duration (Months)",
                             "% / CGPA",
                             "Division",
                         ]}
@@ -504,6 +520,9 @@ export default function ApplicationShow({ application }) {
                                     </td>
                                     <td className="px-4 py-2.5">
                                         {row.year_graduation || "—"}
+                                    </td>
+                                    <td className="px-4 py-2.5">
+                                        {row.duration || "—"}
                                     </td>
                                     <td className="px-4 py-2.5">
                                         {row.percentage || "—"}
@@ -575,7 +594,7 @@ export default function ApplicationShow({ application }) {
                                 value={emp.present.date_leaving || "Continuing"}
                             />
                             <DataBox
-                                label="Duration (yrs)"
+                                label="Duration (Months)"
                                 value={emp.present.duration}
                             />
                         </div>
@@ -609,7 +628,7 @@ export default function ApplicationShow({ application }) {
                             "Organization",
                             "Date Joined",
                             "Date Left",
-                            "Duration",
+                            "Duration (Months)",
                         ]}
                     >
                         {(emp.history || []).length > 0 &&
@@ -646,7 +665,7 @@ export default function ApplicationShow({ application }) {
                             "Institute",
                             "Date Joined",
                             "Date Left",
-                            "Duration",
+                            "Duration (Months)",
                         ]}
                     >
                         {(emp.teaching || []).length > 0 &&
@@ -684,7 +703,7 @@ export default function ApplicationShow({ application }) {
                             "Supervisor",
                             "Date Joined",
                             "Date Left",
-                            "Duration",
+                            "Duration (Months)",
                         ]}
                     >
                         {(emp.research || []).length > 0 &&
@@ -724,7 +743,7 @@ export default function ApplicationShow({ application }) {
                             "Work Profile",
                             "Date Joined",
                             "Date Left",
-                            "Duration",
+                            "Duration (Months)",
                         ]}
                     >
                         {(emp.industrial || []).length > 0 &&
@@ -1045,7 +1064,7 @@ export default function ApplicationShow({ application }) {
                             "Type of Training",
                             "Organisation",
                             "Year",
-                            "Duration",
+                            "Duration (Months)",
                         ]}
                     >
                         {(addInfo.training || []).length > 0 &&

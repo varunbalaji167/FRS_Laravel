@@ -136,7 +136,7 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label>Duration (in years)</Label>
+                        <Label>Duration (in months)</Label>
                         <Input
                             value={present.duration || ""}
                             onChange={(e) =>

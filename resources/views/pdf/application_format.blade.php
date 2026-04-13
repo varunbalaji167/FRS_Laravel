@@ -306,6 +306,7 @@
         <th>Subjects</th>
         <th>Yr. Joined</th>
         <th>Yr. Graduated</th>
+        <th>Duration (Months)</th>
         <th>% / CGPA</th>
         <th>Class / Division</th>
     </tr>
@@ -317,6 +318,7 @@
         <td>{{ $pg['subjects'] ?? 'N/A' }}</td>
         <td>{{ $pg['year_joining'] ?? 'N/A' }}</td>
         <td>{{ $pg['year_graduation'] ?? 'N/A' }}</td>
+        <td>{{ $pg['duration'] ?? 'N/A' }}</td>
         <td>{{ $pg['percentage'] ?? 'N/A' }}</td>
         <td>{{ $pg['division'] ?? 'N/A' }}</td>
     </tr>
@@ -334,6 +336,7 @@
         <th>Subjects</th>
         <th>Yr. Joined</th>
         <th>Yr. Graduated</th>
+        <th>Duration (Months)</th>
         <th>% / CGPA</th>
         <th>Class / Division</th>
     </tr>
@@ -345,6 +348,7 @@
         <td>{{ $ug['subjects'] ?? 'N/A' }}</td>
         <td>{{ $ug['year_joining'] ?? 'N/A' }}</td>
         <td>{{ $ug['year_graduation'] ?? 'N/A' }}</td>
+        <td>{{ $ug['duration'] ?? 'N/A' }}</td>
         <td>{{ $ug['percentage'] ?? 'N/A' }}</td>
         <td>{{ $ug['division'] ?? 'N/A' }}</td>
     </tr>
@@ -391,7 +395,7 @@
         <th>Organization / Institute</th>
         <th>Date of Joining</th>
         <th>Date of Leaving</th>
-        <th>Duration (Yrs)</th>
+        <th>Duration (Months)</th>
     </tr>
     @if(!empty($pres['position']))
     <tr>
@@ -420,7 +424,7 @@
         <th>Organization / Institute</th>
         <th>Date of Joining</th>
         <th>Date of Leaving</th>
-        <th>Duration</th>
+        <th>Duration (Months)</th>
     </tr>
     @forelse($emp['history'] ?? [] as $i => $e)
     <tr>
@@ -444,7 +448,7 @@
         <th>Institute</th>
         <th>Date of Joining</th>
         <th>Date of Leaving</th>
-        <th>Duration</th>
+        <th>Duration (Months)</th>
     </tr>
     @forelse($emp['teaching'] ?? [] as $i => $e)
     <tr>
@@ -469,7 +473,7 @@
         <th>Supervisor</th>
         <th>Date Joined</th>
         <th>Date Left</th>
-        <th>Duration</th>
+        <th>Duration (Months)</th>
     </tr>
     @forelse($emp['research'] ?? [] as $i => $e)
     <tr>
@@ -494,7 +498,7 @@
         <th>Work Profile</th>
         <th>Date Joined</th>
         <th>Date Left</th>
-        <th>Duration</th>
+        <th>Duration (Months)</th>
     </tr>
     @forelse($emp['industrial'] ?? [] as $i => $e)
     <tr>
@@ -693,7 +697,7 @@
         <th>Type of Training</th>
         <th>Organisation</th>
         <th>Year</th>
-        <th>Duration</th>
+        <th>Duration (Months)</th>
     </tr>
     @forelse($info['training'] ?? [] as $i => $tr)
     <tr>
