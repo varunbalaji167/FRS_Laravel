@@ -120,6 +120,29 @@
             margin-bottom: 8px;
             font-size: 8pt;
         }
+        .fixed-table {
+            table-layout: fixed;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        /* Headers get normal wrapping so words don't chop */
+        .fixed-table th {
+            border: 1px solid #94a3b8;
+            padding: 4px 2px;
+            vertical-align: top;
+            text-align: left;
+            background-color: #f1f5f9;
+        }
+        /* Data cells get strict break-all for keyboard-smash testing */
+        .fixed-table td {
+            border: 1px solid #94a3b8;
+            padding: 4px 2px;
+            vertical-align: top;
+            text-align: left;
+            word-wrap: break-word; 
+            word-break: break-all; 
+            overflow-wrap: break-word;
+        }
     </style>
 </head>
 <body>
@@ -891,63 +914,75 @@
 <div class="section-title">8. Detailed List of Publications</div>
 
 <div class="sub-title">(A) Journal Publications</div>
-<table>
-    <tr>
-        <th>#</th>
-        <th>Author(s)</th>
-        <th>Paper Title</th>
-        <th>Journal Name</th>
-        <th>Year</th>
-        <th>Volume</th>
-        <th>Issue</th>
-        <th>Pages</th>
-        <th>Impact Factor</th>
-        <th>DOI</th>
-        <th>Status</th>
-    </tr>
-    @forelse($dpubs['journals'] ?? [] as $i => $pub)
-    <tr>
-        <td>{{ $i + 1 }}</td>
-        <td>{{ $pub['authors'] ?? 'N/A' }}</td>
-        <td>{{ $pub['title'] ?? 'N/A' }}</td>
-        <td>{{ $pub['journal_name'] ?? 'N/A' }}</td>
-        <td>{{ $pub['year'] ?? 'N/A' }}</td>
-        <td>{{ $pub['volume'] ?? 'N/A' }}</td>
-        <td>{{ $pub['issue'] ?? 'N/A' }}</td>
-        <td>{{ $pub['pages'] ?? 'N/A' }}</td>
-        <td>{{ $pub['impact_factor'] ?? 'N/A' }}</td>
-        <td style="font-size:7.5pt;">{{ $pub['doi'] ?? 'N/A' }}</td>
-        <td>{{ $pub['status'] ?? 'N/A' }}</td>
-    </tr>
-    @empty
-    <tr><td colspan="11" class="empty-row">N/A</td></tr>
-    @endforelse
+<table class="fixed-table" style="font-size: 7.5pt;">
+    <thead>
+        <tr>
+            <th style="width: 3%;">#</th>
+            <th style="width: 14%;">Author(s)</th>
+            <th style="width: 18%;">Paper Title</th>
+            <th style="width: 13%;">Journal Name</th>
+            <th style="width: 5%; white-space: nowrap;">Year</th>
+            <th style="width: 5%; white-space: nowrap;">Vol</th>
+            <th style="width: 5%; white-space: nowrap;">Iss</th>
+            <th style="width: 6%;">Pages</th>
+            <th style="width: 5%; white-space: nowrap;">IF</th>
+            <th style="width: 16%;">DOI</th>
+            <th style="width: 10%;">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse($dpubs['journals'] ?? [] as $i => $pub)
+        <tr>
+            <td>{{ $i + 1 }}</td>
+            <td>{{ $pub['authors'] ?? 'N/A' }}</td>
+            <td>{{ $pub['title'] ?? 'N/A' }}</td>
+            <td>{{ $pub['journal_name'] ?? 'N/A' }}</td>
+            <td>{{ $pub['year'] ?? 'N/A' }}</td>
+            <td>{{ $pub['volume'] ?? 'N/A' }}</td>
+            <td>{{ $pub['issue'] ?? 'N/A' }}</td>
+            <td>{{ $pub['pages'] ?? 'N/A' }}</td>
+            <td>{{ $pub['impact_factor'] ?? 'N/A' }}</td>
+            <td style="font-size: 6.5pt; line-height: 1.1;">
+                {{ $pub['doi'] ?? 'N/A' }}
+            </td>
+            <td>{{ $pub['status'] ?? 'N/A' }}</td>
+        </tr>
+        @empty
+        <tr><td colspan="11" class="empty-row">N/A</td></tr>
+        @endforelse
+    </tbody>
 </table>
 
 <div class="sub-title">(B) Conference Publications</div>
-<table>
-    <tr>
-        <th>#</th>
-        <th>Author(s)</th>
-        <th>Paper Title</th>
-        <th>Conference Name</th>
-        <th>Year</th>
-        <th>Pages</th>
-        <th>DOI</th>
-    </tr>
-    @forelse($dpubs['conferences'] ?? [] as $i => $pub)
-    <tr>
-        <td>{{ $i + 1 }}</td>
-        <td>{{ $pub['authors'] ?? 'N/A' }}</td>
-        <td>{{ $pub['title'] ?? 'N/A' }}</td>
-        <td>{{ $pub['conference_name'] ?? 'N/A' }}</td>
-        <td>{{ $pub['year'] ?? 'N/A' }}</td>
-        <td>{{ $pub['pages'] ?? 'N/A' }}</td>
-        <td style="font-size:7.5pt;">{{ $pub['doi'] ?? 'N/A' }}</td>
-    </tr>
-    @empty
-    <tr><td colspan="7" class="empty-row">N/A</td></tr>
-    @endforelse
+<table class="fixed-table" style="font-size: 8pt;">
+    <thead>
+        <tr>
+            <th style="width: 3%;">#</th>
+            <th style="width: 16%;">Author(s)</th>
+            <th style="width: 25%;">Paper Title</th>
+            <th style="width: 18%;">Conference Name</th>
+            <th style="width: 5%; white-space: nowrap;">Year</th>
+            <th style="width: 12%;">Pages</th>
+            <th style="width: 21%;">DOI</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse($dpubs['conferences'] ?? [] as $i => $pub)
+        <tr>
+            <td>{{ $i + 1 }}</td>
+            <td>{{ $pub['authors'] ?? 'N/A' }}</td>
+            <td>{{ $pub['title'] ?? 'N/A' }}</td>
+            <td>{{ $pub['conference_name'] ?? 'N/A' }}</td>
+            <td>{{ $pub['year'] ?? 'N/A' }}</td>
+            <td>{{ $pub['pages'] ?? 'N/A' }}</td>
+            <td style="font-size: 7pt; line-height: 1.1;">
+                {{ $pub['doi'] ?? 'N/A' }}
+            </td>
+        </tr>
+        @empty
+        <tr><td colspan="7" class="empty-row">N/A</td></tr>
+        @endforelse
+    </tbody>
 </table>
 
 {{-- ═══════════════════════════════════════════════════════════
