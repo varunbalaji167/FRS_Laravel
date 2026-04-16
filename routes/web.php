@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\ApplicationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecruitmentController;
+use App\Models\Advertisement;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -14,6 +15,10 @@ Route::get('/', function () {
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
+        'advertisements' => Advertisement::where('is_active', true)
+            ->latest()
+            ->take(5)
+            ->get(['id', 'reference_number', 'title', 'deadline', 'departments', 'document_path']),
     ]);
 });
 
@@ -59,8 +64,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/jobs', [RecruitmentController::class, 'adminIndex'])->name('jobs.index');
     Route::get('/jobs/create', [RecruitmentController::class, 'create'])->name('jobs.create');
     Route::post('/jobs', [RecruitmentController::class, 'store'])->name('jobs.store');
-    
-    // Users Management 
+
+    // Users Management
     Route::get('/users', [AdminController::class, 'users'])->name('users.index');
     Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
     Route::patch('/users/{user}/role', [AdminController::class, 'updateRole'])->name('users.update-role');
