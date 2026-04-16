@@ -92,7 +92,6 @@ class RecruitmentController extends Controller
                 }
                 break;
 
-                // -----------------------------------------------------------------
             case 3:
                 $phd = $formData['education']['phd'] ?? [];
 
@@ -104,15 +103,19 @@ class RecruitmentController extends Controller
                 }
 
                 $dateJoining = $phd['date_joining'] ?? '';
-
                 if (empty($dateJoining)) {
-                    $errors['phd.date_joining'] = 'Year of joining is required.';
-                } elseif (
-                    ! is_numeric($dateJoining) ||
-                    (int) $dateJoining < 1950 ||
-                    (int) $dateJoining > (int) date('Y')
-                ) {
-                    $errors['phd.date_joining'] = 'Enter a valid year.';
+                    $errors['phd.date_joining'] = 'Date of joining is required.';
+                } else {
+                    // Extract the year from the YYYY-MM-DD string
+                    $year = (int) substr($dateJoining, 0, 4);
+                    // Validate that it is a valid date string and falls within the acceptable year range
+                    if (
+                        ! strtotime($dateJoining) ||
+                        $year < 1950 ||
+                        $year > (int) date('Y')
+                    ) {
+                        $errors['phd.date_joining'] = 'Enter a valid date between 1950 and the current year.';
+                    }
                 }
                 break;
 
