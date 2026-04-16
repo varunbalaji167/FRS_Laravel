@@ -104,13 +104,13 @@ class RecruitmentController extends Controller
                 }
                 $yearJoining = $phd['year_joining'] ?? '';
                 if (empty($yearJoining)) {
-                    $errors['phd.year_joining'] = 'Year of joining is required.';
+                    $errors['phd.date_joining'] = 'Year of joining is required.';
                 } elseif (
                     ! is_numeric($yearJoining) ||
                     (int) $yearJoining < 1950 ||
                     (int) $yearJoining > (int) date('Y')
                 ) {
-                    $errors['phd.year_joining'] = 'Enter a valid year.';
+                    $errors['phd.date_joining'] = 'Enter a valid year.';
                 }
                 break;
 
