@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'CS Dept HOD',
             'email' => 'hod.cse@iiti.ac.in',
             'password' => Hash::make('password'),
+            'department' => 'Computer Science and Engineering',
             'role' => 'hod',
         ]);
 

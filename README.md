@@ -61,36 +61,49 @@ sequenceDiagram
     participant App as Applicant
     participant HOD as Head of Department
     participant DB as Database (MySQL 8.4)
-    participant M as Mailpit (SMTP)
+    participant M as Mailpit (SMTP Interface)
 
     Note over A, DB: 1. Advertisement Phase
-    A->>DB: Post Job (Consolidated PDF + Dept/Grade Mapping)
+    A->>DB: Post Job (Reference No, Depts, PDF)
     
-    Note over App, DB: 2. Application Phase (11-Steps)
-    App->>DB: Initialize Application
+    Note over App, DB: 2. Drafting Phase (Steps 1-10)
     
-    rect rgb(240, 246, 255)
-        Note right of App: Persistence Layer
-        App->>DB: "Save & Next" (Incremental JSON Sync)
-        DB-->>App: State Acknowledged
+    alt Save Draft and Exit
+        App->>DB: POST /save-draft (Persist current step data)
+        DB-->>App: 200 OK / Redirect
+    else Save & Next
+        App->>App: Frontend Validation (Vue/React Check)
+        Note right of App: No DB hit - UI State Update
+        App->>App: Transition to Next Step
     end
 
-    Note over App, DB: 3. Final Submission
-    App->>DB: Final Submit (Step 11 + File Hardening)
+    Note over App, DB: 3. Final Submission (Step 11)
+    App->>DB: POST /submit (Full Form Data)
     
-    par Async Notifications
-        DB->>M: Notify Applicant (Confirmation)
-        DB->>M: Notify Referees (Request for Reference)
+    rect rgb(255, 245, 230)
+        Note right of DB: Laravel Backend Validation
+        DB->>DB: Validate all 11 steps & File presence
+    end
+
+    alt Validation Fails
+        DB-->>App: 422 Error (Return to specific step)
+    else Validation Passes
+        DB->>DB: Harden Status to 'submitted'
+        par Local Mail Testing
+            DB->>M: Dispatch Confirmation Email
+            DB->>M: Dispatch Referee Requests
+        end
+        DB-->>App: Success Response
     end
 
     Note over HOD, DB: 4. Departmental Review
-    HOD->>DB: Access Dept-Scoped Dashboard
-    DB-->>HOD: Filtered Applications (Specific Discipline Only)
-    HOD->>HOD: Review Detailed Dossier (Steps 1-11)
+    HOD->>DB: Access Dashboard (Middleware: Role:HOD)
+    DB-->>HOD: Filtered Apps (e.g., 'CSE' only)
     HOD->>DB: Transition Status (Shortlist / Reject)
 
     Note over A, DB: 5. Institutional Finalization
-    A->>DB: Global Export (CSV/PDF) for Interview Panel
+    A->>DB: Global Export (CSV/PDF Generation)
+    Note right of A: Files stored in local storage/app
 ```
 
 ## Feature Deep-Dive
@@ -190,6 +203,7 @@ The system uses **PHP 8.5** and **MySQL 8.4** as defined in `compose.yaml`.
 ```bash
 ./vendor/bin/sail artisan key:generate
 ./vendor/bin/sail artisan migrate --seed
+./vendor/bin/sail artisan db:seed --class=DepartmentSeeder
 ```
 
 ---
