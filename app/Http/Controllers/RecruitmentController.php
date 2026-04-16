@@ -102,13 +102,15 @@ class RecruitmentController extends Controller
                 if (empty(trim((string) ($phd['department'] ?? '')))) {
                     $errors['phd.department'] = 'Department is required.';
                 }
-                $yearJoining = $phd['year_joining'] ?? '';
-                if (empty($yearJoining)) {
+
+                $dateJoining = $phd['date_joining'] ?? '';
+
+                if (empty($dateJoining)) {
                     $errors['phd.date_joining'] = 'Year of joining is required.';
                 } elseif (
-                    ! is_numeric($yearJoining) ||
-                    (int) $yearJoining < 1950 ||
-                    (int) $yearJoining > (int) date('Y')
+                    ! is_numeric($dateJoining) ||
+                    (int) $dateJoining < 1950 ||
+                    (int) $dateJoining > (int) date('Y')
                 ) {
                     $errors['phd.date_joining'] = 'Enter a valid year.';
                 }
