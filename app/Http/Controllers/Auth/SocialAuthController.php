@@ -66,18 +66,25 @@ class SocialAuthController extends Controller
                 ]);
             }
 
-            // 3. Security Clarity Check: Prevent an existing "applicant" from logging into the "admin" portal
-            if ($user->role !== $intendedRole) {
-                return redirect()->route('login')->with('error', 'Unauthorized. You cannot log in to the '.ucfirst($intendedRole).' portal with these credentials.');
+            // 3. Security Clarity Check: Prevent portal mix-ups
+            if ($intendedRole === 'admin') {
+                // The user clicked the "Institute (Admin / Faculty)" button
+                if (! in_array($user->role, ['admin', 'hod'])) {
+                    return redirect()->route('login')->with('error', 'Unauthorized. You cannot log in to the Institute portal with an applicant account.');
+                }
+            } else {
+                // The user clicked the "Applicant" button
+                if ($user->role !== 'applicant') {
+                    return redirect()->route('login')->with('error', 'Unauthorized. Staff members must use the Institute portal to log in.');
+                }
             }
-
             // 4. Log the user in securely
             Auth::login($user);
 
             // 5. Redirect them to their proper dashboard
             if (in_array($user->role, ['admin', 'hod'])) {
-                // Redirecting directly to the URL path (e.g., /admin/dashboard or /hod/dashboard)
-                return redirect("/{$user->role}/dashboard")->with('success', 'Welcome back to the Institute Portal!');
+                // Dynamically use the route names: 'admin.dashboard' or 'hod.dashboard'
+                return redirect()->route("{$user->role}.dashboard")->with('success', 'Welcome back to the Institute Portal!');
             }
 
             return redirect()->route('dashboard')->with('success', 'Logged in successfully!');
