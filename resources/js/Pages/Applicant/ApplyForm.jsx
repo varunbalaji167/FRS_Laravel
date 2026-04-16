@@ -222,24 +222,31 @@ export default function ApplyForm({
 
         if (step === 3) {
             const phd = data.form_data.education?.phd || {};
+
             if (!phd.university?.trim()) {
                 newErrors["phd.university"] = "University is required";
                 isValid = false;
             }
+
             if (!phd.department?.trim()) {
                 newErrors["phd.department"] = "Department is required";
                 isValid = false;
             }
-            if (!phd.year_joining) {
-                newErrors["phd.year_joining"] = "Year of joining is required";
+            if (!phd.date_joining) {
+                newErrors["phd.date_joining"] = "Date of joining is required";
                 isValid = false;
-            } else if (
-                isNaN(Number(phd.year_joining)) ||
-                Number(phd.year_joining) < 1950 ||
-                Number(phd.year_joining) > new Date().getFullYear()
-            ) {
-                newErrors["phd.year_joining"] = "Enter a valid year";
-                isValid = false;
+            } else {
+                const joiningDate = new Date(phd.date_joining);
+                const currentYear = new Date().getFullYear();
+
+                if (
+                    isNaN(joiningDate.getTime()) ||
+                    joiningDate.getFullYear() < 1950 ||
+                    joiningDate.getFullYear() > currentYear
+                ) {
+                    newErrors["phd.date_joining"] = "Enter a valid date";
+                    isValid = false;
+                }
             }
         }
 
