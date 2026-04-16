@@ -245,137 +245,173 @@ resources/js
 
 This section provides a technical map of the system's communication layer, categorized by user role. Each endpoint follows the **Inertia.js protocol**, where the backend provides a JSON state that the React frontend renders into a seamless SPA experience.
 
----
-
-### 1. Authentication Endpoints (Public & Guest)
-
-These endpoints manage user access and identity verification using Laravel Breeze and Socialite.
-
-#### Authentication Routes
-
-| Method | Endpoint | Controller Function | Flow |
-|--------|----------|--------------------|------|
-| GET | `/register` | RegisteredUserController@create | User → Controller → Inertia renders `Auth/Register.jsx` |
-| POST | `/register` | RegisteredUserController@store | User submits form → Validate → Create user in DB → Redirect to Dashboard |
-| GET | `/login` | AuthenticatedSessionController@create | User → Controller → Inertia renders `Auth/Login.jsx` |
-| POST | `/login` | AuthenticatedSessionController@store | Validate credentials → Start session → Redirect |
-| POST | `/logout` | AuthenticatedSessionController@destroy | Invalidate session → Redirect to home |
+- Refer /routes/web.php and /routes/auth.php
 
 ---
 
-#### Social Authentication (Google OAuth)
+### **1. Authentication Endpoints (Public & Guest)**
 
-| Method | Endpoint | Controller Function | Flow |
-|--------|----------|--------------------|------|
-| GET | `/auth/google` | SocialAuthController@redirectToGoogle | Redirect to Google OAuth |
-| GET | `/auth/google/callback` | SocialAuthController@handleGoogleCallback | Google → Controller → Fetch user → Login/Create → Redirect |
+These endpoints manage user authentication using Laravel Breeze + Socialite.
 
----
+#### **Authentication Routes**
 
-#### Password Management
-
-| Method | Endpoint | Controller | Flow |
-|--------|----------|------------|------|
-| GET/POST | `/forgot-password` | PasswordController | Request password reset |
-| GET/POST | `/reset-password` | PasswordController | Reset password via token |
-| PUT | `/password` | PasswordController | Update existing password |
+| **Method** | **Endpoint** | **Controller Function** | **Flow** |
+| --- | --- | --- | --- |
+| GET | /register | RegisteredUserController@create | Render registration page |
+| POST | /register | RegisteredUserController@store | Validate → Create user → Redirect |
+| GET | /login | AuthenticatedSessionController@create | Render login page |
+| POST | /login | AuthenticatedSessionController@store | Validate → Start session → Redirect |
+| POST | /logout | AuthenticatedSessionController@destroy | Logout → Session destroyed |
 
 ---
 
-### 2. Profile Management Endpoints (Authenticated)
+#### **Social Authentication (Google OAuth)**
 
-#### User Profile & Security
-
-| Method | Endpoint | Controller Function | Flow |
-|--------|----------|--------------------|------|
-| GET | `/profile` | ProfileController@edit | Render Master Profile / Account Settings |
-| PATCH | `/profile` | ProfileController@update | Update name/image → Role-based redirect |
-| DELETE | `/profile` | ProfileController@destroy | Validate password → Delete user + associated data |
+| **Method** | **Endpoint** | **Controller Function** | **Flow** |
+| --- | --- | --- | --- |
+| GET | /auth/google | SocialAuthController@redirect | Redirect to Google OAuth |
+| GET | /auth/google/callback | SocialAuthController@callback | Handle Google response → Login/Register → Redirect |
 
 ---
 
-### 3. Applicant Recruitment Endpoints (Authenticated)
+#### **Password Management**
 
-Handles the 11-step application process and applicant dashboard.
-
-#### Applicant Features
-
-| Method | Endpoint | Controller Function | Flow |
-|--------|----------|--------------------|------|
-| GET | `/dashboard` | RecruitmentController@index | Fetch advertisements → Check application status → Render dashboard |
-| GET | `/my-applications` | RecruitmentController@myApplications | Fetch user applications → Format metadata → Render view |
-| GET | `/jobs/{advertisement}/apply` | RecruitmentController@showApplyForm | Check draft → Render form with pre-filled data |
+| **Method** | **Endpoint** | **Controller Function** | **Flow** |
+| --- | --- | --- | --- |
+| GET | /forgot-password | PasswordResetLinkController@create | Show reset request form |
+| POST | /forgot-password | PasswordResetLinkController@store | Send reset link email |
+| GET | /reset-password/{token} | NewPasswordController@create | Show reset form |
+| POST | /reset-password | NewPasswordController@store | Reset password |
+| PUT | /password | PasswordController@update | Update password (auth required) |
 
 ---
 
-#### Application Actions
+#### **Email Verification**
 
-| Method | Endpoint | Controller Function | Flow |
-|--------|----------|--------------------|------|
-| POST | `/jobs/{advertisement}/draft` | RecruitmentController@saveDraft | Save partial data → `updateOrCreate` → Store as JSON draft |
-| POST | `/jobs/{advertisement}/submit` | RecruitmentController@submitApplication | Validate → Store files → Update status → Trigger emails |
-| GET | `/applications/{id}/export/pdf` | RecruitmentController@exportPdf | Generate PDF → Stream download |
-
----
-### 4. Administrative Management Endpoints (Admin Only)
-
-Restricted via **`CheckRole` middleware**.
-
-#### Admin Dashboard, Users & Departments
-
-| Method | Endpoint | Controller Function | Flow |
-|--------|----------|--------------------|------|
-| GET | `/admin/dashboard` | AdminController@dashboard | Aggregate global stats → Render Super Admin dashboard |
-| GET | `/admin/users` | AdminController@users | Fetch HODs/Applicants → Render management list |
-| GET | `/admin/settings` | AdminController@settings | Fetch departments → Render department management UI |
-| POST | `/admin/departments` | AdminController@storeDepartment | Validate name → Create new academic department |
-| DELETE | `/admin/departments/{id}` | AdminController@destroyDepartment | Remove department → Return to settings |
+| **Method** | **Endpoint** | **Controller Function** | **Flow** |
+| --- | --- | --- | --- |
+| GET | /verify-email | EmailVerificationPromptController | Show verification notice |
+| GET | /verify-email/{id}/{hash} | VerifyEmailController | Verify email |
+| POST | /email/verification-notification | EmailVerificationNotificationController@store | Resend verification email |
 
 ---
 
-#### Job & Global Application Management
+### **2. Profile Management Endpoints (Authenticated)**
 
-| Method | Endpoint | Controller Function | Flow |
-|--------|----------|--------------------|------|
-| GET | `/admin/jobs` | RecruitmentController@index | List all active/inactive advertisements |
-| POST | `/admin/jobs` | RecruitmentController@store | Validate → Store PDF → Map Departments/Grades → Publish |
-| GET | `/admin/applications` | Admin\ApplicationController@index | Fetch all submitted applications (cross-department) |
-| GET | `/admin/applications/{id}` | Admin\ApplicationController@show | Retrieve full 11-step dossier → Render read-only view |
+#### **User Profile**
 
----
-
-### 5. Departmental Review Endpoints (HOD Only)
-
-Restricted to users with the **`hod` role**, scoped to their assigned department.
-
-| Method | Endpoint | Controller Function | Flow |
-|--------|----------|--------------------|------|
-| GET | `/hod/dashboard` | AdminController@dashboard | Fetch department-scoped stats → Render HOD dashboard |
-| GET | `/hod/applications` | Admin\ApplicationController@index | List applications for HOD's department only |
-| GET | `/hod/applications/{id}` | Admin\ApplicationController@show | Detailed review of departmental applicant dossier |
-| PATCH | `/hod/applications/{id}` | Admin\ApplicationController@updateStatus | Transition status (*Shortlisted / Rejected*) |
+| **Method** | **Endpoint** | **Controller Function** | **Flow** |
+| --- | --- | --- | --- |
+| GET | /profile | ProfileController@edit | Render profile page |
+| PATCH | /profile | ProfileController@update | Update profile details |
+| DELETE | /profile | ProfileController@destroy | Delete user account |
 
 ---
 
-### 6. Background Logic & Notifications
+### **3. Applicant Recruitment Endpoints (Authenticated + role:applicant)**
 
-These processes are **decoupled from the UI** and triggered by lifecycle events.
+#### **Applicant Dashboard & Applications**
 
-#### Mail Services
+| **Method** | **Endpoint** | **Controller Function** | **Flow** |
+| --- | --- | --- | --- |
+| GET | /dashboard | RecruitmentController@index | Show applicant dashboard |
+| GET | /applications | RecruitmentController@myApplications | List user’s applications |
+| GET | /applications/{id} | RecruitmentController@show | View single application |
 
-| Service | File | Flow |
-|--------|------|------|
-| ApplicationSubmitted | `app/Mail/ApplicationSubmitted.php` | Triggered on final submission → Sends confirmation + PDF |
-| RefereeNotification | `app/Mail/RefereeNotification.php` | Triggered on submission → Requests referee recommendations |
+---
+
+#### **Application Export**
+
+| **Method** | **Endpoint** | **Controller Function** | **Flow** |
+| --- | --- | --- | --- |
+| GET | /applications/{id}/export/pdf | RecruitmentController@exportPdf | Download PDF |
+| GET | /applications/{id}/export/excel | RecruitmentController@exportExcel | Download Excel |
 
 ---
 
-#### Storage & Export Logic
+#### **Application Workflow**
 
-| Type | Path / Engine | Description |
-|------|--------------|-------------|
-| Profile Images | `storage/app/public/profiles/{user_id}` | Linked to user profile and application dossier |
-| Certificates | `storage/app/public/applications/{user_id}/{adv_id}/` | Scoped storage per user and advertisement |
-| PDF Generation | `dompdf` | Generates consolidated 11-step application for review |
+| **Method** | **Endpoint** | **Controller Function** | **Flow** |
+| --- | --- | --- | --- |
+| GET | /apply/{advertisement} | RecruitmentController@showApplyForm | Show application form |
+| POST | /apply/{advertisement}/draft | RecruitmentController@saveDraft | Save draft |
+| POST | /apply/{advertisement}/submit | RecruitmentController@submitApplication | Submit final application |
 
 ---
+
+### **4. Admin Management Endpoints (Authenticated + role:admin)**
+
+> All routes prefixed with /admin
+> 
+
+---
+
+#### **Admin Dashboard & Settings**
+
+| **Method** | **Endpoint** | **Controller Function** | **Flow** |
+| --- | --- | --- | --- |
+| GET | /admin | AdminController@dashboard | Admin dashboard |
+| GET | /admin/settings | AdminController@settings | Manage settings |
+| POST | /admin/departments | AdminController@storeDepartment | Create department |
+| DELETE | /admin/departments/{department} | AdminController@destroyDepartment | Delete department |
+
+---
+
+#### **User Management**
+
+| **Method** | **Endpoint** | **Controller Function** | **Flow** |
+| --- | --- | --- | --- |
+| GET | /admin/users | AdminController@users | List users |
+| POST | /admin/users | AdminController@storeUser | Create user |
+| PATCH | /admin/users/{user}/role | AdminController@updateRole | Update role |
+| DELETE | /admin/users/{user} | AdminController@destroyUser | Delete user |
+
+---
+
+#### **Job Management**
+
+| **Method** | **Endpoint** | **Controller Function** | **Flow** |
+| --- | --- | --- | --- |
+| GET | /admin/jobs | RecruitmentController@adminIndex | List jobs |
+| GET | /admin/jobs/create | RecruitmentController@create | Show job creation form |
+| POST | /admin/jobs | RecruitmentController@store | Create job |
+
+---
+
+#### **Application Management (Admin)**
+
+| **Method** | **Endpoint** | **Controller Function** | **Flow** |
+| --- | --- | --- | --- |
+| GET | /admin/applications | ApplicationController@index | List all applications |
+| GET | /admin/applications/{id} | ApplicationController@show | View application |
+| PATCH | /admin/applications/{id} | ApplicationController@updateStatus | Update status |
+| GET | /admin/applications/{id}/export/pdf | ApplicationController@exportPdf | Export PDF |
+| GET | /admin/applications/{id}/export/excel | ApplicationController@exportExcel | Export Excel |
+
+---
+
+### **5. HOD Endpoints (Authenticated + role:hod)**
+
+> All routes prefixed with /hod
+> 
+
+---
+
+#### **HOD Dashboard & Settings**
+
+| **Method** | **Endpoint** | **Controller Function** | **Flow** |
+| --- | --- | --- | --- |
+| GET | /hod | AdminController@dashboard | HOD dashboard |
+| GET | /hod/settings | AdminController@settings | View settings |
+
+---
+
+#### **Department Applications (Scoped)**
+
+| **Method** | **Endpoint** | **Controller Function** | **Flow** |
+| --- | --- | --- | --- |
+| GET | /hod/applications | ApplicationController@index | List department applications |
+| GET | /hod/applications/{id} | ApplicationController@show | View application |
+| PATCH | /hod/applications/{id} | ApplicationController@updateStatus | Update status |
+| GET | /hod/applications/{id}/export/pdf | ApplicationController@exportPdf | Export PDF |
+| GET | /hod/applications/{id}/export/excel | ApplicationController@exportExcel | Export Excel |
