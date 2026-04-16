@@ -36,6 +36,18 @@ export default function UsersIndex({ users, departments }) {
         department: "",
     });
 
+    const takenDepartments = users.data
+        .filter((user) => user.role === "hod" && user.department)
+        .map((user) => user.department);
+    const getAvailableDepartments = (currentEditingUserDept = null) => {
+        return departments.filter((dept) => {
+            return (
+                !takenDepartments.includes(dept.name) ||
+                dept.name === currentEditingUserDept
+            );
+        });
+    };
+
     function openEditModal(user) {
         setEditingUser(user);
         editForm.setData({
@@ -47,7 +59,6 @@ export default function UsersIndex({ users, departments }) {
     function submitEdit(e) {
         e.preventDefault();
 
-        // VALIDATION: Prevent assigning admin/hod to non-iiti emails
         if (
             ["admin", "hod"].includes(editForm.data.role) &&
             !editingUser.email.endsWith("@iiti.ac.in")
@@ -73,7 +84,6 @@ export default function UsersIndex({ users, departments }) {
     function submitCreate(e) {
         e.preventDefault();
 
-        // VALIDATION: Prevent creating admin/hod with non-iiti emails
         if (
             ["admin", "hod"].includes(createForm.data.role) &&
             !createForm.data.email.endsWith("@iiti.ac.in")
@@ -97,10 +107,9 @@ export default function UsersIndex({ users, departments }) {
     }
 
     function deleteUser(user) {
-        // Use Sonner's action toast instead of window.confirm
         toast.error(`Delete ${user.name}?`, {
             description: "This action cannot be undone.",
-            duration: 8000, // Keep it on screen a bit longer so they can click
+            duration: 8000,
             action: {
                 label: "Confirm Delete",
                 onClick: () =>
@@ -307,7 +316,9 @@ export default function UsersIndex({ users, departments }) {
                                         <option value="">
                                             -- Select Department --
                                         </option>
-                                        {departments.map((dept) => (
+                                        {getAvailableDepartments(
+                                            editingUser.department,
+                                        ).map((dept) => (
                                             <option
                                                 key={dept.id}
                                                 value={dept.name}
@@ -459,14 +470,16 @@ export default function UsersIndex({ users, departments }) {
                                         <option value="">
                                             -- Select Department --
                                         </option>
-                                        {departments.map((dept) => (
-                                            <option
-                                                key={dept.id}
-                                                value={dept.name}
-                                            >
-                                                {dept.name}
-                                            </option>
-                                        ))}
+                                        {getAvailableDepartments().map(
+                                            (dept) => (
+                                                <option
+                                                    key={dept.id}
+                                                    value={dept.name}
+                                                >
+                                                    {dept.name}
+                                                </option>
+                                            ),
+                                        )}
                                     </select>
                                 </div>
                             )}
