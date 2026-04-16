@@ -2,6 +2,7 @@ import { Label } from "@/Components/ui/label";
 import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
 import { PlusCircle, Trash2 } from "lucide-react";
+import { calculateDuration } from "@/lib/dateUtils";
 
 export default function Step3Education({ data, setData, localErrors = {} }) {
     const edu = data.form_data.education || {};
@@ -9,10 +10,11 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
         university: "",
         department: "",
         supervisor: "",
-        year_joining: "",
+        date_joining: "",
         date_defence: "",
         date_award: "",
         title: "",
+        duration: "",
     };
     const pg = edu.pg || [];
     const ug = edu.ug || [];
@@ -39,20 +41,51 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                       division: "",
                   },
               ];
+
+    // Get today's date string in YYYY-MM-DD format for the 'max' attribute
+    const todayStr = new Date().toISOString().split("T")[0];
+
     const updateEduSection = (section, newValue) =>
         setData("form_data", {
             ...data.form_data,
             education: { ...edu, [section]: newValue },
         });
-    const handlePhdChange = (field, value) =>
-        updateEduSection("phd", { ...phd, [field]: value });
+
+    const handlePhdChange = (field, value) => {
+        // Prevent manual entry of future dates
+        if (field.startsWith("date_") && value > todayStr) return;
+
+        const updatedPhd = { ...phd, [field]: value };
+
+        // Auto-calculate duration for PhD (From Joining -> Award, or Defence if Award is empty)
+        if (["date_joining", "date_defence", "date_award"].includes(field)) {
+            const endDate = updatedPhd.date_defence || updatedPhd.date_award;
+            updatedPhd.duration = calculateDuration(
+                updatedPhd.date_joining,
+                endDate,
+            );
+        }
+
+        updateEduSection("phd", updatedPhd);
+    };
 
     const handleArrayChange = (section, index, field, value) => {
+        // Prevent manual entry of future dates (applies to dates, skips year fields for school)
+        if (field.startsWith("date_") && value > todayStr) return;
+
         const sourceArray = section === "school" ? school : edu[section] || [];
-
         const arr = [...sourceArray];
-        arr[index] = { ...arr[index], [field]: value };
+        const updatedItem = { ...arr[index], [field]: value };
 
+        // Auto-calculate duration for UG/PG if dates change
+        if (field === "date_joining" || field === "date_graduation") {
+            updatedItem.duration = calculateDuration(
+                updatedItem.date_joining,
+                updatedItem.date_graduation,
+            );
+        }
+
+        arr[index] = updatedItem;
         updateEduSection(section, arr);
     };
 
@@ -66,170 +99,160 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
     };
 
     const renderDegreeRow = (section, index, item) => {
-        // Calculate max months dynamically based on the inclusive years
-        let maxMonths = "";
-        const yJ = parseInt(item.year_joining);
-        const yG = parseInt(item.year_graduation);
-
-        if (!isNaN(yJ) && !isNaN(yG) && yG >= yJ) {
-            maxMonths = (yG - yJ + 1) * 12; // e.g. (2025 - 2023 + 1) * 12 = 36
-        }
-
-        // Auto-clamp the duration if they type a number higher than the calculated max
-        const handleDurationChange = (e) => {
-            let val = e.target.value;
-            if (maxMonths !== "" && parseInt(val) > maxMonths) {
-                val = maxMonths.toString();
-            }
-            handleArrayChange(section, index, "duration", val);
-        };
-
         return (
             <div
                 key={index}
-                className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-white border border-slate-200 rounded-lg relative mt-2 shadow-sm"
+                className="relative p-4 pt-12 bg-white border border-slate-200 rounded-lg mt-3 shadow-sm group"
             >
                 <div className="absolute top-2 right-2">
                     <Button
                         type="button"
                         variant="ghost"
-                        size="sm"
                         onClick={() => removeArrayItem(section, index)}
-                        className="text-red-500"
+                        className="h-8 w-8 p-0 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors flex items-center justify-center"
                     >
                         <Trash2 className="h-4 w-4" />
                     </Button>
                 </div>
 
-                <div className="space-y-2">
-                    <Label>Degree</Label>
-                    <Input
-                        value={item.degree || ""}
-                        onChange={(e) =>
-                            handleArrayChange(
-                                section,
-                                index,
-                                "degree",
-                                e.target.value,
-                            )
-                        }
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label>University/Institute</Label>
-                    <Input
-                        value={item.university || ""}
-                        onChange={(e) =>
-                            handleArrayChange(
-                                section,
-                                index,
-                                "university",
-                                e.target.value,
-                            )
-                        }
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label>Subjects</Label>
-                    <Input
-                        value={item.subjects || ""}
-                        onChange={(e) =>
-                            handleArrayChange(
-                                section,
-                                index,
-                                "subjects",
-                                e.target.value,
-                            )
-                        }
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label>Year of Joining</Label>
-                    <Input
-                        value={item.year_joining || ""}
-                        onChange={(e) =>
-                            handleArrayChange(
-                                section,
-                                index,
-                                "year_joining",
-                                e.target.value,
-                            )
-                        }
-                        type="number"
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label>Year of Graduation</Label>
-                    <Input
-                        value={item.year_graduation || ""}
-                        onChange={(e) =>
-                            handleArrayChange(
-                                section,
-                                index,
-                                "year_graduation",
-                                e.target.value,
-                            )
-                        }
-                        type="number"
-                    />
-                </div>
-
-                {/* NEW FIELD: Duration */}
-                <div className="flex flex-col justify-end h-full">
-                    <div className="flex justify-between items-end mb-2 min-h-[20px]">
-                        <Label>Duration (Months)</Label>
-                        {maxMonths && (
-                            <span className="text-[10px] text-slate-400 font-medium leading-none mb-0.5">
-                                Max: {maxMonths}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                    <div className="space-y-2">
+                        <Label>Degree</Label>
+                        <Input
+                            value={item.degree || ""}
+                            onChange={(e) =>
+                                handleArrayChange(
+                                    section,
+                                    index,
+                                    "degree",
+                                    e.target.value,
+                                )
+                            }
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>University/Institute</Label>
+                        <Input
+                            value={item.university || ""}
+                            onChange={(e) =>
+                                handleArrayChange(
+                                    section,
+                                    index,
+                                    "university",
+                                    e.target.value,
+                                )
+                            }
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Subjects</Label>
+                        <Input
+                            value={item.subjects || ""}
+                            onChange={(e) =>
+                                handleArrayChange(
+                                    section,
+                                    index,
+                                    "subjects",
+                                    e.target.value,
+                                )
+                            }
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Date of Joining</Label>
+                        <Input
+                            type="date"
+                            max={todayStr}
+                            value={item.date_joining || ""}
+                            onChange={(e) =>
+                                handleArrayChange(
+                                    section,
+                                    index,
+                                    "date_joining",
+                                    e.target.value,
+                                )
+                            }
+                            className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Date of Graduation</Label>
+                        <Input
+                            type="date"
+                            max={todayStr}
+                            value={item.date_graduation || ""}
+                            onChange={(e) =>
+                                handleArrayChange(
+                                    section,
+                                    index,
+                                    "date_graduation",
+                                    e.target.value,
+                                )
+                            }
+                            className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label className="whitespace-nowrap">
+                            Duration (YY-MM-DD)
+                        </Label>
+                        <Input
+                            readOnly
+                            value={item.duration || ""}
+                            className="bg-slate-100 text-slate-600 focus-visible:ring-0"
+                            placeholder="00-00-00"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label className="flex flex-col">
+                            <span>Percentage (%)</span>
+                            <span className="text-[10px] text-slate-500 font-normal mt-0.5 leading-tight">
+                                Convert CGPA to % (e.g., 9.8/10 = 98%, 4.5/5 =
+                                90%)
                             </span>
-                        )}
-                    </div>
-                    <Input
-                        value={item.duration || ""}
-                        onChange={handleDurationChange}
-                        type="number"
-                        min="0"
-                        max={maxMonths || undefined}
-                        placeholder={
-                            maxMonths ? `e.g. ${maxMonths}` : "e.g. 24"
-                        }
-                    />
-                </div>
+                        </Label>
+                        <Input
+                            type="number"
+                            min="1"
+                            max="100"
+                            step="0.01" // Allows decimals like 98.5
+                            value={item.percentage || ""}
+                            onChange={(e) => {
+                                let val = e.target.value;
 
-                {/* Percentage/CGPA */}
-                <div className="flex flex-col justify-end h-full">
-                    <div className="flex items-end mb-2 min-h-[20px]">
-                        <Label>Percentage/CGPA</Label>
-                    </div>
-                    <Input
-                        value={item.percentage || ""}
-                        onChange={(e) =>
-                            handleArrayChange(
-                                section,
-                                index,
-                                "percentage",
-                                e.target.value,
-                            )
-                        }
-                    />
-                </div>
+                                // Prevent numbers greater than 100
+                                if (val !== "" && parseFloat(val) > 100) {
+                                    val = "100";
+                                }
+                                // Prevent negative numbers
+                                if (val !== "" && parseFloat(val) < 0) {
+                                    val = "";
+                                }
 
-                {/* Division/Class */}
-                <div className="flex flex-col justify-end h-full">
-                    <div className="flex items-end mb-2 min-h-[20px]">
+                                handleArrayChange(
+                                    section,
+                                    index,
+                                    "percentage",
+                                    val,
+                                );
+                            }}
+                            placeholder="e.g. 98"
+                        />
+                    </div>
+                    <div className="space-y-2">
                         <Label>Division/Class</Label>
+                        <Input
+                            value={item.division || ""}
+                            onChange={(e) =>
+                                handleArrayChange(
+                                    section,
+                                    index,
+                                    "division",
+                                    e.target.value,
+                                )
+                            }
+                        />
                     </div>
-                    <Input
-                        value={item.division || ""}
-                        onChange={(e) =>
-                            handleArrayChange(
-                                section,
-                                index,
-                                "division",
-                                e.target.value,
-                            )
-                        }
-                    />
                 </div>
             </div>
         );
@@ -247,12 +270,13 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                 </p>
             </div>
 
+            {/* (A) Ph.D. Details */}
             <div className="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-100">
                 <h4 className="font-bold text-lg text-slate-800">
                     (A) Ph.D. Details
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                    <div className="space-y-2 lg:col-span-2">
                         <Label>
                             University <span className="text-red-500">*</span>
                         </Label>
@@ -268,7 +292,7 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                             }
                         />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 lg:col-span-2">
                         <Label>
                             Department <span className="text-red-500">*</span>
                         </Label>
@@ -284,7 +308,7 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                             }
                         />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 lg:col-span-1">
                         <Label>Name of Supervisor</Label>
                         <Input
                             value={phd.supervisor}
@@ -295,43 +319,59 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                     </div>
                     <div className="space-y-2">
                         <Label>
-                            Year of Joining{" "}
+                            Date of Joining{" "}
                             <span className="text-red-500">*</span>
                         </Label>
                         <Input
-                            type="number"
-                            value={phd.year_joining}
+                            type="date"
+                            max={todayStr}
+                            value={phd.date_joining}
                             onChange={(e) =>
-                                handlePhdChange("year_joining", e.target.value)
+                                handlePhdChange("date_joining", e.target.value)
                             }
-                            className={
-                                localErrors["phd.year_joining"]
+                            className={`w-full [&::-webkit-calendar-picker-indicator]:ml-auto ${
+                                localErrors["phd.date_joining"]
                                     ? "border-red-500"
                                     : ""
-                            }
+                            }`}
                         />
                     </div>
                     <div className="space-y-2">
                         <Label>Date of Defence</Label>
                         <Input
                             type="date"
+                            max={todayStr}
                             value={phd.date_defence}
                             onChange={(e) =>
                                 handlePhdChange("date_defence", e.target.value)
                             }
+                            className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
                         />
                     </div>
                     <div className="space-y-2">
                         <Label>Date of Award</Label>
                         <Input
                             type="date"
+                            max={todayStr}
                             value={phd.date_award}
                             onChange={(e) =>
                                 handlePhdChange("date_award", e.target.value)
                             }
+                            className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
                         />
                     </div>
-                    <div className="space-y-2 md:col-span-3">
+                    <div className="space-y-2">
+                        <Label className="whitespace-nowrap">
+                            Duration (YY-MM-DD)
+                        </Label>
+                        <Input
+                            readOnly
+                            value={phd.duration || ""}
+                            className="bg-slate-100 text-slate-600 focus-visible:ring-0"
+                            placeholder="00-00-00"
+                        />
+                    </div>
+                    <div className="space-y-2 lg:col-span-3">
                         <Label>Title of the Ph.D. Thesis</Label>
                         <Input
                             value={phd.title}
@@ -343,12 +383,12 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                 </div>
             </div>
 
+            {/* (B) Academic Details - PG */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
                     <h4 className="font-bold text-lg text-slate-800">
                         (B) Academic Details - PG
                     </h4>
-                    {/* Updated Template to include duration */}
                     <Button
                         type="button"
                         size="sm"
@@ -358,8 +398,8 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                                 degree: "",
                                 university: "",
                                 subjects: "",
-                                year_joining: "",
-                                year_graduation: "",
+                                date_joining: "",
+                                date_graduation: "",
                                 duration: "",
                                 percentage: "",
                                 division: "",
@@ -372,12 +412,12 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                 {pg.map((item, idx) => renderDegreeRow("pg", idx, item))}
             </div>
 
+            {/* (C) Academic Details - UG */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
                     <h4 className="font-bold text-lg text-slate-800">
                         (C) Academic Details - UG
                     </h4>
-                    {/* Updated Template to include duration */}
                     <Button
                         type="button"
                         size="sm"
@@ -387,8 +427,8 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                                 degree: "",
                                 university: "",
                                 subjects: "",
-                                year_joining: "",
-                                year_graduation: "",
+                                date_joining: "",
+                                date_graduation: "",
                                 duration: "",
                                 percentage: "",
                                 division: "",
@@ -401,6 +441,7 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                 {ug.map((item, idx) => renderDegreeRow("ug", idx, item))}
             </div>
 
+            {/* (D) Academic Details - School */}
             <div className="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-100">
                 <h4 className="font-bold text-lg text-slate-800">
                     (D) Academic Details - School
@@ -408,7 +449,8 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                 {school.map((item, index) => (
                     <div
                         key={index}
-                        className="grid grid-cols-1 md:grid-cols-5 gap-4 bg-white p-4 rounded border border-slate-200 shadow-sm mt-2"
+                        // Added 'items-end' right here so all inputs sit flush at the bottom
+                        className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end bg-white p-4 rounded border border-slate-200 shadow-sm mt-2"
                     >
                         <div className="space-y-2">
                             <Label>Level</Label>
@@ -448,17 +490,39 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Percentage/CGPA</Label>
+                            <Label className="flex flex-col">
+                                <span>Percentage (%)</span>
+                                <span className="text-[10px] text-slate-500 font-normal mt-0.5 leading-tight">
+                                    CGPA to % (e.g., 9.8/10 = 98%)
+                                </span>
+                            </Label>
                             <Input
-                                value={item.percentage}
-                                onChange={(e) =>
+                                type="number"
+                                min="1"
+                                max="100"
+                                step="0.01" // Allows decimals like 98.5
+                                value={item.percentage || ""}
+                                onChange={(e) => {
+                                    let val = e.target.value;
+
+                                    // Prevent numbers greater than 100
+                                    if (val !== "" && parseFloat(val) > 100) {
+                                        val = "100";
+                                    }
+                                    // Prevent negative numbers
+                                    if (val !== "" && parseFloat(val) < 0) {
+                                        val = "";
+                                    }
+
+                                    // Fixed: Changed 'section' variable to "school"
                                     handleArrayChange(
                                         "school",
                                         index,
                                         "percentage",
-                                        e.target.value,
-                                    )
-                                }
+                                        val,
+                                    );
+                                }}
+                                placeholder="e.g. 98"
                             />
                         </div>
                         <div className="space-y-2">

@@ -2,6 +2,7 @@ import { Label } from "@/Components/ui/label";
 import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
 import { PlusCircle, Trash2 } from "lucide-react";
+import { calculateDuration } from "@/lib/dateUtils";
 
 export default function Step4Employment({ data, setData, localErrors = {} }) {
     const emp = data.form_data.employment || {};
@@ -17,20 +18,61 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
     const research = emp.research || [];
     const industrial = emp.industrial || [];
 
+    const todayStr = new Date().toISOString().split("T")[0];
+
     const updateEmpSection = (section, newValue) =>
         setData("form_data", {
             ...data.form_data,
             employment: { ...emp, [section]: newValue },
         });
-    const handlePresentChange = (field, value) =>
-        updateEmpSection("present", { ...present, [field]: value });
+
+    const handlePresentChange = (field, value) => {
+        // Strict block for manual future dates
+        if (
+            (field === "date_joining" || field === "date_leaving") &&
+            value > todayStr
+        ) {
+            return;
+        }
+
+        const updatedPresent = { ...present, [field]: value };
+
+        if (field === "date_joining" || field === "date_leaving") {
+            updatedPresent.duration = calculateDuration(
+                updatedPresent.date_joining,
+                updatedPresent.date_leaving,
+            );
+        }
+
+        updateEmpSection("present", updatedPresent);
+    };
+
     const handleArrayChange = (section, index, field, value) => {
+        // Strict block for manual future dates
+        if (
+            (field === "date_joining" || field === "date_leaving") &&
+            value > todayStr
+        ) {
+            return;
+        }
+
         const arr = [...(emp[section] || [])];
-        arr[index] = { ...arr[index], [field]: value };
+        const updatedItem = { ...arr[index], [field]: value };
+
+        if (field === "date_joining" || field === "date_leaving") {
+            updatedItem.duration = calculateDuration(
+                updatedItem.date_joining,
+                updatedItem.date_leaving,
+            );
+        }
+
+        arr[index] = updatedItem;
         updateEmpSection(section, arr);
     };
+
     const addArrayItem = (section, template) =>
         updateEmpSection(section, [...(emp[section] || []), template]);
+
     const removeArrayItem = (section, index) => {
         const arr = [...(emp[section] || [])];
         arr.splice(index, 1);
@@ -49,11 +91,12 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
                 </p>
             </div>
 
+            {/* (A) Present Employment */}
             <div className="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-100">
                 <h4 className="font-bold text-lg text-slate-800">
                     (A) Present Employment
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                     <div className="space-y-2">
                         <Label>
                             Position <span className="text-red-500">*</span>
@@ -108,6 +151,7 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
                         </Label>
                         <Input
                             type="date"
+                            max={todayStr}
                             value={present.date_joining || ""}
                             onChange={(e) =>
                                 handlePresentChange(
@@ -115,11 +159,11 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
                                     e.target.value,
                                 )
                             }
-                            className={
+                            className={`w-full [&::-webkit-calendar-picker-indicator]:ml-auto ${
                                 localErrors["present.date_joining"]
                                     ? "border-red-500"
                                     : ""
-                            }
+                            }`}
                         />
                         {localErrors["present.date_joining"] && (
                             <p className="text-xs text-red-500">
@@ -136,17 +180,20 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label>Duration (in months)</Label>
+                        <Label className="whitespace-nowrap">
+                            Duration (YY-MM-DD)
+                        </Label>
                         <Input
+                            readOnly
                             value={present.duration || ""}
-                            onChange={(e) =>
-                                handlePresentChange("duration", e.target.value)
-                            }
+                            className="bg-slate-100 text-slate-600 focus-visible:ring-0"
+                            placeholder="00-00-00"
                         />
                     </div>
                 </div>
             </div>
 
+            {/* Experience Eligibility */}
             <div className="space-y-4 bg-blue-50 p-5 rounded-xl border border-blue-100">
                 <h4 className="font-bold text-lg text-blue-900">
                     Experience Eligibility
@@ -182,6 +229,7 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
                 </div>
             </div>
 
+            {/* (B) Employment History */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
                     <h4 className="font-bold text-lg text-slate-800">
@@ -207,93 +255,97 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
                 {history.map((item, idx) => (
                     <div
                         key={idx}
-                        className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 bg-white border rounded-lg relative mt-2 shadow-sm"
+                        className="relative p-4 pt-12 bg-white border border-slate-200 rounded-lg mt-3 shadow-sm group"
                     >
                         <Button
                             type="button"
                             variant="ghost"
-                            size="sm"
                             onClick={() => removeArrayItem("history", idx)}
-                            className="absolute top-2 right-2 text-red-500"
+                            className="absolute top-2 right-2 h-8 w-8 p-0 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors flex items-center justify-center"
+                            title="Remove Entry"
                         >
                             <Trash2 className="h-4 w-4" />
                         </Button>
-                        <div className="space-y-2">
-                            <Label>Position</Label>
-                            <Input
-                                value={item.position || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "history",
-                                        idx,
-                                        "position",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Organization</Label>
-                            <Input
-                                value={item.organization || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "history",
-                                        idx,
-                                        "organization",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Date of Joining</Label>
-                            <Input
-                                type="date"
-                                value={item.date_joining || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "history",
-                                        idx,
-                                        "date_joining",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Date of Leaving</Label>
-                            <Input
-                                type="date"
-                                value={item.date_leaving || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "history",
-                                        idx,
-                                        "date_leaving",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2 pr-8">
-                            <Label>Duration (in years)</Label>
-                            <Input
-                                value={item.duration || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "history",
-                                        idx,
-                                        "duration",
-                                        e.target.value,
-                                    )
-                                }
-                            />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+                            <div className="space-y-2">
+                                <Label>Position</Label>
+                                <Input
+                                    value={item.position || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "history",
+                                            idx,
+                                            "position",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Organization</Label>
+                                <Input
+                                    value={item.organization || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "history",
+                                            idx,
+                                            "organization",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Date of Joining</Label>
+                                <Input
+                                    type="date"
+                                    max={todayStr}
+                                    value={item.date_joining || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "history",
+                                            idx,
+                                            "date_joining",
+                                            e.target.value,
+                                        )
+                                    }
+                                    className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Date of Leaving</Label>
+                                <Input
+                                    type="date"
+                                    max={todayStr}
+                                    value={item.date_leaving || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "history",
+                                            idx,
+                                            "date_leaving",
+                                            e.target.value,
+                                        )
+                                    }
+                                    className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="whitespace-nowrap">
+                                    Duration (YY-MM-DD)
+                                </Label>
+                                <Input
+                                    readOnly
+                                    value={item.duration || ""}
+                                    className="bg-slate-100 text-slate-600 focus-visible:ring-0"
+                                    placeholder="00-00-00"
+                                />
+                            </div>
                         </div>
                     </div>
                 ))}
             </div>
 
+            {/* (C) Teaching Experience */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
                     <h4 className="font-bold text-lg text-slate-800">
@@ -322,136 +374,140 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
                 {teaching.map((item, idx) => (
                     <div
                         key={idx}
-                        className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-white border rounded-lg relative mt-2 shadow-sm"
+                        className="relative p-4 pt-12 bg-white border border-slate-200 rounded-lg mt-3 shadow-sm group"
                     >
                         <Button
                             type="button"
                             variant="ghost"
-                            size="sm"
                             onClick={() => removeArrayItem("teaching", idx)}
-                            className="absolute top-2 right-2 text-red-500"
+                            className="absolute top-2 right-2 h-8 w-8 p-0 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors flex items-center justify-center"
+                            title="Remove Entry"
                         >
                             <Trash2 className="h-4 w-4" />
                         </Button>
-                        <div className="space-y-2">
-                            <Label>Position</Label>
-                            <Input
-                                value={item.position || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "teaching",
-                                        idx,
-                                        "position",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Employer</Label>
-                            <Input
-                                value={item.employer || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "teaching",
-                                        idx,
-                                        "employer",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Course Taught</Label>
-                            <Input
-                                value={item.courses || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "teaching",
-                                        idx,
-                                        "courses",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2 pr-8">
-                            <Label>UG/PG</Label>
-                            <Input
-                                value={item.level || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "teaching",
-                                        idx,
-                                        "level",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>No. of Students</Label>
-                            <Input
-                                type="number"
-                                value={item.students || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "teaching",
-                                        idx,
-                                        "students",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Date of Joining</Label>
-                            <Input
-                                type="date"
-                                value={item.date_joining || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "teaching",
-                                        idx,
-                                        "date_joining",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Date of Leaving</Label>
-                            <Input
-                                type="date"
-                                value={item.date_leaving || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "teaching",
-                                        idx,
-                                        "date_leaving",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Duration (in years)</Label>
-                            <Input
-                                value={item.duration || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "teaching",
-                                        idx,
-                                        "duration",
-                                        e.target.value,
-                                    )
-                                }
-                            />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                            <div className="space-y-2">
+                                <Label>Position</Label>
+                                <Input
+                                    value={item.position || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "teaching",
+                                            idx,
+                                            "position",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Employer</Label>
+                                <Input
+                                    value={item.employer || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "teaching",
+                                            idx,
+                                            "employer",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Course Taught</Label>
+                                <Input
+                                    value={item.courses || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "teaching",
+                                            idx,
+                                            "courses",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>UG/PG</Label>
+                                <Input
+                                    value={item.level || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "teaching",
+                                            idx,
+                                            "level",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>No. of Students</Label>
+                                <Input
+                                    type="number"
+                                    value={item.students || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "teaching",
+                                            idx,
+                                            "students",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Date of Joining</Label>
+                                <Input
+                                    type="date"
+                                    max={todayStr}
+                                    value={item.date_joining || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "teaching",
+                                            idx,
+                                            "date_joining",
+                                            e.target.value,
+                                        )
+                                    }
+                                    className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Date of Leaving</Label>
+                                <Input
+                                    type="date"
+                                    max={todayStr}
+                                    value={item.date_leaving || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "teaching",
+                                            idx,
+                                            "date_leaving",
+                                            e.target.value,
+                                        )
+                                    }
+                                    className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="whitespace-nowrap">
+                                    Duration (YY-MM-DD)
+                                </Label>
+                                <Input
+                                    readOnly
+                                    value={item.duration || ""}
+                                    className="bg-slate-100 text-slate-600 focus-visible:ring-0"
+                                    placeholder="00-00-00"
+                                />
+                            </div>
                         </div>
                     </div>
                 ))}
             </div>
 
+            {/* (D) Research Experience */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
                     <h4 className="font-bold text-lg text-slate-800">
@@ -478,63 +534,111 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
                 {research.map((item, idx) => (
                     <div
                         key={idx}
-                        className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-white border rounded-lg relative mt-2 shadow-sm"
+                        className="relative p-4 pt-12 bg-white border border-slate-200 rounded-lg mt-3 shadow-sm group"
                     >
                         <Button
                             type="button"
                             variant="ghost"
-                            size="sm"
                             onClick={() => removeArrayItem("research", idx)}
-                            className="absolute top-2 right-2 text-red-500"
+                            className="absolute top-2 right-2 h-8 w-8 p-0 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors flex items-center justify-center"
+                            title="Remove Entry"
                         >
                             <Trash2 className="h-4 w-4" />
                         </Button>
-                        <div className="space-y-2">
-                            <Label>Position</Label>
-                            <Input
-                                value={item.position || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "research",
-                                        idx,
-                                        "position",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Institute</Label>
-                            <Input
-                                value={item.institute || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "research",
-                                        idx,
-                                        "institute",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2 pr-8">
-                            <Label>Supervisor</Label>
-                            <Input
-                                value={item.supervisor || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "research",
-                                        idx,
-                                        "supervisor",
-                                        e.target.value,
-                                    )
-                                }
-                            />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+                            <div className="space-y-2">
+                                <Label>Position</Label>
+                                <Input
+                                    value={item.position || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "research",
+                                            idx,
+                                            "position",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Institute</Label>
+                                <Input
+                                    value={item.institute || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "research",
+                                            idx,
+                                            "institute",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Supervisor</Label>
+                                <Input
+                                    value={item.supervisor || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "research",
+                                            idx,
+                                            "supervisor",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Date of Joining</Label>
+                                <Input
+                                    type="date"
+                                    max={todayStr}
+                                    value={item.date_joining || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "research",
+                                            idx,
+                                            "date_joining",
+                                            e.target.value,
+                                        )
+                                    }
+                                    className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Date of Leaving</Label>
+                                <Input
+                                    type="date"
+                                    max={todayStr}
+                                    value={item.date_leaving || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "research",
+                                            idx,
+                                            "date_leaving",
+                                            e.target.value,
+                                        )
+                                    }
+                                    className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="whitespace-nowrap">
+                                    Duration (YY-MM-DD)
+                                </Label>
+                                <Input
+                                    readOnly
+                                    value={item.duration || ""}
+                                    className="bg-slate-100 text-slate-600 focus-visible:ring-0"
+                                    placeholder="00-00-00"
+                                />
+                            </div>
                         </div>
                     </div>
                 ))}
             </div>
 
+            {/* (E) Industrial Experience */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
                     <h4 className="font-bold text-lg text-slate-800">
@@ -560,58 +664,91 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
                 {industrial.map((item, idx) => (
                     <div
                         key={idx}
-                        className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-white border rounded-lg relative mt-2 shadow-sm"
+                        className="relative p-4 pt-12 bg-white border border-slate-200 rounded-lg mt-3 shadow-sm group"
                     >
                         <Button
                             type="button"
                             variant="ghost"
-                            size="sm"
                             onClick={() => removeArrayItem("industrial", idx)}
-                            className="absolute top-2 right-2 text-red-500"
+                            className="absolute top-2 right-2 h-8 w-8 p-0 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors flex items-center justify-center"
+                            title="Remove Entry"
                         >
                             <Trash2 className="h-4 w-4" />
                         </Button>
-                        <div className="space-y-2">
-                            <Label>Organization</Label>
-                            <Input
-                                value={item.organization || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "industrial",
-                                        idx,
-                                        "organization",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Work Profile</Label>
-                            <Input
-                                value={item.profile || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "industrial",
-                                        idx,
-                                        "profile",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2 pr-8">
-                            <Label>Duration (in years)</Label>
-                            <Input
-                                value={item.duration || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "industrial",
-                                        idx,
-                                        "duration",
-                                        e.target.value,
-                                    )
-                                }
-                            />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+                            <div className="space-y-2">
+                                <Label>Organization</Label>
+                                <Input
+                                    value={item.organization || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "industrial",
+                                            idx,
+                                            "organization",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Work Profile</Label>
+                                <Input
+                                    value={item.profile || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "industrial",
+                                            idx,
+                                            "profile",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Date of Joining</Label>
+                                <Input
+                                    type="date"
+                                    max={todayStr}
+                                    value={item.date_joining || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "industrial",
+                                            idx,
+                                            "date_joining",
+                                            e.target.value,
+                                        )
+                                    }
+                                    className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Date of Leaving</Label>
+                                <Input
+                                    type="date"
+                                    max={todayStr}
+                                    value={item.date_leaving || ""}
+                                    onChange={(e) =>
+                                        handleArrayChange(
+                                            "industrial",
+                                            idx,
+                                            "date_leaving",
+                                            e.target.value,
+                                        )
+                                    }
+                                    className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="whitespace-nowrap">
+                                    Duration (YY-MM-DD)
+                                </Label>
+                                <Input
+                                    readOnly
+                                    value={item.duration || ""}
+                                    className="bg-slate-100 text-slate-600 focus-visible:ring-0"
+                                    placeholder="00-00-00"
+                                />
+                            </div>
                         </div>
                     </div>
                 ))}

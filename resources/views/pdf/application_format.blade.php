@@ -298,25 +298,27 @@
         <th>University / Institute</th>
         <th>Department</th>
         <th>Supervisor</th>
-        <th>Year Joined</th>
+        <th>Date of Joining</th>
         <th>Date of Defence</th>
         <th>Date of Award</th>
+        <th>Duration (YY-MM-DD)</th>
     </tr>
     @if(!empty($phd['university']))
     <tr>
         <td>{{ $phd['university'] ?? 'N/A' }}</td>
         <td>{{ $phd['department'] ?? 'N/A' }}</td>
         <td>{{ $phd['supervisor'] ?? 'N/A' }}</td>
-        <td>{{ $phd['year_joining'] ?? 'N/A' }}</td>
+        <td>{{ $phd['date_joining'] ?? 'N/A' }}</td>
         <td>{{ $phd['date_defence'] ?? 'N/A' }}</td>
         <td>{{ $phd['date_award'] ?? 'N/A' }}</td>
+        <td>{{ $phd['duration'] ?? 'N/A' }}</td>
     </tr>
     <tr>
-        <td class="lbl">Thesis Title</td>
-        <td colspan="5">{{ $phd['title'] ?? $phd['thesis_title'] ?? 'N/A' }}</td>
+        <td class="lbl" style="font-weight: bold;">Thesis Title</td>
+        <td colspan="6">{{ $phd['title'] ?? $phd['thesis_title'] ?? 'N/A' }}</td>
     </tr>
     @else
-    <tr><td colspan="6" class="empty-row">N/A</td></tr>
+    <tr><td colspan="7" class="empty-row">N/A</td></tr>
     @endif
 </table>
 
@@ -327,9 +329,9 @@
         <th>Degree</th>
         <th>University / Institute</th>
         <th>Subjects</th>
-        <th>Yr. Joined</th>
-        <th>Yr. Graduated</th>
-        <th>Duration (Months)</th>
+        <th>Date Joined</th>
+        <th>Date Graduated</th>
+        <th>Duration (YY-MM-DD)</th>
         <th>% / CGPA</th>
         <th>Class / Division</th>
     </tr>
@@ -339,8 +341,8 @@
         <td>{{ $pg['degree'] ?? 'N/A' }}</td>
         <td>{{ $pg['university'] ?? 'N/A' }}</td>
         <td>{{ $pg['subjects'] ?? 'N/A' }}</td>
-        <td>{{ $pg['year_joining'] ?? 'N/A' }}</td>
-        <td>{{ $pg['year_graduation'] ?? 'N/A' }}</td>
+        <td>{{ $pg['date_joining'] ?? 'N/A' }}</td>
+        <td>{{ $pg['date_graduation'] ?? 'N/A' }}</td>
         <td>{{ $pg['duration'] ?? 'N/A' }}</td>
         <td>{{ $pg['percentage'] ?? 'N/A' }}</td>
         <td>{{ $pg['division'] ?? 'N/A' }}</td>
@@ -357,9 +359,9 @@
         <th>Degree</th>
         <th>University / Institute</th>
         <th>Subjects</th>
-        <th>Yr. Joined</th>
-        <th>Yr. Graduated</th>
-        <th>Duration (Months)</th>
+        <th>Date Joined</th>
+        <th>Date Graduated</th>
+        <th>Duration (YY-MM-DD)</th>
         <th>% / CGPA</th>
         <th>Class / Division</th>
     </tr>
@@ -369,8 +371,8 @@
         <td>{{ $ug['degree'] ?? 'N/A' }}</td>
         <td>{{ $ug['university'] ?? 'N/A' }}</td>
         <td>{{ $ug['subjects'] ?? 'N/A' }}</td>
-        <td>{{ $ug['year_joining'] ?? 'N/A' }}</td>
-        <td>{{ $ug['year_graduation'] ?? 'N/A' }}</td>
+        <td>{{ $ug['date_joining'] ?? 'N/A' }}</td>
+        <td>{{ $ug['date_graduation'] ?? 'N/A' }}</td>
         <td>{{ $ug['duration'] ?? 'N/A' }}</td>
         <td>{{ $ug['percentage'] ?? 'N/A' }}</td>
         <td>{{ $ug['division'] ?? 'N/A' }}</td>
@@ -393,7 +395,7 @@
     <tr>
         <td>{{ $school['level'] ?? ($loop->index === 0 ? '12th/HSC/Diploma' : '10th') }}</td>
         <td>{{ $school['school'] ?? $school['board'] ?? 'N/A' }}</td>
-        <td>{{ $school['year_passing'] ?? $school['year_graduation'] ?? 'N/A' }}</td>
+        <td>{{ $school['year_passing'] ?? $school['date_graduation'] ?? 'N/A' }}</td>
         <td>{{ $school['percentage'] ?? 'N/A' }}</td>
         <td>{{ $school['division'] ?? 'N/A' }}</td>
     </tr>
@@ -416,7 +418,7 @@
         <th>Organization / Institute</th>
         <th>Date of Joining</th>
         <th>Date of Leaving</th>
-        <th>Duration (Months)</th>
+        <th>Duration (YY-MM-DD)</th>
     </tr>
     @if(!empty($pres['position']))
     <tr>
@@ -445,7 +447,7 @@
         <th>Organization / Institute</th>
         <th>Date of Joining</th>
         <th>Date of Leaving</th>
-        <th>Duration (Months)</th>
+        <th>Duration (YY-MM-DD)</th>
     </tr>
     @forelse($emp['history'] ?? [] as $i => $e)
     <tr>
@@ -465,23 +467,29 @@
 <table>
     <tr>
         <th>#</th>
-        <th>Position / Designation</th>
-        <th>Institute</th>
+        <th>Position</th>
+        <th>Employer</th>
+        <th>Course Taught</th>
+        <th>Level</th>
+        <th>Students</th>
         <th>Date of Joining</th>
         <th>Date of Leaving</th>
-        <th>Duration (Months)</th>
+        <th>Duration (YY-MM-DD)</th>
     </tr>
     @forelse($emp['teaching'] ?? [] as $i => $e)
     <tr>
         <td>{{ $i + 1 }}</td>
         <td>{{ $e['position'] ?? 'N/A' }}</td>
-        <td>{{ $e['institute'] ?? 'N/A' }}</td>
+        <td>{{ $e['employer'] ?? 'N/A' }}</td>
+        <td>{{ $e['courses'] ?? 'N/A' }}</td>
+        <td>{{ $e['level'] ?? 'N/A' }}</td>
+        <td>{{ $e['students'] ?? '0' }}</td>
         <td>{{ $e['date_joining'] ?? 'N/A' }}</td>
         <td>{{ $e['date_leaving'] ?? 'N/A' }}</td>
         <td>{{ $e['duration'] ?? 'N/A' }}</td>
     </tr>
     @empty
-    <tr><td colspan="6" class="empty-row">N/A</td></tr>
+    <tr><td colspan="9" class="empty-row">N/A</td></tr>
     @endforelse
 </table>
 
@@ -494,7 +502,7 @@
         <th>Supervisor</th>
         <th>Date Joined</th>
         <th>Date Left</th>
-        <th>Duration (Months)</th>
+        <th>Duration (YY-MM-DD)</th>
     </tr>
     @forelse($emp['research'] ?? [] as $i => $e)
     <tr>
@@ -519,7 +527,7 @@
         <th>Work Profile</th>
         <th>Date Joined</th>
         <th>Date Left</th>
-        <th>Duration (Months)</th>
+        <th>Duration (YY-MM-DD)</th>
     </tr>
     @forelse($emp['industrial'] ?? [] as $i => $e)
     <tr>
@@ -718,7 +726,7 @@
         <th>Type of Training</th>
         <th>Organisation</th>
         <th>Year</th>
-        <th>Duration (Months)</th>
+        <th>Duration (YY-MM-DD)</th>
     </tr>
     @forelse($info['training'] ?? [] as $i => $tr)
     <tr>
@@ -1028,19 +1036,46 @@
      SECTION 10 — DECLARATION & SIGNATURE
 ═══════════════════════════════════════════════════════════ --}}
 <div class="section-title">10. Declaration</div>
-<div class="text-content" style="background:#f0fdf4; border-color:#86efac;">
+<div class="text-content" style="background:#f0fdf4; border-color:#86efac; padding: 15px; margin-bottom: 30px;">
     I hereby declare that I have carefully read and understood the instructions and particulars mentioned in the advertisement and this application form. I further declare that all the entries along with the attachments uploaded in this form are true to the best of my knowledge and belief.
     <br><br>
     <strong>Declaration agreed:</strong>
+    <br>
     {{ !empty($data['form_data']['declaration']) || !empty($data['declaration']) ? 'Yes – Agreed' : 'N/A' }}
 </div>
 
-<div class="signature-box">
-    <div class="signature-line">
-        {{ strtoupper(trim(($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? ''))) ?: 'APPLICANT' }}<br>
-        <span style="font-weight:normal;font-size:7.5pt;color:#64748b;">Signature of Applicant</span>
+<div class="signature-box" style="float: right; width: 250px; text-align: center; margin-top: 20px;">
+    @php
+        $sigHtml = '<div style="height: 50px;"></div>'; // Fallback empty space
+        
+        // Signature is stored under uploaded_documents by the controller (set at submitApplication line 530)
+        $rawSigPath = $data['uploaded_documents']['signature'] ?? null;
+        
+        if ($rawSigPath) {
+            // Mirroring the profile photo logic: Strip prefix and get absolute path
+            $cleanSigPath = ltrim(preg_replace('#^/?storage/#', '', $rawSigPath), '/');
+            $absSigPath   = storage_path('app/public/' . $cleanSigPath);
+
+            if (file_exists($absSigPath) && is_readable($absSigPath)) {
+                $mime = mime_content_type($absSigPath);
+                if (in_array($mime, ['image/jpeg', 'image/png', 'image/gif', 'image/webp'])) {
+                    $b64     = base64_encode(file_get_contents($absSigPath));
+                    $sigHtml = '<img src="data:' . $mime . ';base64,' . $b64 . '" alt="Signature" style="max-height: 50px; max-width: 200px; object-fit: contain; margin-bottom: 5px;">';
+                }
+            }
+        }
+    @endphp
+
+    {!! $sigHtml !!}
+
+    <div class="signature-line" style="border-top: 1.5px solid #1e293b; padding-top: 4px;">
+        <strong>{{ strtoupper(trim(($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? ''))) ?: 'APPLICANT' }}</strong><br>
+        <span style="font-weight:normal; font-size:8.5pt; color:#64748b;">Signature of Applicant</span>
     </div>
 </div>
+
+{{-- Clear float to ensure the PDF footer/container doesn't collapse --}}
+<div style="clear: both;"></div>
 
 </body>
 </html>

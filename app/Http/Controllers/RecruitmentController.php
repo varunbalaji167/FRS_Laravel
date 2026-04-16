@@ -408,7 +408,6 @@ class RecruitmentController extends Controller
             'errors' => $errors,
         ], empty($errors) ? 200 : 422);
     }
-
     // FINAL SUBMIT — Full server-side validation across every required step.
 
     public function submitApplication(Request $request, Advertisement $advertisement)
@@ -435,37 +434,57 @@ class RecruitmentController extends Controller
             $allErrors['declaration'] = 'You must agree to the final declaration.';
         }
 
-        // Required file uploads
+        // Required file uploads presence checks
         if (! $request->hasFile('documents.phd_cert')) {
             $allErrors['phd_cert'] = 'PhD Certificate is required.';
         }
         if (! $request->hasFile('documents.ssc_cert')) {
             $allErrors['ssc_cert'] = '10th/SSC Certificate is required.';
         }
+        if (! $request->hasFile('documents.signature')) {
+            $allErrors['signature'] = 'Digital signature is required.';
+        }
 
+        // If any required fields are missing, return immediately before checking file sizes
         if (! empty($allErrors)) {
             return back()->withErrors($allErrors)->withInput();
         }
 
-        // ── File size & MIME validation for uploaded documents
+        // ── File size & MIME validation for general documents & signature
         if ($request->hasFile('documents')) {
             foreach ($request->file('documents') as $key => $file) {
                 if (! $file->isValid()) {
                     return back()->withErrors([$key => 'Uploaded file is invalid.'])->withInput();
                 }
+
+                // Exception: Handle the Signature (Image) differently than the PDFs
+                if ($key === 'signature') {
+                    if (! in_array($file->getMimeType(), ['image/jpeg', 'image/png', 'image/jpg'])) {
+                        return back()->withErrors(['signature' => 'Only JPG/PNG images are accepted for signatures.'])->withInput();
+                    }
+                    if ($file->getSize() > 2 * 1024 * 1024) {
+                        return back()->withErrors(['signature' => 'Signature must be smaller than 2 MB.'])->withInput();
+                    }
+
+                    continue; // Skip the PDF checks below for the signature
+                }
+
+                // Normal PDF Document checks
                 if ($file->getMimeType() !== 'application/pdf') {
                     return back()->withErrors([$key => 'Only PDF files are accepted.'])->withInput();
                 }
-                // 10 MB limit per document
                 if ($file->getSize() > 10 * 1024 * 1024) {
                     return back()->withErrors([$key => 'File must be smaller than 10 MB.'])->withInput();
                 }
             }
         }
 
-        // Best papers: same rules
+        // ── Best papers validation
         if ($request->hasFile('best_papers')) {
             foreach ($request->file('best_papers') as $key => $file) {
+                if (! $file->isValid()) {
+                    return back()->withErrors([$key => 'Uploaded paper is invalid.'])->withInput();
+                }
                 if ($file->getMimeType() !== 'application/pdf') {
                     return back()->withErrors([$key => 'Only PDF files are accepted for papers.'])->withInput();
                 }
@@ -477,7 +496,7 @@ class RecruitmentController extends Controller
 
         $documentPaths = $formData['uploaded_documents'] ?? [];
 
-        // ── Profile image─
+        // ── Profile image validation & storage
         if ($request->hasFile('form_data.personal_details.profile_image')) {
             $imgFile = $request->file('form_data.personal_details.profile_image');
             if (! in_array($imgFile->getMimeType(), ['image/jpeg', 'image/png', 'image/jpg'])) {
@@ -490,7 +509,7 @@ class RecruitmentController extends Controller
             $formData['personal_details']['profile_image'] = $path;
         }
 
-        // ── Supporting documents
+        // ── Saving Supporting Documents & Signature
         if ($request->hasFile('documents')) {
             foreach ($request->file('documents') as $key => $file) {
                 $documentPaths[$key] = $file->store(
@@ -498,9 +517,19 @@ class RecruitmentController extends Controller
                 );
             }
         }
+
+        // ── Saving Best Papers
+        if ($request->hasFile('best_papers')) {
+            foreach ($request->file('best_papers') as $key => $file) {
+                $documentPaths[$key] = $file->store(
+                    "applications/{$user->id}/{$advertisement->id}/best_papers", 'public'
+                );
+            }
+        }
+
         $formData['uploaded_documents'] = $documentPaths;
 
-        // ── Persist─
+        // ── Persist
         $application = JobApplication::updateOrCreate(
             ['user_id' => $user->id, 'advertisement_id' => $advertisement->id],
             [

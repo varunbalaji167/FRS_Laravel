@@ -15,8 +15,7 @@
 
         <p>In their application dossier, the candidate has listed you as a referee.</p>
 
-        <p><strong>Please note:</strong> At this preliminary stage, no action is required from your end. If the candidate is shortlisted for the next phase of the recruitment process, the Selection Committee may reach out to you at this email address to request a formal letter of recommendation.</p>
-
+        <p><strong>Please note:</strong> At this preliminary stage, no action is required from your end. If the candidate is shortlisted for the next phase of the recruitment process, the candidate will reach out to you with a request to kindly send your letter of recommendation directly to <a href="mailto:fac.rec@iit.ac.in" style="font-weight: bold; color: #2563eb; text-decoration: underline;">fac.rec@iit.ac.in</a> before the stipulated deadline.</p>
         <p>We appreciate your time and support.</p>
 
         <br>

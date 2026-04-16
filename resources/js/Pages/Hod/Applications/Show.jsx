@@ -414,7 +414,7 @@ export default function ApplicationShow({ application }) {
                             />
                             <DataBox
                                 label="Year of Joining"
-                                value={edu.phd.year_joining}
+                                value={edu.phd.date_joining}
                             />
                             <DataBox
                                 label="Date of Defence"
@@ -423,6 +423,10 @@ export default function ApplicationShow({ application }) {
                             <DataBox
                                 label="Date of Award"
                                 value={edu.phd.date_award}
+                            />
+                            <DataBox
+                                label="Duration (yy-mm-dd)"
+                                value={edu.phd.duration}
                             />
                             <DataBox
                                 label="Thesis Title"
@@ -444,9 +448,9 @@ export default function ApplicationShow({ application }) {
                             "Degree",
                             "University / Institute",
                             "Subjects",
-                            "Joined",
-                            "Graduated",
-                            "Duration (Months)",
+                            "Date Joined",
+                            "Date Graduated",
+                            "Duration (YY-MM-DD)",
                             "% / CGPA",
                             "Division",
                         ]}
@@ -467,10 +471,10 @@ export default function ApplicationShow({ application }) {
                                         {row.subjects || "—"}
                                     </td>
                                     <td className="px-4 py-2.5">
-                                        {row.year_joining || "—"}
+                                        {row.date_joining || "—"}
                                     </td>
                                     <td className="px-4 py-2.5">
-                                        {row.year_graduation || "—"}
+                                        {row.date_graduation || "—"}
                                     </td>
                                     <td className="px-4 py-2.5">
                                         {row.duration || "—"}
@@ -493,9 +497,9 @@ export default function ApplicationShow({ application }) {
                             "Degree",
                             "University / Institute",
                             "Subjects",
-                            "Joined",
-                            "Graduated",
-                            "Duration (Months)",
+                            "Date Joined",
+                            "Date Graduated",
+                            "Duration (YY-MM-DD)",
                             "% / CGPA",
                             "Division",
                         ]}
@@ -516,10 +520,10 @@ export default function ApplicationShow({ application }) {
                                         {row.subjects || "—"}
                                     </td>
                                     <td className="px-4 py-2.5">
-                                        {row.year_joining || "—"}
+                                        {row.date_joining || "—"}
                                     </td>
                                     <td className="px-4 py-2.5">
-                                        {row.year_graduation || "—"}
+                                        {row.date_graduation || "—"}
                                     </td>
                                     <td className="px-4 py-2.5">
                                         {row.duration || "—"}
@@ -598,7 +602,7 @@ export default function ApplicationShow({ application }) {
                                 value={emp.present.date_leaving || "Continuing"}
                             />
                             <DataBox
-                                label="Duration (Months)"
+                                label="Duration (YY-MM-DD)"
                                 value={emp.present.duration}
                             />
                         </div>
@@ -632,7 +636,7 @@ export default function ApplicationShow({ application }) {
                             "Organization",
                             "Date Joined",
                             "Date Left",
-                            "Duration (Months)",
+                            "Duration (YY-MM-DD)",
                         ]}
                     >
                         {(emp.history || []).length > 0 &&
@@ -660,41 +664,68 @@ export default function ApplicationShow({ application }) {
                             ))}
                     </DataTable>
 
-                    {/* Teaching */}
+                    {/* (C) Teaching Experience */}
                     <SubTitle label="(C) Teaching Experience" />
                     <DataTable
                         headers={[
                             "#",
                             "Position",
-                            "Institute",
+                            "Employer",
+                            "Course Taught",
+                            "Level (UG/PG)",
+                            "Students",
                             "Date Joined",
                             "Date Left",
-                            "Duration (Months)",
+                            "Duration (YY-MM-DD)",
                         ]}
                     >
-                        {(emp.teaching || []).length > 0 &&
+                        {(emp.teaching || []).length > 0 ? (
                             emp.teaching.map((e, i) => (
-                                <tr key={i}>
-                                    <td className="px-4 py-2.5 text-slate-400">
+                                <tr
+                                    key={i}
+                                    className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors"
+                                >
+                                    <td className="px-4 py-2.5 text-slate-400 font-medium">
                                         {i + 1}
                                     </td>
-                                    <td className="px-4 py-2.5 font-medium">
+                                    <td className="px-4 py-3">
                                         {e.position || "—"}
                                     </td>
-                                    <td className="px-4 py-2.5">
-                                        {e.institute || "—"}
+                                    <td className="px-4 py-3 ">
+                                        {e.employer || "—"}
                                     </td>
-                                    <td className="px-4 py-2.5">
+                                    <td className="px-4 py-3 ">
+                                        {e.courses || "—"}
+                                    </td>
+                                    <td className="px-4 py-3 ">
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800">
+                                            {e.level || "—"}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3 ">
+                                        {e.students || "0"}
+                                    </td>
+                                    <td className="px-4 py-3  whitespace-nowrap">
                                         {e.date_joining || "—"}
                                     </td>
-                                    <td className="px-4 py-2.5">
+                                    <td className="px-4 py-3  whitespace-nowrap">
                                         {e.date_leaving || "—"}
                                     </td>
                                     <td className="px-4 py-2.5">
-                                        {e.duration || "—"}
+                                        {e.duration || "00-00-00"}
                                     </td>
                                 </tr>
-                            ))}
+                            ))
+                        ) : (
+                            <tr>
+                                <td
+                                    colSpan="9"
+                                    className="px-4 py-8 text-center text-slate-400 italic"
+                                >
+                                    No teaching experience recorded.
+                                </td>
+                            </tr>
+                        )}
                     </DataTable>
 
                     {/* Research */}
@@ -707,7 +738,7 @@ export default function ApplicationShow({ application }) {
                             "Supervisor",
                             "Date Joined",
                             "Date Left",
-                            "Duration (Months)",
+                            "Duration (YY-MM-DD)",
                         ]}
                     >
                         {(emp.research || []).length > 0 &&
@@ -747,7 +778,7 @@ export default function ApplicationShow({ application }) {
                             "Work Profile",
                             "Date Joined",
                             "Date Left",
-                            "Duration (Months)",
+                            "Duration (YY-MM-DD)",
                         ]}
                     >
                         {(emp.industrial || []).length > 0 &&
@@ -1068,7 +1099,7 @@ export default function ApplicationShow({ application }) {
                             "Type of Training",
                             "Organisation",
                             "Year",
-                            "Duration (Months)",
+                            "Duration (YY-MM-DD)",
                         ]}
                     >
                         {(addInfo.training || []).length > 0 &&
@@ -1556,10 +1587,16 @@ export default function ApplicationShow({ application }) {
                     icon={<FileText className="h-5 w-5" />}
                 >
                     {Object.keys(docs).length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {Object.entries(docs).map(
-                                ([key, path]) =>
-                                    path && (
+                        <div className="space-y-6">
+                            {/* Standard Documents Grid */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {Object.entries(docs)
+                                    .filter(
+                                        ([key, path]) =>
+                                            path &&
+                                            key.toLowerCase() !== "signature",
+                                    )
+                                    .map(([key, path]) => (
                                         <a
                                             key={key}
                                             href={`/storage/${path}`}
@@ -1572,7 +1609,26 @@ export default function ApplicationShow({ application }) {
                                                 {key.replace(/_/g, " ")}
                                             </span>
                                         </a>
-                                    ),
+                                    ))}
+                            </div>
+
+                            {/* Signature Section at the bottom */}
+                            {Object.entries(docs).find(
+                                ([key, path]) =>
+                                    path && key.toLowerCase() === "signature",
+                            ) && (
+                                <div className="pt-6 border-t border-slate-100 flex flex-col items-start">
+                                    <span className="text-sm font-semibold text-slate-500 mb-3 capitalize">
+                                        Applicant Signature
+                                    </span>
+                                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 inline-block">
+                                        <img
+                                            src={`/storage/${docs["signature"]}`}
+                                            alt="Signature"
+                                            className="max-h-20 object-contain mix-blend-multiply"
+                                        />
+                                    </div>
+                                </div>
                             )}
                         </div>
                     ) : (

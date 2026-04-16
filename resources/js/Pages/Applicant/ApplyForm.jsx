@@ -76,6 +76,7 @@ export default function ApplyForm({
         department: existingDepartment || "",
         grade: existingGrade || "",
         documents: {},
+        best_papers: {},
         form_data: existingDraft || {
             current_step: 1,
             personal_details: {
@@ -117,6 +118,8 @@ export default function ApplyForm({
         },
     });
 
+    const combinedErrors = { ...errors, ...localErrors };
+
     const updateFormData = (section, field, value) => {
         setData("form_data", {
             ...data.form_data,
@@ -150,7 +153,7 @@ export default function ApplyForm({
                     );
             },
             onError: () => {
-                toast.error("Failed to save draft. Please try again.");
+                toast.error("Failed to save draft. Please check your inputs.");
             },
             onFinish: () => setIsSavingDraft(false),
         });
@@ -158,7 +161,6 @@ export default function ApplyForm({
 
     // -------------------------------------------------------------------
     // FRONTEND VALIDATION GATEKEEPER
-    // Called on "Save & Continue" AND from sidebar navigation forward
     // -------------------------------------------------------------------
     const validateStep = (step) => {
         let isValid = true;
@@ -201,7 +203,6 @@ export default function ApplyForm({
                 newErrors.nationality = "Nationality is required";
                 isValid = false;
             }
-            // Email — check presence AND format
             if (!p.email?.trim()) {
                 newErrors.email = "Email is required";
                 isValid = false;
@@ -209,12 +210,10 @@ export default function ApplyForm({
                 newErrors.email = "Invalid email format";
                 isValid = false;
             }
-            // Alt email — only format check if provided
             if (p.alt_email?.trim() && !EMAIL_REGEX.test(p.alt_email.trim())) {
                 newErrors.alt_email = "Invalid alternate email format";
                 isValid = false;
             }
-            // Phone — presence and 10-digit check
             if (!p.phone || String(p.phone).replace(/\D/g, "").length < 10) {
                 newErrors.phone = "10-digit phone number required";
                 isValid = false;
@@ -257,7 +256,8 @@ export default function ApplyForm({
                 isValid = false;
             }
             if (!present.date_joining) {
-                newErrors["present.date_joining"] = "Date of joining is required";
+                newErrors["present.date_joining"] =
+                    "Date of joining is required";
                 isValid = false;
             }
 
@@ -301,8 +301,7 @@ export default function ApplyForm({
             const refs = data.form_data.referees_section?.referees || [];
 
             if (refs.length < 3) {
-                newErrors["referees"] =
-                    "You must provide at least 3 referees.";
+                newErrors["referees"] = "You must provide at least 3 referees.";
                 isValid = false;
             } else {
                 for (let i = 0; i < refs.length; i++) {
@@ -339,7 +338,6 @@ export default function ApplyForm({
                             "Invalid email format";
                         isValid = false;
                     }
-                    // Contact — only check format if provided; mandatory for first 3
                     if (isMandatory && !r.contact_number) {
                         newErrors[`referee_${i}_contact`] =
                             "Contact number is required";
@@ -363,13 +361,11 @@ export default function ApplyForm({
         }
 
         if (step === 11) {
-            // Declaration is required
             if (!data.form_data.declaration) {
                 newErrors.declaration =
                     "You must agree to the final declaration before submitting.";
                 isValid = false;
             }
-            // Required file uploads
             const docs = data.documents || {};
             if (!docs.phd_cert) {
                 newErrors.phd_cert = "PhD Certificate is required";
@@ -377,6 +373,10 @@ export default function ApplyForm({
             }
             if (!docs.ssc_cert) {
                 newErrors.ssc_cert = "10th/SSC Certificate is required";
+                isValid = false;
+            }
+            if (!docs.signature) {
+                newErrors.signature = "Digital signature is required";
                 isValid = false;
             }
         }
@@ -387,12 +387,6 @@ export default function ApplyForm({
         return isValid;
     };
 
-    // -------------------------------------------------------------------
-    // SAVE & CONTINUE — frontend validates, then navigate + draft-save.
-    // Full backend validation fires only on final submit (the real security
-    // boundary). All step rules are pure data checks — no DB lookups needed
-    // — so a round-trip per step would add latency with zero security gain.
-    // -------------------------------------------------------------------
     const handleNext = () => {
         if (!validateStep(currentStep)) return;
 
@@ -410,8 +404,7 @@ export default function ApplyForm({
     };
 
     // -------------------------------------------------------------------
-    // FINAL SUBMIT — reuses validateStep(11) so declaration + docs are
-    // checked consistently in one place
+    // FINAL SUBMIT
     // -------------------------------------------------------------------
     const submitFinal = (e) => {
         e.preventDefault();
@@ -420,12 +413,17 @@ export default function ApplyForm({
 
         post(route("applicant.store", advertisement.id), {
             forceFormData: true,
+            onError: () => {
+                toast.error(
+                    "Submission failed! Please check the highlighted fields.",
+                );
+            },
         });
     };
 
-    // Disable navigation buttons while a background save or final submit is in flight
     const isBusy = isSavingDraft || processing;
 
+    // Use combinedErrors instead of localErrors for all steps
     const renderCurrentStep = () => {
         switch (currentStep) {
             case 1:
@@ -433,7 +431,7 @@ export default function ApplyForm({
                     <Step1Position
                         data={data}
                         setData={setData}
-                        localErrors={localErrors}
+                        localErrors={combinedErrors}
                         advertisement={advertisement}
                     />
                 );
@@ -443,7 +441,7 @@ export default function ApplyForm({
                         data={data}
                         setData={setData}
                         updateFormData={updateFormData}
-                        localErrors={localErrors}
+                        localErrors={combinedErrors}
                     />
                 );
             case 3:
@@ -451,7 +449,7 @@ export default function ApplyForm({
                     <Step3Education
                         data={data}
                         setData={setData}
-                        localErrors={localErrors}
+                        localErrors={combinedErrors}
                     />
                 );
             case 4:
@@ -459,7 +457,7 @@ export default function ApplyForm({
                     <Step4Employment
                         data={data}
                         setData={setData}
-                        localErrors={localErrors}
+                        localErrors={combinedErrors}
                     />
                 );
             case 5:
@@ -467,7 +465,7 @@ export default function ApplyForm({
                     <Step5Research
                         data={data}
                         setData={setData}
-                        localErrors={localErrors}
+                        localErrors={combinedErrors}
                     />
                 );
             case 6:
@@ -475,7 +473,7 @@ export default function ApplyForm({
                     <Step6AdditionalInfo
                         data={data}
                         setData={setData}
-                        localErrors={localErrors}
+                        localErrors={combinedErrors}
                     />
                 );
             case 7:
@@ -483,7 +481,7 @@ export default function ApplyForm({
                     <Step7AwardsProjects
                         data={data}
                         setData={setData}
-                        localErrors={localErrors}
+                        localErrors={combinedErrors}
                     />
                 );
             case 8:
@@ -491,7 +489,7 @@ export default function ApplyForm({
                     <Step8Statements
                         data={data}
                         setData={setData}
-                        localErrors={localErrors}
+                        localErrors={combinedErrors}
                     />
                 );
             case 9:
@@ -499,7 +497,7 @@ export default function ApplyForm({
                     <Step9DetailedPubs
                         data={data}
                         setData={setData}
-                        localErrors={localErrors}
+                        localErrors={combinedErrors}
                     />
                 );
             case 10:
@@ -507,7 +505,7 @@ export default function ApplyForm({
                     <Step10Referees
                         data={data}
                         setData={setData}
-                        localErrors={localErrors}
+                        localErrors={combinedErrors}
                     />
                 );
             case 11:
@@ -515,7 +513,7 @@ export default function ApplyForm({
                     <Step11Documents
                         data={data}
                         setData={setData}
-                        localErrors={localErrors}
+                        localErrors={combinedErrors}
                     />
                 );
             default:

@@ -164,17 +164,16 @@ export default function Step7AwardsProjects({
                 />
             </div>
             <div className="space-y-2">
-                <Label>Amount</Label>
+                <Label>Amount (₹)</Label>
                 <Input
                     value={item.amount || ""}
-                    onChange={(e) =>
-                        handleArrayChange(
-                            section,
-                            idx,
-                            "amount",
-                            e.target.value,
-                        )
-                    }
+                    onChange={(e) => {
+                        const val = e.target.value;
+                        // Allows only digits and a single decimal point
+                        if (/^\d*\.?\d*$/.test(val)) {
+                            handleArrayChange(section, idx, "amount", val);
+                        }
+                    }}
                     placeholder="₹"
                 />
             </div>

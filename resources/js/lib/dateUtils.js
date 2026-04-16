@@ -33,3 +33,43 @@ export function calculateAge(dobString) {
 
     return parts.length > 0 ? parts.join(" ") : "0D";
 }
+
+export function calculateDuration(startStr, endStr) {
+    if (!startStr) return "";
+
+    const start = new Date(startStr);
+    let end;
+
+    // Treat empty end date or "Continuing" as today
+    if (!endStr || endStr === "Continuing") {
+        end = new Date();
+    } else {
+        end = new Date(endStr);
+    }
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
+        return "";
+    }
+
+    let years = end.getFullYear() - start.getFullYear();
+    let months = end.getMonth() - start.getMonth();
+    let days = end.getDate() - start.getDate();
+
+    if (days < 0) {
+        months--;
+        const prevMonth = new Date(end.getFullYear(), end.getMonth(), 0);
+        days += prevMonth.getDate();
+    }
+
+    if (months < 0) {
+        years--;
+        months += 12;
+    }
+
+    // Format to YY-MM-DD with leading zeros
+    const yy = String(years).padStart(2, "0");
+    const mm = String(months).padStart(2, "0");
+    const dd = String(days).padStart(2, "0");
+
+    return `${yy}-${mm}-${dd}`;
+}

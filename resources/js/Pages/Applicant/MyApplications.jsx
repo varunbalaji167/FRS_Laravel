@@ -111,7 +111,34 @@ export default function MyApplications({ applications }) {
 
 // --- Reusable Card Component ---
 function ApplicationCard({ app }) {
-    const status = app.status; // draft, submitted, shortlisted, rejected
+    const status = app.status;
+
+    // Helper to parse the specific Laravel string from UTC to IST
+    const convertToIST = (dateString) => {
+        if (!dateString) return "N/A";
+
+        // 1. Remove the " - " so JS can read it (turns into "Apr 16, 2026 01:44 PM")
+        const cleanString = dateString.replace(" - ", " ");
+
+        // 2. Append " UTC" so the browser knows the source timezone
+        const date = new Date(`${cleanString} UTC`);
+
+        // If parsing fails for any reason, just return the original string
+        if (isNaN(date.getTime())) return dateString;
+
+        // 3. Convert and format to IST
+        return date
+            .toLocaleString("en-IN", {
+                timeZone: "Asia/Kolkata",
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+            })
+            .replace(",", " -"); // Puts a nice hyphen back in if you want it
+    };
 
     // Theme configuration based on status
     const theme = {
@@ -187,12 +214,7 @@ function ApplicationCard({ app }) {
                     </div>
                     <div className="flex items-center text-xs text-slate-400">
                         <CalendarDays className="h-3.5 w-3.5 mr-2 shrink-0" />
-                        <span>
-                            Last updated:{" "}
-                            {new Date(app.updated_at).toLocaleDateString(
-                                "en-GB",
-                            )}
-                        </span>
+                        <span>Last updated: {app.updated_at || "N/A"}</span>
                     </div>
                 </div>
 
