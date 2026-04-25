@@ -2,97 +2,184 @@ import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
 import PrimaryButton from "@/Components/PrimaryButton";
 import TextInput from "@/Components/TextInput";
-import { Transition } from "@headlessui/react";
 import { useForm, usePage } from "@inertiajs/react";
-import { Copy, Upload, User } from "lucide-react";
+import { Copy, Loader2, Upload, User, Check } from "lucide-react";
 import { useState } from "react";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Kept in sync with Step2Personal's dropdown options
+const ID_PROOF_TYPES = [
+    "Aadhar",
+    "PAN",
+    "Passport",
+    "Voter ID",
+    "Driving License",
+];
 
 export default function BasicProfileForm({ className = "" }) {
     const user = usePage().props.auth.user;
     const profile = user.applicant_profile || {};
+    const [isAddressCopied, setIsAddressCopied] = useState(false);
+    // ── Parse the stored "TYPE: NUMBER" string back into two display parts ──
+    const storedIdParts = (profile.id_proof || "").split(":");
+    const storedIdType = storedIdParts[0]?.trim() || "";
+    const storedIdNum = storedIdParts.slice(1).join(":").trim(); // safe if number itself contains ":"
 
-    // Local state for image preview and frontend validation errors
     const [preview, setPreview] = useState(
         profile.photo_path ? `/storage/${profile.photo_path}` : null,
     );
     const [imageError, setImageError] = useState("");
+    const [frontendErrors, setFrontendErrors] = useState({});
 
-    const { data, setData, post, errors, processing, recentlySuccessful } =
-        useForm({
-            _method: "patch", // Required for Laravel file uploads on update routes
+    // Local display state for the split ID-proof UI; combined into `id_proof` on every change
+    const [idType, setIdType] = useState(storedIdType);
+    const [idNum, setIdNum] = useState(storedIdNum);
 
-            // Profile Image
-            profile_image: null,
+    const { data, setData, post, errors, processing, isDirty } = useForm({
+        _method: "patch",
 
-            // Core Identity
-            name: user.name || "",
-            email: user.email || "",
+        // Profile Image
+        profile_image: null,
 
-            // Profile Data
-            father_name: profile.father_name || "",
-            date_of_birth: profile.date_of_birth || "",
-            gender: profile.gender || "",
-            marital_status: profile.marital_status || "",
-            category: profile.category || "",
-            nationality: profile.nationality || "Indian",
-            id_proof: profile.id_proof || "",
+        // Core Identity
+        name: user.name || "",
+        email: user.email || "",
 
-            // Contact Info
-            phone: profile.phone || "",
-            alt_phone: profile.alt_phone || "",
-            alt_email: profile.alt_email || "",
+        // Personal
+        father_name: profile.father_name || "",
+        date_of_birth: profile.date_of_birth || "",
+        gender: profile.gender || "",
+        marital_status: profile.marital_status || "",
+        category: profile.category || "",
+        nationality: profile.nationality || "Indian",
 
-            // Correspondence Address
-            corr_address: profile.corr_address || "",
-            corr_city: profile.corr_city || "",
-            corr_state: profile.corr_state || "",
-            corr_pincode: profile.corr_pincode || "",
-            corr_country: profile.corr_country || "India",
+        // Stored as "TYPE: NUMBER" — updated via handleIdChange below
+        id_proof: profile.id_proof || "",
 
-            // Permanent Address
-            perm_address: profile.perm_address || "",
-            perm_city: profile.perm_city || "",
-            perm_state: profile.perm_state || "",
-            perm_pincode: profile.perm_pincode || "",
-            perm_country: profile.perm_country || "India",
+        // Contact — split code + number to mirror Step2Personal exactly
+        phone_code: profile.phone_code || "+91",
+        phone: profile.phone || "",
+        alt_phone_code: profile.alt_phone_code || "+91",
+        alt_phone: profile.alt_phone || "",
+        alt_email: profile.alt_email || "",
 
-            // Professional Links
-            google_scholar_url: profile.google_scholar_url || "",
-            orcid_url: profile.orcid_url || "",
-            linkedin_url: profile.linkedin_url || "",
-        });
+        // Correspondence Address
+        corr_address: profile.corr_address || "",
+        corr_city: profile.corr_city || "",
+        corr_state: profile.corr_state || "",
+        corr_pincode: profile.corr_pincode || "",
+        corr_country: profile.corr_country || "India",
+
+        // Permanent Address
+        perm_address: profile.perm_address || "",
+        perm_city: profile.perm_city || "",
+        perm_state: profile.perm_state || "",
+        perm_pincode: profile.perm_pincode || "",
+        perm_country: profile.perm_country || "India",
+
+        // Professional Links
+        google_scholar_url: profile.google_scholar_url || "",
+        orcid_url: profile.orcid_url || "",
+        linkedin_url: profile.linkedin_url || "",
+    });
+
+    const allErrors = { ...errors, ...frontendErrors };
+
+    // ── Helpers ─────────────────────────────────────────────────────────────
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         setImageError("");
-
         if (file) {
-            // Constraint: 2MB Max Size (2 * 1024 * 1024 bytes)
             if (file.size > 2097152) {
                 setImageError("Image size must be less than 2MB.");
-                e.target.value = ""; // Clear the input
+                e.target.value = "";
                 return;
             }
-
             setData("profile_image", file);
             setPreview(URL.createObjectURL(file));
         }
     };
 
+    // Sync combined id_proof whenever type or number changes
+    const handleIdChange = (newType, newNum) => {
+        const combined =
+            newType && newNum
+                ? `${newType}: ${newNum}`
+                : newType || newNum || "";
+        setData("id_proof", combined);
+    };
+
     const copyAddress = () => {
-        setData((current) => ({
-            ...current,
-            perm_address: current.corr_address,
-            perm_city: current.corr_city,
-            perm_state: current.corr_state,
-            perm_pincode: current.corr_pincode,
-            perm_country: current.corr_country,
+        setData((cur) => ({
+            ...cur,
+            perm_address: cur.corr_address,
+            perm_city: cur.corr_city,
+            perm_state: cur.corr_state,
+            perm_pincode: cur.corr_pincode,
+            perm_country: cur.corr_country,
         }));
+
+        // Show visual feedback for 2 seconds
+        setIsAddressCopied(true);
+        setTimeout(() => setIsAddressCopied(false), 2000);
+    };
+
+    // Clear a single frontend error key the moment the user edits that field
+    const clearErr = (key) => {
+        if (frontendErrors[key]) {
+            setFrontendErrors((prev) => {
+                const next = { ...prev };
+                delete next[key];
+                return next;
+            });
+        }
+    };
+
+    // ── Frontend validation ──────────────────────────────────────────────────
+    const validate = () => {
+        const errs = {};
+
+        if (
+            data.alt_email?.trim() &&
+            !EMAIL_REGEX.test(data.alt_email.trim())
+        ) {
+            errs.alt_email = "Invalid email format";
+        }
+
+        const phone = String(data.phone || "").replace(/\D/g, "");
+        if (phone && phone.length !== 10) {
+            errs.phone = "Must be exactly 10 digits";
+        }
+
+        const altPhone = String(data.alt_phone || "").replace(/\D/g, "");
+        if (altPhone && altPhone.length !== 10) {
+            errs.alt_phone = "Must be exactly 10 digits";
+        }
+
+        if (data.phone_code && !/^\+\d{1,4}$/.test(data.phone_code.trim())) {
+            errs.phone_code = "Format: +91";
+        }
+        if (
+            data.alt_phone_code &&
+            !/^\+\d{1,4}$/.test(data.alt_phone_code.trim())
+        ) {
+            errs.alt_phone_code = "Format: +91";
+        }
+
+        // Type and number must both be present or both absent
+        if (idType && !idNum.trim())
+            errs.id_proof = "Please enter the ID number";
+        if (idNum.trim() && !idType) errs.id_proof = "Please select an ID type";
+
+        setFrontendErrors(errs);
+        return Object.keys(errs).length === 0;
     };
 
     const submit = (e) => {
         e.preventDefault();
-        // Use POST instead of PATCH so multipart/form-data works properly
+        if (!validate()) return;
         post(route("profile.update"), {
             preserveScroll: true,
             forceFormData: true,
@@ -101,6 +188,9 @@ export default function BasicProfileForm({ className = "" }) {
 
     const inputClass =
         "mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm";
+
+    const isSaveDisabled =
+        processing || (!isDirty && !data.profile_image) || !!imageError;
 
     return (
         <section className={className}>
@@ -120,13 +210,13 @@ export default function BasicProfileForm({ className = "" }) {
                 className="space-y-10 bg-white p-6 rounded-xl border border-slate-200 shadow-sm"
                 encType="multipart/form-data"
             >
-                {/* 0. Profile Picture */}
+                {/* ── 0. Profile Picture ─────────────────────────────────────────── */}
                 <div>
                     <h3 className="text-base font-semibold leading-7 text-slate-900 border-b pb-2">
                         Profile Picture
                     </h3>
                     <div className="mt-4 flex items-center gap-x-6">
-                        <div className="h-24 w-24 shrink-0 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden object-cover">
+                        <div className="h-24 w-24 shrink-0 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden">
                             {preview ? (
                                 <img
                                     src={preview}
@@ -140,9 +230,9 @@ export default function BasicProfileForm({ className = "" }) {
                         <div>
                             <label
                                 htmlFor="profile_image"
-                                className="relative cursor-pointer rounded-md bg-white font-semibold text-blue-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-600 focus-within:ring-offset-2 hover:text-blue-500"
+                                className="relative cursor-pointer font-semibold text-blue-600 hover:text-blue-500"
                             >
-                                <span className="flex items-center gap-2 border border-slate-300 px-4 py-2 rounded-lg shadow-sm text-sm">
+                                <span className="flex items-center gap-2 border border-slate-300 px-4 py-2 rounded-lg shadow-sm text-sm bg-white">
                                     <Upload className="h-4 w-4" />
                                     Upload Image
                                 </span>
@@ -151,25 +241,23 @@ export default function BasicProfileForm({ className = "" }) {
                                     name="profile_image"
                                     type="file"
                                     className="sr-only"
-                                    accept="image/jpeg, image/png, image/jpg"
+                                    accept="image/jpeg,image/png,image/jpg"
                                     onChange={handleImageChange}
                                 />
                             </label>
-                            <p className="mt-2 text-xs leading-5 text-slate-500">
+                            <p className="mt-2 text-xs text-slate-500">
                                 JPG, PNG up to 2MB.
                             </p>
-
-                            {/* Display frontend constraint error or backend validation error */}
-                            {(imageError || errors.profile_image) && (
+                            {(imageError || allErrors.profile_image) && (
                                 <p className="mt-1 text-sm text-red-600">
-                                    {imageError || errors.profile_image}
+                                    {imageError || allErrors.profile_image}
                                 </p>
                             )}
                         </div>
                     </div>
                 </div>
 
-                {/* 1. Personal Details */}
+                {/* ── 1. Personal Details ────────────────────────────────────────── */}
                 <div>
                     <h3 className="text-base font-semibold leading-7 text-slate-900 border-b pb-2">
                         1. Personal Details
@@ -187,10 +275,11 @@ export default function BasicProfileForm({ className = "" }) {
                                 required
                             />
                             <InputError
-                                message={errors.name}
+                                message={allErrors.name}
                                 className="mt-2"
                             />
                         </div>
+
                         <div>
                             <InputLabel
                                 htmlFor="father_name"
@@ -204,11 +293,8 @@ export default function BasicProfileForm({ className = "" }) {
                                     setData("father_name", e.target.value)
                                 }
                             />
-                            <InputError
-                                message={errors.father_name}
-                                className="mt-2"
-                            />
                         </div>
+
                         <div>
                             <InputLabel
                                 htmlFor="date_of_birth"
@@ -224,6 +310,7 @@ export default function BasicProfileForm({ className = "" }) {
                                 }
                             />
                         </div>
+
                         <div>
                             <InputLabel htmlFor="gender" value="Gender" />
                             <select
@@ -240,6 +327,7 @@ export default function BasicProfileForm({ className = "" }) {
                                 <option value="Other">Other</option>
                             </select>
                         </div>
+
                         <div>
                             <InputLabel
                                 htmlFor="marital_status"
@@ -258,6 +346,7 @@ export default function BasicProfileForm({ className = "" }) {
                                 <option value="Unmarried">Unmarried</option>
                             </select>
                         </div>
+
                         <div>
                             <InputLabel htmlFor="category" value="Category" />
                             <select
@@ -276,6 +365,7 @@ export default function BasicProfileForm({ className = "" }) {
                                 <option value="EWS">EWS</option>
                             </select>
                         </div>
+
                         <div>
                             <InputLabel
                                 htmlFor="nationality"
@@ -290,30 +380,56 @@ export default function BasicProfileForm({ className = "" }) {
                                 }
                             />
                         </div>
+
+                        {/* ID Proof — dropdown + number, combined into "TYPE: NUMBER" for storage */}
                         <div className="sm:col-span-2">
-                            <InputLabel
-                                htmlFor="id_proof"
-                                value="ID Proof (Aadhar/PAN/Passport)"
-                            />
-                            <TextInput
-                                id="id_proof"
-                                className={inputClass}
-                                value={data.id_proof}
-                                onChange={(e) =>
-                                    setData("id_proof", e.target.value)
-                                }
-                                placeholder="e.g. AADHAR: 1234..."
-                            />
+                            <InputLabel value="ID Proof" />
+                            <div className="flex gap-2 mt-1">
+                                <select
+                                    className={`w-44 rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${allErrors.id_proof ? "border-red-500" : ""}`}
+                                    value={idType}
+                                    onChange={(e) => {
+                                        const t = e.target.value;
+                                        setIdType(t);
+                                        handleIdChange(t, idNum);
+                                        clearErr("id_proof");
+                                    }}
+                                >
+                                    <option value="">— Select Type —</option>
+                                    {ID_PROOF_TYPES.map((t) => (
+                                        <option key={t} value={t}>
+                                            {t}
+                                        </option>
+                                    ))}
+                                </select>
+                                <TextInput
+                                    className={`flex-1 rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${allErrors.id_proof ? "border-red-500" : ""}`}
+                                    value={idNum}
+                                    placeholder="ID number"
+                                    onChange={(e) => {
+                                        const n = e.target.value;
+                                        setIdNum(n);
+                                        handleIdChange(idType, n);
+                                        clearErr("id_proof");
+                                    }}
+                                />
+                            </div>
+                            {allErrors.id_proof && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {allErrors.id_proof}
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
 
-                {/* 2. Contact Information */}
+                {/* ── 2. Contact Information ─────────────────────────────────────── */}
                 <div>
                     <h3 className="text-base font-semibold leading-7 text-slate-900 border-b pb-2">
                         2. Contact Information
                     </h3>
                     <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                        {/* Primary Email — read-only */}
                         <div>
                             <InputLabel htmlFor="email" value="Primary Email" />
                             <TextInput
@@ -323,7 +439,13 @@ export default function BasicProfileForm({ className = "" }) {
                                 value={data.email}
                                 disabled
                             />
+                            <p className="mt-1 text-xs text-slate-400">
+                                This is your login email. Change it under
+                                Account Settings.
+                            </p>
                         </div>
+
+                        {/* Alternate Email */}
                         <div>
                             <InputLabel
                                 htmlFor="alt_email"
@@ -332,45 +454,119 @@ export default function BasicProfileForm({ className = "" }) {
                             <TextInput
                                 id="alt_email"
                                 type="email"
-                                className={inputClass}
+                                className={`${inputClass} ${allErrors.alt_email ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
                                 value={data.alt_email}
-                                onChange={(e) =>
-                                    setData("alt_email", e.target.value)
-                                }
+                                placeholder="optional@email.com"
+                                onChange={(e) => {
+                                    setData("alt_email", e.target.value);
+                                    clearErr("alt_email");
+                                }}
+                            />
+                            <InputError
+                                message={allErrors.alt_email}
+                                className="mt-1"
                             />
                         </div>
+
+                        {/* Primary Mobile — code + number */}
                         <div>
                             <InputLabel
                                 htmlFor="phone"
                                 value="Primary Mobile"
                             />
-                            <TextInput
-                                id="phone"
-                                className={inputClass}
-                                value={data.phone}
-                                onChange={(e) =>
-                                    setData("phone", e.target.value)
-                                }
-                            />
+                            <div className="flex gap-2 mt-1">
+                                <TextInput
+                                    type="text"
+                                    className={`w-20 text-center px-1 bg-slate-50 rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${allErrors.phone_code ? "border-red-500" : ""}`}
+                                    value={data.phone_code}
+                                    maxLength={5}
+                                    placeholder="+91"
+                                    onChange={(e) => {
+                                        setData(
+                                            "phone_code",
+                                            e.target.value.replace(
+                                                /[^\d+]/g,
+                                                "",
+                                            ),
+                                        );
+                                        clearErr("phone_code");
+                                    }}
+                                />
+                                <TextInput
+                                    id="phone"
+                                    type="tel"
+                                    className={`flex-1 rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${allErrors.phone ? "border-red-500" : ""}`}
+                                    value={data.phone}
+                                    maxLength={10}
+                                    placeholder="10-digit number"
+                                    onChange={(e) => {
+                                        setData(
+                                            "phone",
+                                            e.target.value.replace(/\D/g, ""),
+                                        );
+                                        clearErr("phone");
+                                    }}
+                                />
+                            </div>
+                            {(allErrors.phone_code || allErrors.phone) && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {allErrors.phone_code || allErrors.phone}
+                                </p>
+                            )}
                         </div>
+
+                        {/* Alternate Mobile — code + number */}
                         <div>
                             <InputLabel
                                 htmlFor="alt_phone"
                                 value="Alternate Mobile"
                             />
-                            <TextInput
-                                id="alt_phone"
-                                className={inputClass}
-                                value={data.alt_phone}
-                                onChange={(e) =>
-                                    setData("alt_phone", e.target.value)
-                                }
-                            />
+                            <div className="flex gap-2 mt-1">
+                                <TextInput
+                                    type="text"
+                                    className={`w-20 text-center px-1 bg-slate-50 rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${allErrors.alt_phone_code ? "border-red-500" : ""}`}
+                                    value={data.alt_phone_code}
+                                    maxLength={5}
+                                    placeholder="+91"
+                                    onChange={(e) => {
+                                        setData(
+                                            "alt_phone_code",
+                                            e.target.value.replace(
+                                                /[^\d+]/g,
+                                                "",
+                                            ),
+                                        );
+                                        clearErr("alt_phone_code");
+                                    }}
+                                />
+                                <TextInput
+                                    id="alt_phone"
+                                    type="tel"
+                                    className={`flex-1 rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${allErrors.alt_phone ? "border-red-500" : ""}`}
+                                    value={data.alt_phone}
+                                    maxLength={10}
+                                    placeholder="optional"
+                                    onChange={(e) => {
+                                        setData(
+                                            "alt_phone",
+                                            e.target.value.replace(/\D/g, ""),
+                                        );
+                                        clearErr("alt_phone");
+                                    }}
+                                />
+                            </div>
+                            {(allErrors.alt_phone_code ||
+                                allErrors.alt_phone) && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {allErrors.alt_phone_code ||
+                                        allErrors.alt_phone}
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
 
-                {/* 3. Addresses */}
+                {/* ── 3. Addresses ───────────────────────────────────────────────── */}
                 <div>
                     <h3 className="text-base font-semibold leading-7 text-slate-900 border-b pb-2">
                         3. Addresses
@@ -465,7 +661,7 @@ export default function BasicProfileForm({ className = "" }) {
                         </div>
 
                         {/* Permanent */}
-                        <div className="space-y-4 bg-slate-50 p-4 rounded-lg border border-slate-200 relative">
+                        <div className="space-y-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
                             <div className="flex justify-between items-center">
                                 <h4 className="font-semibold text-slate-800">
                                     Permanent Address
@@ -473,10 +669,23 @@ export default function BasicProfileForm({ className = "" }) {
                                 <button
                                     type="button"
                                     onClick={copyAddress}
-                                    className="flex items-center text-xs text-blue-700 hover:text-blue-900 font-bold bg-blue-100/50 hover:bg-blue-100 px-3 py-1.5 rounded-full transition"
+                                    className={`flex items-center text-xs font-bold px-3 py-1.5 rounded-full transition ${
+                                        isAddressCopied
+                                            ? "text-green-700 bg-green-100/50 hover:bg-green-100"
+                                            : "text-blue-700 hover:text-blue-900 bg-blue-100/50 hover:bg-blue-100"
+                                    }`}
                                 >
-                                    <Copy className="h-3 w-3 mr-1.5" /> Same as
-                                    Correspondence
+                                    {isAddressCopied ? (
+                                        <>
+                                            <Check className="h-3 w-3 mr-1.5" />{" "}
+                                            Copied!
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Copy className="h-3 w-3 mr-1.5" />{" "}
+                                            Same as Correspondence
+                                        </>
+                                    )}
                                 </button>
                             </div>
                             <div>
@@ -564,7 +773,7 @@ export default function BasicProfileForm({ className = "" }) {
                     </div>
                 </div>
 
-                {/* 4. Professional Links */}
+                {/* ── 4. Professional Links ──────────────────────────────────────── */}
                 <div>
                     <h3 className="text-base font-semibold leading-7 text-slate-900 border-b pb-2">
                         4. Professional Links
@@ -621,26 +830,27 @@ export default function BasicProfileForm({ className = "" }) {
                     </div>
                 </div>
 
-                {/* Save Action */}
+                {/* ── Save Action ────────────────────────────────────────────────── */}
                 <div className="flex items-center gap-4 pt-4">
                     <PrimaryButton
-                        className="bg-blue-600 hover:bg-blue-700"
-                        disabled={processing}
+                        className={`inline-flex items-center gap-2 transition-opacity ${isSaveDisabled ? "opacity-50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}
+                        disabled={isSaveDisabled}
                     >
-                        Save Profile
+                        {processing ? (
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Saving…
+                            </>
+                        ) : (
+                            "Save Profile"
+                        )}
                     </PrimaryButton>
 
-                    <Transition
-                        show={recentlySuccessful}
-                        enter="transition ease-in-out duration-300"
-                        enterFrom="opacity-0"
-                        leave="transition ease-in-out duration-300"
-                        leaveTo="opacity-0"
-                    >
-                        <p className="text-sm font-medium text-emerald-600">
-                            Profile saved successfully.
+                    {!isDirty && !data.profile_image && (
+                        <p className="text-xs text-slate-400 italic">
+                            No unsaved changes
                         </p>
-                    </Transition>
+                    )}
                 </div>
             </form>
         </section>

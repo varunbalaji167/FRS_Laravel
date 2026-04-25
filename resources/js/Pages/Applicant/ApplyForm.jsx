@@ -449,6 +449,8 @@ export default function ApplyForm({
                         setData={setData}
                         updateFormData={updateFormData}
                         localErrors={combinedErrors}
+                        profile={profile}
+                        user={user}
                     />
                 );
             case 3:
