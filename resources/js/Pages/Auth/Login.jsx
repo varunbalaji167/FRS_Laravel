@@ -382,7 +382,7 @@ export default function Login() {
                         </p>
                     </div>
 
-                    <Card className="mt-8 border-dashed border-slate-200 bg-slate-50">
+                    {/* <Card className="mt-8 border-dashed border-slate-200 bg-slate-50">
                         <CardContent className="p-4">
                             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 text-center">
                                 Demo Credentials
@@ -419,7 +419,7 @@ export default function Login() {
                                 </div>
                             </div>
                         </CardContent>
-                    </Card>
+                    </Card> */}
 
                     <div className="mt-6 text-center">
                         <Link
