@@ -3,6 +3,10 @@ import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
 import { PlusCircle, Trash2 } from "lucide-react";
 import { calculateDuration } from "@/lib/dateUtils";
+import TextField from "@/Components/inputs/TextField";
+import DatePicker from "@/Components/inputs/DatePicker";
+import PercentField from "@/Components/inputs/PercentField";
+import YearField from "@/Components/inputs/YearField";
 
 export default function Step3Education({ data, setData, localErrors = {} }) {
     const edu = data.form_data.education || {};
@@ -116,82 +120,38 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-                    <div className="space-y-2">
-                        <Label>Degree</Label>
-                        <Input
-                            value={item.degree || ""}
-                            onChange={(e) =>
-                                handleArrayChange(
-                                    section,
-                                    index,
-                                    "degree",
-                                    e.target.value,
-                                )
-                            }
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>University/Institute</Label>
-                        <Input
-                            value={item.university || ""}
-                            onChange={(e) =>
-                                handleArrayChange(
-                                    section,
-                                    index,
-                                    "university",
-                                    e.target.value,
-                                )
-                            }
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Subjects</Label>
-                        <Input
-                            value={item.subjects || ""}
-                            onChange={(e) =>
-                                handleArrayChange(
-                                    section,
-                                    index,
-                                    "subjects",
-                                    e.target.value,
-                                )
-                            }
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Date of Joining</Label>
-                        <Input
-                            type="date"
-                            max={todayStr}
-                            value={item.date_joining || ""}
-                            onChange={(e) =>
-                                handleArrayChange(
-                                    section,
-                                    index,
-                                    "date_joining",
-                                    e.target.value,
-                                )
-                            }
-                            className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Date of Graduation</Label>
-                        <Input
-                            type="date"
-                            max={todayStr}
-                            value={item.date_graduation || ""}
-                            onChange={(e) =>
-                                handleArrayChange(
-                                    section,
-                                    index,
-                                    "date_graduation",
-                                    e.target.value,
-                                )
-                            }
-                            className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
-                        />
-                    </div>
+                    <TextField
+                        id={`${section}-${index}-degree`}
+                        label="Degree"
+                        value={item.degree}
+                        onChange={(v) => handleArrayChange(section, index, "degree", v)}
+                    />
+                    <TextField
+                        id={`${section}-${index}-university`}
+                        label="University/Institute"
+                        value={item.university}
+                        onChange={(v) => handleArrayChange(section, index, "university", v)}
+                    />
+                    <TextField
+                        id={`${section}-${index}-subjects`}
+                        label="Subjects"
+                        value={item.subjects}
+                        onChange={(v) => handleArrayChange(section, index, "subjects", v)}
+                    />
+                    <DatePicker
+                        id={`${section}-${index}-date_joining`}
+                        label="Date of Joining"
+                        max={todayStr}
+                        value={item.date_joining}
+                        onChange={(v) => handleArrayChange(section, index, "date_joining", v)}
+                    />
+                    <DatePicker
+                        id={`${section}-${index}-date_graduation`}
+                        label="Date of Graduation"
+                        max={todayStr}
+                        value={item.date_graduation}
+                        onChange={(v) => handleArrayChange(section, index, "date_graduation", v)}
+                    />
                     <div className="space-y-2">
                         <Label className="whitespace-nowrap">
                             Duration (YY-MM-DD)
@@ -203,56 +163,19 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                             placeholder="00-00-00"
                         />
                     </div>
-                    <div className="space-y-2">
-                        <Label className="flex flex-col">
-                            <span>Percentage (%)</span>
-                            <span className="text-[10px] text-slate-500 font-normal mt-0.5 leading-tight">
-                                Convert CGPA to % (e.g., 9.8/10 = 98%, 4.5/5 =
-                                90%)
-                            </span>
-                        </Label>
-                        <Input
-                            type="number"
-                            min="1"
-                            max="100"
-                            step="0.01" // Allows decimals like 98.5
-                            value={item.percentage || ""}
-                            onChange={(e) => {
-                                let val = e.target.value;
-
-                                // Prevent numbers greater than 100
-                                if (val !== "" && parseFloat(val) > 100) {
-                                    val = "100";
-                                }
-                                // Prevent negative numbers
-                                if (val !== "" && parseFloat(val) < 0) {
-                                    val = "";
-                                }
-
-                                handleArrayChange(
-                                    section,
-                                    index,
-                                    "percentage",
-                                    val,
-                                );
-                            }}
-                            placeholder="e.g. 98"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Division/Class</Label>
-                        <Input
-                            value={item.division || ""}
-                            onChange={(e) =>
-                                handleArrayChange(
-                                    section,
-                                    index,
-                                    "division",
-                                    e.target.value,
-                                )
-                            }
-                        />
-                    </div>
+                    <PercentField
+                        id={`${section}-${index}-percentage`}
+                        label="Percentage (%)"
+                        hint="Convert CGPA to % (e.g., 9.8/10 = 98%, 4.5/5 = 90%)"
+                        value={item.percentage}
+                        onChange={(v) => handleArrayChange(section, index, "percentage", v)}
+                    />
+                    <TextField
+                        id={`${section}-${index}-division`}
+                        label="Division/Class"
+                        value={item.division}
+                        onChange={(v) => handleArrayChange(section, index, "division", v)}
+                    />
                 </div>
             </div>
         );
@@ -276,90 +199,55 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                     (A) Ph.D. Details
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-                    <div className="space-y-2 lg:col-span-2">
-                        <Label>
-                            University <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
+                    <div className="lg:col-span-2">
+                        <TextField
+                            id="phd-university"
+                            label="University"
+                            required
                             value={phd.university}
-                            onChange={(e) =>
-                                handlePhdChange("university", e.target.value)
-                            }
-                            className={
-                                localErrors["phd.university"]
-                                    ? "border-red-500"
-                                    : ""
-                            }
+                            onChange={(v) => handlePhdChange("university", v)}
+                            error={localErrors["phd.university"]}
                         />
                     </div>
-                    <div className="space-y-2 lg:col-span-2">
-                        <Label>
-                            Department <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
+                    <div className="lg:col-span-2">
+                        <TextField
+                            id="phd-department"
+                            label="Department"
+                            required
                             value={phd.department}
-                            onChange={(e) =>
-                                handlePhdChange("department", e.target.value)
-                            }
-                            className={
-                                localErrors["phd.department"]
-                                    ? "border-red-500"
-                                    : ""
-                            }
+                            onChange={(v) => handlePhdChange("department", v)}
+                            error={localErrors["phd.department"]}
                         />
                     </div>
-                    <div className="space-y-2 lg:col-span-1">
-                        <Label>Name of Supervisor</Label>
-                        <Input
-                            value={phd.supervisor}
-                            onChange={(e) =>
-                                handlePhdChange("supervisor", e.target.value)
-                            }
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>
-                            Date of Joining{" "}
-                            <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                            type="date"
-                            max={todayStr}
-                            value={phd.date_joining}
-                            onChange={(e) =>
-                                handlePhdChange("date_joining", e.target.value)
-                            }
-                            className={`w-full [&::-webkit-calendar-picker-indicator]:ml-auto ${
-                                localErrors["phd.date_joining"]
-                                    ? "border-red-500"
-                                    : ""
-                            }`}
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Date of Defence</Label>
-                        <Input
-                            type="date"
-                            max={todayStr}
-                            value={phd.date_defence}
-                            onChange={(e) =>
-                                handlePhdChange("date_defence", e.target.value)
-                            }
-                            className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Date of Award</Label>
-                        <Input
-                            type="date"
-                            max={todayStr}
-                            value={phd.date_award}
-                            onChange={(e) =>
-                                handlePhdChange("date_award", e.target.value)
-                            }
-                            className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
-                        />
-                    </div>
+                    <TextField
+                        id="phd-supervisor"
+                        label="Name of Supervisor"
+                        value={phd.supervisor}
+                        onChange={(v) => handlePhdChange("supervisor", v)}
+                    />
+                    <DatePicker
+                        id="phd-date_joining"
+                        label="Date of Joining"
+                        required
+                        max={todayStr}
+                        value={phd.date_joining}
+                        onChange={(v) => handlePhdChange("date_joining", v)}
+                        error={localErrors["phd.date_joining"]}
+                    />
+                    <DatePicker
+                        id="phd-date_defence"
+                        label="Date of Defence"
+                        max={todayStr}
+                        value={phd.date_defence}
+                        onChange={(v) => handlePhdChange("date_defence", v)}
+                    />
+                    <DatePicker
+                        id="phd-date_award"
+                        label="Date of Award"
+                        max={todayStr}
+                        value={phd.date_award}
+                        onChange={(v) => handlePhdChange("date_award", v)}
+                    />
                     <div className="space-y-2">
                         <Label className="whitespace-nowrap">
                             Duration (YY-MM-DD)
@@ -371,13 +259,12 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                             placeholder="00-00-00"
                         />
                     </div>
-                    <div className="space-y-2 lg:col-span-3">
-                        <Label>Title of the Ph.D. Thesis</Label>
-                        <Input
+                    <div className="lg:col-span-3">
+                        <TextField
+                            id="phd-title"
+                            label="Title of the Ph.D. Thesis"
                             value={phd.title}
-                            onChange={(e) =>
-                                handlePhdChange("title", e.target.value)
-                            }
+                            onChange={(v) => handlePhdChange("title", v)}
                         />
                     </div>
                 </div>
@@ -460,85 +347,31 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                                 className="bg-slate-50 font-bold"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <Label>School</Label>
-                            <Input
-                                value={item.school}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "school",
-                                        index,
-                                        "school",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Year of Passing</Label>
-                            <Input
-                                type="number"
-                                value={item.year_passing}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "school",
-                                        index,
-                                        "year_passing",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="flex flex-col">
-                                <span>Percentage (%)</span>
-                                <span className="text-[10px] text-slate-500 font-normal mt-0.5 leading-tight">
-                                    CGPA to % (e.g., 9.8/10 = 98%)
-                                </span>
-                            </Label>
-                            <Input
-                                type="number"
-                                min="1"
-                                max="100"
-                                step="0.01" // Allows decimals like 98.5
-                                value={item.percentage || ""}
-                                onChange={(e) => {
-                                    let val = e.target.value;
-
-                                    // Prevent numbers greater than 100
-                                    if (val !== "" && parseFloat(val) > 100) {
-                                        val = "100";
-                                    }
-                                    // Prevent negative numbers
-                                    if (val !== "" && parseFloat(val) < 0) {
-                                        val = "";
-                                    }
-
-                                    // Fixed: Changed 'section' variable to "school"
-                                    handleArrayChange(
-                                        "school",
-                                        index,
-                                        "percentage",
-                                        val,
-                                    );
-                                }}
-                                placeholder="e.g. 98"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Division</Label>
-                            <Input
-                                value={item.division}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "school",
-                                        index,
-                                        "division",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
+                        <TextField
+                            id={`school-${index}-school`}
+                            label="School"
+                            value={item.school}
+                            onChange={(v) => handleArrayChange("school", index, "school", v)}
+                        />
+                        <YearField
+                            id={`school-${index}-year_passing`}
+                            label="Year of Passing"
+                            value={item.year_passing}
+                            onChange={(v) => handleArrayChange("school", index, "year_passing", v)}
+                        />
+                        <PercentField
+                            id={`school-${index}-percentage`}
+                            label="Percentage (%)"
+                            hint="CGPA to % (e.g., 9.8/10 = 98%)"
+                            value={item.percentage}
+                            onChange={(v) => handleArrayChange("school", index, "percentage", v)}
+                        />
+                        <TextField
+                            id={`school-${index}-division`}
+                            label="Division"
+                            value={item.division}
+                            onChange={(v) => handleArrayChange("school", index, "division", v)}
+                        />
                     </div>
                 ))}
             </div>

@@ -1,4 +1,4 @@
-import { Label } from "@/Components/ui/label";
+import SelectField from "@/Components/inputs/SelectField";
 
 export default function Step1Position({ data, setData, localErrors = {}, advertisement }) {
     const availableDepartments = Object.keys(advertisement.departments || {});
@@ -14,51 +14,37 @@ export default function Step1Position({ data, setData, localErrors = {}, adverti
             </div>
 
             <div className="grid grid-cols-1 gap-6">
-                <div className="space-y-2">
-                    <Label className="font-bold text-slate-800">
-                        Department / School <span className="text-red-500">*</span>
-                    </Label>
-                    <select
-                        value={data.department}
-                        onChange={(e) =>
-                            // Use explicit object spread instead of a functional updater so
-                            // it works correctly regardless of Inertia version.
-                            setData({
-                                ...data,
-                                department: e.target.value,
-                                grade: "",          // reset grade whenever department changes
-                            })
-                        }
-                        className={`flex h-11 w-full rounded-md border bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 ${localErrors.department ? "border-red-500" : "border-slate-200"}`}
-                    >
-                        <option value="" disabled>Select a department...</option>
-                        {availableDepartments.map((dept) => (
-                            <option key={dept} value={dept}>{dept}</option>
-                        ))}
-                    </select>
-                    {localErrors.department && (
-                        <p className="text-sm text-red-500">{localErrors.department}</p>
-                    )}
-                </div>
+                <SelectField
+                    id="department"
+                    label="Department / School"
+                    required
+                    value={data.department}
+                    onChange={(value) =>
+                        // Use explicit object spread instead of a functional updater so
+                        // it works correctly regardless of Inertia version.
+                        setData({
+                            ...data,
+                            department: value,
+                            grade: "",          // reset grade whenever department changes
+                        })
+                    }
+                    options={availableDepartments}
+                    placeholder="Select a department..."
+                    error={localErrors.department}
+                />
 
                 <div className="space-y-2">
-                    <Label className="font-bold text-slate-800">
-                        Grade / Position <span className="text-red-500">*</span>
-                    </Label>
-                    <select
+                    <SelectField
+                        id="grade"
+                        label="Grade / Position"
+                        required
                         value={data.grade}
-                        onChange={(e) => setData("grade", e.target.value)}
+                        onChange={(value) => setData("grade", value)}
+                        options={availableGrades}
+                        placeholder="Select position grade..."
                         disabled={!data.department}
-                        className={`flex h-11 w-full rounded-md border bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-slate-50 disabled:text-slate-400 ${localErrors.grade ? "border-red-500" : "border-slate-200"}`}
-                    >
-                        <option value="" disabled>Select position grade...</option>
-                        {availableGrades.map((grade) => (
-                            <option key={grade} value={grade}>{grade}</option>
-                        ))}
-                    </select>
-                    {localErrors.grade && (
-                        <p className="text-sm text-red-500">{localErrors.grade}</p>
-                    )}
+                        error={localErrors.grade}
+                    />
                     {!data.department && (
                         <p className="text-xs text-slate-400">
                             Please select a department first to see available positions.

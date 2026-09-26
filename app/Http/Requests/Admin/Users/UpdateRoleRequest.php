@@ -3,17 +3,22 @@
 namespace App\Http\Requests\Admin\Users;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-// TODO(Phase 2): fill in per docs/validation.md.
 class UpdateRoleRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        // ADMIN_SELF_DEMOTE_FORBIDDEN is handled in the controller (soft
+        // flash-message UX) until Phase 3 wires DomainException rendering.
         return true;
     }
 
     public function rules(): array
     {
-        return [];
+        return [
+            'role' => ['required', Rule::in(['admin', 'hod', 'applicant'])],
+            'department' => ['required_if:role,hod', 'nullable', 'string', Rule::exists('departments', 'name')],
+        ];
     }
 }

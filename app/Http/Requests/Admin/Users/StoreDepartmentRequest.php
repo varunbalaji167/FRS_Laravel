@@ -4,7 +4,6 @@ namespace App\Http\Requests\Admin\Users;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-// TODO(Phase 2): fill in per docs/validation.md.
 class StoreDepartmentRequest extends FormRequest
 {
     public function authorize(): bool
@@ -12,8 +11,17 @@ class StoreDepartmentRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'name' => strtolower(trim((string) $this->input('name'))),
+        ]);
+    }
+
     public function rules(): array
     {
-        return [];
+        return [
+            'name' => ['required', 'string', 'max:255', 'unique:departments,name'],
+        ];
     }
 }

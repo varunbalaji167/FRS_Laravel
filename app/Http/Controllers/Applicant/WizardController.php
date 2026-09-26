@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Applicant;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Applicant\SaveDraftRequest;
+use App\Http\Requests\Applicant\SubmitApplicationRequest;
+use App\Http\Requests\Applicant\ValidateStepRequest;
 use App\Mail\ApplicationSubmitted;
 use App\Mail\RefereeNotification;
 use App\Models\Advertisement;
 use App\Models\JobApplication;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -18,212 +20,17 @@ use Inertia\Inertia;
 
 class WizardController extends Controller
 {
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
+    // Keep in sync with Rules/StepDocumentsRules.php — anything outside this
+    // whitelist bypasses validation entirely (no rule key matches it) and,
+    // pre-Phase-2, was stored to disk under a fully user-controlled key.
+    private const ALLOWED_DOCUMENT_KEYS = [
+        'phd_cert', 'ssc_cert', 'pg_cert', 'ug_cert', 'hsc_cert',
+        'payslip', 'noc', 'post_phd_exp', 'other_docs', 'signature',
+    ];
 
-    /** Simple email format check reused by multiple methods. */
-    private function isValidEmail(?string $email): bool
-    {
-        return $email !== null && filter_var(trim($email), FILTER_VALIDATE_EMAIL) !== false;
-    }
-
-    /**
-     * Build the validation error array for a single wizard step.
-     * Returns an associative array of [ field_key => message ].
-     * Keys deliberately mirror the frontend localErrors keys so the frontend
-     * can merge them directly without any mapping.
-     */
-    private function errorsForStep(int $step, Request $request): array
-    {
-        $errors = [];
-        $formData = $request->input('form_data', []);
-
-        switch ($step) {
-            // -----------------------------------------------------------------
-            case 1:
-                if (empty(trim((string) $request->input('department')))) {
-                    $errors['department'] = 'Department is required.';
-                }
-                if (empty(trim((string) $request->input('grade')))) {
-                    $errors['grade'] = 'Grade is required.';
-                }
-                break;
-
-                // -----------------------------------------------------------------
-            case 2:
-                $p = $formData['personal_details'] ?? [];
-
-                if (empty(trim((string) ($p['first_name'] ?? '')))) {
-                    $errors['first_name'] = 'First name is required.';
-                }
-                if (empty(trim((string) ($p['last_name'] ?? '')))) {
-                    $errors['last_name'] = 'Last name is required.';
-                }
-                if (empty($p['dob'] ?? '')) {
-                    $errors['dob'] = 'Date of birth is required.';
-                } elseif (strtotime($p['dob']) === false) {
-                    $errors['dob'] = 'Invalid date of birth.';
-                }
-                if (empty($p['gender'] ?? '')) {
-                    $errors['gender'] = 'Gender is required.';
-                }
-                if (empty($p['category'] ?? '')) {
-                    $errors['category'] = 'Category is required.';
-                }
-                if (empty($p['nationality'] ?? '')) {
-                    $errors['nationality'] = 'Nationality is required.';
-                }
-                $email = $p['email'] ?? '';
-                if (empty(trim((string) $email))) {
-                    $errors['email'] = 'Email is required.';
-                } elseif (! $this->isValidEmail($email)) {
-                    $errors['email'] = 'Invalid email format.';
-                }
-                // Alt email — only check format if present
-                $altEmail = $p['alt_email'] ?? '';
-                if (! empty(trim((string) $altEmail)) && ! $this->isValidEmail($altEmail)) {
-                    $errors['alt_email'] = 'Invalid alternate email format.';
-                }
-                // Phone — strip non-digits and check length
-                $phone = preg_replace('/\D/', '', (string) ($p['phone'] ?? ''));
-                if (strlen($phone) < 10) {
-                    $errors['phone'] = '10-digit phone number required.';
-                }
-                break;
-
-            case 3:
-                $phd = $formData['education']['phd'] ?? [];
-
-                if (empty(trim((string) ($phd['university'] ?? '')))) {
-                    $errors['phd.university'] = 'University is required.';
-                }
-                if (empty(trim((string) ($phd['department'] ?? '')))) {
-                    $errors['phd.department'] = 'Department is required.';
-                }
-
-                $dateJoining = $phd['date_joining'] ?? '';
-                if (empty($dateJoining)) {
-                    $errors['phd.date_joining'] = 'Date of joining is required.';
-                } else {
-                    // Extract the year from the YYYY-MM-DD string
-                    $year = (int) substr($dateJoining, 0, 4);
-                    // Validate that it is a valid date string and falls within the acceptable year range
-                    if (
-                        ! strtotime($dateJoining) ||
-                        $year < 1950 ||
-                        $year > (int) date('Y')
-                    ) {
-                        $errors['phd.date_joining'] = 'Enter a valid date between 1950 and the current year.';
-                    }
-                }
-                break;
-
-                // -----------------------------------------------------------------
-            case 4:
-                $emp = $formData['employment'] ?? [];
-                $present = $emp['present'] ?? [];
-
-                if (empty(trim((string) ($present['position'] ?? '')))) {
-                    $errors['present.position'] = 'Position is required.';
-                }
-                if (empty(trim((string) ($present['organization'] ?? '')))) {
-                    $errors['present.organization'] = 'Organization is required.';
-                }
-                if (empty($present['date_joining'] ?? '')) {
-                    $errors['present.date_joining'] = 'Date of joining is required.';
-                } elseif (strtotime($present['date_joining']) === false) {
-                    $errors['present.date_joining'] = 'Invalid date.';
-                }
-                if (empty($emp['has_three_years_exp'] ?? '')) {
-                    $errors['emp.has_three_years_exp'] = 'Please select Yes or No.';
-                }
-                break;
-
-                // -----------------------------------------------------------------
-            case 5:
-                $spec = $formData['research']['specialization'] ?? [];
-
-                if (empty(trim((string) ($spec['area_of_specialization'] ?? '')))) {
-                    $errors['spec.area'] = 'Area of Specialization is required.';
-                }
-                if (empty(trim((string) ($spec['current_area_of_research'] ?? '')))) {
-                    $errors['spec.current'] = 'Current Area of Research is required.';
-                }
-                break;
-
-                // -----------------------------------------------------------------
-            case 8:
-                $statements = $formData['statements'] ?? [];
-
-                if (empty(trim((string) ($statements['research_plan'] ?? '')))) {
-                    $errors['statements.research_plan'] =
-                        'Research contribution & future plans are required.';
-                }
-                if (empty(trim((string) ($statements['teaching_plan'] ?? '')))) {
-                    $errors['statements.teaching_plan'] =
-                        'Teaching contribution & future plans are required.';
-                }
-                break;
-
-                // -----------------------------------------------------------------
-            case 10:
-                $refs = $formData['referees_section']['referees'] ?? [];
-
-                if (count($refs) < 3) {
-                    $errors['referees'] = 'You must provide at least 3 referees.';
-                    break;
-                }
-
-                $hasFieldErrors = false;
-                foreach ($refs as $i => $r) {
-                    $mandatory = $i < 3;
-
-                    if ($mandatory && empty(trim((string) ($r['name'] ?? '')))) {
-                        $errors["referee_{$i}_name"] = 'Name is required.';
-                        $hasFieldErrors = true;
-                    }
-                    if ($mandatory && empty(trim((string) ($r['position'] ?? '')))) {
-                        $errors["referee_{$i}_position"] = 'Position is required.';
-                        $hasFieldErrors = true;
-                    }
-                    if ($mandatory && empty(trim((string) ($r['association'] ?? '')))) {
-                        $errors["referee_{$i}_association"] = 'Association is required.';
-                        $hasFieldErrors = true;
-                    }
-                    if ($mandatory && empty(trim((string) ($r['institute'] ?? '')))) {
-                        $errors["referee_{$i}_institute"] = 'Institute is required.';
-                        $hasFieldErrors = true;
-                    }
-                    $refEmail = $r['email'] ?? '';
-                    if ($mandatory && empty(trim((string) $refEmail))) {
-                        $errors["referee_{$i}_email"] = 'Email is required.';
-                        $hasFieldErrors = true;
-                    } elseif (! empty(trim((string) $refEmail)) && ! $this->isValidEmail($refEmail)) {
-                        $errors["referee_{$i}_email"] = 'Invalid email format.';
-                        $hasFieldErrors = true;
-                    }
-                    $contactNumber = preg_replace('/\D/', '', (string) ($r['contact_number'] ?? ''));
-                    if ($mandatory && strlen($contactNumber) === 0) {
-                        $errors["referee_{$i}_contact"] = 'Contact number is required.';
-                        $hasFieldErrors = true;
-                    } elseif (strlen($contactNumber) > 0 && strlen($contactNumber) !== 10) {
-                        $errors["referee_{$i}_contact"] = 'Phone must be exactly 10 digits.';
-                        $hasFieldErrors = true;
-                    }
-                }
-
-                if ($hasFieldErrors) {
-                    $errors['referees'] =
-                        'Please fill all required fields for at least 3 referees.';
-                }
-                break;
-
-                // Steps 6, 7, 9 have no mandatory fields — nothing to validate here.
-        }
-
-        return $errors;
-    }
+    private const ALLOWED_BEST_PAPER_KEYS = [
+        'best_paper_1', 'best_paper_2', 'best_paper_3', 'best_paper_4', 'best_paper_5',
+    ];
 
     /**
      * Show the application form wizard.
@@ -247,11 +54,12 @@ class WizardController extends Controller
         ]);
     }
 
-    // SAVE AS DRAFT — No required-field validation; just persist.
+    // SAVE AS DRAFT — lax validation (types/sizes only); see SaveDraftRequest.
 
-    public function saveDraft(Request $request, Advertisement $advertisement)
+    public function saveDraft(SaveDraftRequest $request, Advertisement $advertisement)
     {
-        $formData = $request->input('form_data', []);
+        $validated = $request->validated();
+        $formData = $validated['form_data'] ?? [];
 
         if ($request->hasFile('form_data.personal_details.profile_image')) {
             $path = $request->file('form_data.personal_details.profile_image')
@@ -284,135 +92,50 @@ class WizardController extends Controller
         return redirect()->back();
     }
 
-    // PER-STEP BACKEND VALIDATION (optional/future use).
-    // All step rules are pure data checks that the frontend already enforces,
-    // so this endpoint is NOT called during normal wizard navigation — backend
-    // validation fires in full on submitApplication (the real security boundary).
-    //
-    // Keep this method available if you later add steps that require DB lookups
-    // (e.g. email uniqueness). To enable, add to web.php:
-    //   Route::post('/jobs/{advertisement}/validate-step',
-    //       [WizardController::class, 'validateStep'])
-    //       ->name('applicant.validateStep')->middleware('auth');
+    // STEP TIER — strict validation for the single step the wizard is
+    // transitioning away from. Called from the wizard's Next button.
+    // Validation itself happens in ValidateStepRequest; reaching this method
+    // body means it already passed.
 
-    public function validateStep(Request $request, Advertisement $advertisement): JsonResponse
+    public function validateStep(ValidateStepRequest $request, Advertisement $advertisement): JsonResponse
     {
-        // Basic sanity: step must be a valid integer
-        $step = (int) $request->input('step', 0);
-        if ($step < 1 || $step > 11) {
-            return response()->json(['valid' => false, 'errors' => ['step' => 'Invalid step.']], 422);
-        }
-
-        $errors = $this->errorsForStep($step, $request);
-
-        return response()->json([
-            'valid' => empty($errors),
-            'errors' => $errors,
-        ], empty($errors) ? 200 : 422);
+        return response()->json(['ok' => true]);
     }
 
-    // FINAL SUBMIT — Full server-side validation across every required step.
+    // FINAL SUBMIT — strict validation across every step; see
+    // SubmitApplicationRequest. Reaching this method body means every field
+    // and required document already passed validation.
 
-    public function submitApplication(Request $request, Advertisement $advertisement)
+    public function submitApplication(SubmitApplicationRequest $request, Advertisement $advertisement)
     {
-        // ── Top-level required fields
-        $validated = $request->validate([
-            'department' => 'required|string|max:255',
-            'grade' => 'required|string|max:255',
-            'form_data' => 'required|array',
-        ]);
-
+        $validated = $request->validated();
         $user = Auth::user();
         $formData = $validated['form_data'];
 
-        // ── Deep validation — mirror every frontend required field check
-        $allErrors = [];
-        foreach ([1, 2, 3, 4, 5, 8, 10] as $step) {
-            $stepErrors = $this->errorsForStep($step, $request);
-            $allErrors = array_merge($allErrors, $stepErrors);
-        }
-
-        // Declaration is required
-        if (empty($formData['declaration'])) {
-            $allErrors['declaration'] = 'You must agree to the final declaration.';
-        }
-
-        // Required file uploads presence checks
-        if (! $request->hasFile('documents.phd_cert')) {
-            $allErrors['phd_cert'] = 'PhD Certificate is required.';
-        }
-        if (! $request->hasFile('documents.ssc_cert')) {
-            $allErrors['ssc_cert'] = '10th/SSC Certificate is required.';
-        }
-        if (! $request->hasFile('documents.signature')) {
-            $allErrors['signature'] = 'Digital signature is required.';
-        }
-
-        // If any required fields are missing, return immediately before checking file sizes
-        if (! empty($allErrors)) {
-            return back()->withErrors($allErrors)->withInput();
-        }
-
-        // ── File size & MIME validation for general documents & signature
-        if ($request->hasFile('documents')) {
-            foreach ($request->file('documents') as $key => $file) {
-                if (! $file->isValid()) {
-                    return back()->withErrors([$key => 'Uploaded file is invalid.'])->withInput();
-                }
-
-                // Exception: Handle the Signature (Image) differently than the PDFs
-                if ($key === 'signature') {
-                    if (! in_array($file->getMimeType(), ['image/jpeg', 'image/png', 'image/jpg'])) {
-                        return back()->withErrors(['signature' => 'Only JPG/PNG images are accepted for signatures.'])->withInput();
-                    }
-                    if ($file->getSize() > 2 * 1024 * 1024) {
-                        return back()->withErrors(['signature' => 'Signature must be smaller than 2 MB.'])->withInput();
-                    }
-
-                    continue; // Skip the PDF checks below for the signature
-                }
-
-                // Normal PDF Document checks
-                if ($file->getMimeType() !== 'application/pdf') {
-                    return back()->withErrors([$key => 'Only PDF files are accepted.'])->withInput();
-                }
-                if ($file->getSize() > 10 * 1024 * 1024) {
-                    return back()->withErrors([$key => 'File must be smaller than 10 MB.'])->withInput();
-                }
-            }
-        }
-
-        // ── Best papers validation
-        if ($request->hasFile('best_papers')) {
-            foreach ($request->file('best_papers') as $key => $file) {
-                if (! $file->isValid()) {
-                    return back()->withErrors([$key => 'Uploaded paper is invalid.'])->withInput();
-                }
-                if ($file->getMimeType() !== 'application/pdf') {
-                    return back()->withErrors([$key => 'Only PDF files are accepted for papers.'])->withInput();
-                }
-                if ($file->getSize() > 10 * 1024 * 1024) {
-                    return back()->withErrors([$key => 'Paper file must be smaller than 10 MB.'])->withInput();
-                }
-            }
-        }
-
         $documentPaths = $formData['uploaded_documents'] ?? [];
 
-        // ── Profile image validation & storage
+        foreach (array_keys($request->file('documents', [])) as $key) {
+            if (! in_array($key, self::ALLOWED_DOCUMENT_KEYS, true)) {
+                // TODO(Phase 3): replace with throw new DomainException(ErrorCode::FILE_KEY_NOT_ALLOWED)
+                abort(422, "Unrecognised document upload key: {$key}");
+            }
+        }
+
+        foreach (array_keys($request->file('best_papers', [])) as $key) {
+            if (! in_array($key, self::ALLOWED_BEST_PAPER_KEYS, true)) {
+                // TODO(Phase 3): replace with throw new DomainException(ErrorCode::FILE_KEY_NOT_ALLOWED)
+                abort(422, "Unrecognised document upload key: {$key}");
+            }
+        }
+
+        // ── Profile image
         if ($request->hasFile('form_data.personal_details.profile_image')) {
-            $imgFile = $request->file('form_data.personal_details.profile_image');
-            if (! in_array($imgFile->getMimeType(), ['image/jpeg', 'image/png', 'image/jpg'])) {
-                return back()->withErrors(['profile_image' => 'Only JPG/PNG images are accepted.'])->withInput();
-            }
-            if ($imgFile->getSize() > 2 * 1024 * 1024) {
-                return back()->withErrors(['profile_image' => 'Profile photo must be smaller than 2 MB.'])->withInput();
-            }
-            $path = $imgFile->store("applications/{$user->id}/{$advertisement->id}/photos", 'local');
+            $path = $request->file('form_data.personal_details.profile_image')
+                ->store("applications/{$user->id}/{$advertisement->id}/photos", 'local');
             $formData['personal_details']['profile_image'] = $path;
         }
 
-        // ── Saving Supporting Documents & Signature
+        // ── Supporting documents & signature
         if ($request->hasFile('documents')) {
             foreach ($request->file('documents') as $key => $file) {
                 $documentPaths[$key] = $file->store(
@@ -421,7 +144,7 @@ class WizardController extends Controller
             }
         }
 
-        // ── Saving Best Papers
+        // ── Best papers
         if ($request->hasFile('best_papers')) {
             foreach ($request->file('best_papers') as $key => $file) {
                 $documentPaths[$key] = $file->store(

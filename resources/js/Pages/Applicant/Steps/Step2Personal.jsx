@@ -1,8 +1,25 @@
-import { Label } from "@/Components/ui/label";
-import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
-import { Copy, Upload, User, Check } from "lucide-react";
+import { Copy, User, Check } from "lucide-react";
 import { useEffect, useState } from "react";
+import TextField from "@/Components/inputs/TextField";
+import EmailField from "@/Components/inputs/EmailField";
+import DatePicker from "@/Components/inputs/DatePicker";
+import SelectField from "@/Components/inputs/SelectField";
+import TextareaField from "@/Components/inputs/TextareaField";
+import PhoneField from "@/Components/inputs/PhoneField";
+import FileField from "@/Components/inputs/FileField";
+
+const GENDER_OPTIONS = ["Male", "Female", "Transgender", "Prefer not to say"];
+const MARITAL_STATUS_OPTIONS = ["Unmarried", "Married", "Divorced", "Widowed"];
+const CATEGORY_OPTIONS = [
+    { value: "UR", label: "UR (Unreserved)" },
+    { value: "OBC", label: "OBC" },
+    { value: "SC", label: "SC" },
+    { value: "ST", label: "ST" },
+    { value: "EWS", label: "EWS" },
+];
+const NATIONALITY_OPTIONS = ["Indian", "OCI", "Foreign National"];
+const ID_PROOF_TYPE_OPTIONS = ["Aadhar", "PAN", "Passport", "Voter ID", "Driving License"];
 
 export default function Step2Personal({
     data,
@@ -14,7 +31,6 @@ export default function Step2Personal({
 }) {
     const p = data.form_data?.personal_details || {};
     const [preview, setPreview] = useState(null);
-    const [imageError, setImageError] = useState("");
     const [isProfileCopied, setIsProfileCopied] = useState(false);
     const [isAddressCopied, setIsAddressCopied] = useState(false);
 
@@ -50,17 +66,13 @@ export default function Step2Personal({
         setTimeout(() => setIsAddressCopied(false), 2000);
     };
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        setImageError("");
+    const handleImageChange = (file) => {
         if (file) {
-            if (file.size > 2097152) {
-                setImageError("Image size must be less than 2MB.");
-                return;
-            }
             setPreview(URL.createObjectURL(file));
-            updateFormData("personal_details", "profile_image", file);
+        } else {
+            setPreview(null);
         }
+        updateFormData("personal_details", "profile_image", file);
     };
 
     const copyFromProfile = () => {
@@ -109,6 +121,10 @@ export default function Step2Personal({
         setIsProfileCopied(true);
         setTimeout(() => setIsProfileCopied(false), 2000);
     };
+
+    const setField = (field, value) =>
+        updateFormData("personal_details", field, value);
+
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
             <div>
@@ -167,32 +183,15 @@ export default function Step2Personal({
                             <User className="h-12 w-12 text-slate-400" />
                         )}
                     </div>
-                    <div>
-                        <Label
-                            htmlFor="profile_image"
-                            className="relative cursor-pointer rounded-md bg-white font-semibold text-blue-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-600 focus-within:ring-offset-2 hover:text-blue-500"
-                        >
-                            <span className="flex items-center gap-2 border border-slate-300 px-4 py-2 rounded-lg shadow-sm text-sm">
-                                <Upload className="h-4 w-4" />
-                                Upload Photo
-                            </span>
-                            <Input
-                                id="profile_image"
-                                type="file"
-                                className="sr-only"
-                                accept="image/jpeg, image/png, image/jpg"
-                                onChange={handleImageChange}
-                            />
-                        </Label>
-                        <p className="mt-2 text-xs leading-5 text-slate-500">
-                            JPG, PNG up to 2MB.
-                        </p>
-
-                        {(imageError || localErrors.profile_image) && (
-                            <p className="mt-1 text-sm text-red-600 font-medium">
-                                {imageError || localErrors.profile_image}
-                            </p>
-                        )}
+                    <div className="flex-1 max-w-sm">
+                        <FileField
+                            id="profile_image"
+                            value={p.profile_image}
+                            onChange={handleImageChange}
+                            accept="image/jpeg,image/png,image/jpg"
+                            maxSizeBytes={2097152}
+                            error={localErrors.profile_image}
+                        />
                     </div>
                 </div>
             </div>
@@ -202,76 +201,34 @@ export default function Step2Personal({
                     Name & Family
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                        <Label>
-                            First Name <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                            value={p.first_name || ""}
-                            onChange={(e) =>
-                                updateFormData(
-                                    "personal_details",
-                                    "first_name",
-                                    e.target.value,
-                                )
-                            }
-                            className={
-                                localErrors.first_name ? "border-red-500" : ""
-                            }
-                        />
-                        {localErrors.first_name && (
-                            <p className="text-xs text-red-500">
-                                {localErrors.first_name}
-                            </p>
-                        )}
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Middle Name</Label>
-                        <Input
-                            value={p.middle_name || ""}
-                            onChange={(e) =>
-                                updateFormData(
-                                    "personal_details",
-                                    "middle_name",
-                                    e.target.value,
-                                )
-                            }
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>
-                            Last Name <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                            value={p.last_name || ""}
-                            onChange={(e) =>
-                                updateFormData(
-                                    "personal_details",
-                                    "last_name",
-                                    e.target.value,
-                                )
-                            }
-                            className={
-                                localErrors.last_name ? "border-red-500" : ""
-                            }
-                        />
-                        {localErrors.last_name && (
-                            <p className="text-xs text-red-500">
-                                {localErrors.last_name}
-                            </p>
-                        )}
-                    </div>
-                    <div className="space-y-2 md:col-span-3">
-                        <Label>Father's Name</Label>
-                        <Input
-                            value={p.fathers_name || ""}
-                            onChange={(e) =>
-                                updateFormData(
-                                    "personal_details",
-                                    "fathers_name",
-                                    e.target.value,
-                                )
-                            }
+                    <TextField
+                        id="first_name"
+                        label="First Name"
+                        required
+                        value={p.first_name}
+                        onChange={(v) => setField("first_name", v)}
+                        error={localErrors.first_name}
+                    />
+                    <TextField
+                        id="middle_name"
+                        label="Middle Name"
+                        value={p.middle_name}
+                        onChange={(v) => setField("middle_name", v)}
+                    />
+                    <TextField
+                        id="last_name"
+                        label="Last Name"
+                        required
+                        value={p.last_name}
+                        onChange={(v) => setField("last_name", v)}
+                        error={localErrors.last_name}
+                    />
+                    <div className="md:col-span-3">
+                        <TextField
+                            id="fathers_name"
+                            label="Father's Name"
+                            value={p.fathers_name}
+                            onChange={(v) => setField("fathers_name", v)}
                         />
                     </div>
                 </div>
@@ -282,179 +239,69 @@ export default function Step2Personal({
                     Demographics & Identity
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <DatePicker
+                        id="dob"
+                        label="Date of Birth"
+                        required
+                        value={p.dob}
+                        onChange={(v) => setField("dob", v)}
+                        error={localErrors.dob}
+                    />
+                    <SelectField
+                        id="gender"
+                        label="Gender"
+                        required
+                        value={p.gender}
+                        onChange={(v) => setField("gender", v)}
+                        options={GENDER_OPTIONS}
+                        error={localErrors.gender}
+                    />
+                    <SelectField
+                        id="marital_status"
+                        label="Marital Status"
+                        value={p.marital_status}
+                        onChange={(v) => setField("marital_status", v)}
+                        options={MARITAL_STATUS_OPTIONS}
+                    />
+                    <SelectField
+                        id="category"
+                        label="Category"
+                        required
+                        value={p.category}
+                        onChange={(v) => setField("category", v)}
+                        options={CATEGORY_OPTIONS}
+                        error={localErrors.category}
+                    />
+                    <SelectField
+                        id="nationality"
+                        label="Nationality"
+                        required
+                        value={p.nationality}
+                        onChange={(v) => setField("nationality", v)}
+                        options={NATIONALITY_OPTIONS}
+                        error={localErrors.nationality}
+                    />
                     <div className="space-y-2">
-                        <Label>
-                            Date of Birth{" "}
-                            <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                            type="date"
-                            value={p.dob || ""}
-                            onChange={(e) =>
-                                updateFormData(
-                                    "personal_details",
-                                    "dob",
-                                    e.target.value,
-                                )
-                            }
-                            className={localErrors.dob ? "border-red-500" : ""}
-                        />
-                        {localErrors.dob && (
-                            <p className="text-xs text-red-500">
-                                {localErrors.dob}
-                            </p>
-                        )}
-                    </div>
-                    <div className="space-y-2">
-                        <Label>
-                            Gender <span className="text-red-500">*</span>
-                        </Label>
-                        <select
-                            value={p.gender || ""}
-                            onChange={(e) =>
-                                updateFormData(
-                                    "personal_details",
-                                    "gender",
-                                    e.target.value,
-                                )
-                            }
-                            className={`flex h-11 w-full rounded-md border bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 ${localErrors.gender ? "border-red-500" : "border-slate-200"}`}
-                        >
-                            <option value="" disabled>
-                                Select...
-                            </option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Transgender">Transgender</option>
-                            <option value="Prefer not to say">
-                                Prefer not to say
-                            </option>
-                        </select>
-                        {localErrors.gender && (
-                            <p className="text-xs text-red-500">
-                                {localErrors.gender}
-                            </p>
-                        )}
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Marital Status</Label>
-                        <select
-                            value={p.marital_status || ""}
-                            onChange={(e) =>
-                                updateFormData(
-                                    "personal_details",
-                                    "marital_status",
-                                    e.target.value,
-                                )
-                            }
-                            className="flex h-11 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-                        >
-                            <option value="" disabled>
-                                Select...
-                            </option>
-                            <option value="Unmarried">Unmarried</option>
-                            <option value="Married">Married</option>
-                            <option value="Divorced">Divorced</option>
-                            <option value="Widowed">Widowed</option>
-                        </select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>
-                            Category <span className="text-red-500">*</span>
-                        </Label>
-                        <select
-                            value={p.category || ""}
-                            onChange={(e) =>
-                                updateFormData(
-                                    "personal_details",
-                                    "category",
-                                    e.target.value,
-                                )
-                            }
-                            className={`flex h-11 w-full rounded-md border bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 ${localErrors.category ? "border-red-500" : "border-slate-200"}`}
-                        >
-                            <option value="" disabled>
-                                Select...
-                            </option>
-                            <option value="UR">UR (Unreserved)</option>
-                            <option value="OBC">OBC</option>
-                            <option value="SC">SC</option>
-                            <option value="ST">ST</option>
-                            <option value="EWS">EWS</option>
-                        </select>
-                        {localErrors.category && (
-                            <p className="text-xs text-red-500">
-                                {localErrors.category}
-                            </p>
-                        )}
-                    </div>
-                    <div className="space-y-2">
-                        <Label>
-                            Nationality <span className="text-red-500">*</span>
-                        </Label>
-                        <select
-                            value={p.nationality || ""}
-                            onChange={(e) =>
-                                updateFormData(
-                                    "personal_details",
-                                    "nationality",
-                                    e.target.value,
-                                )
-                            }
-                            className={`flex h-11 w-full rounded-md border bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 ${localErrors.nationality ? "border-red-500" : "border-slate-200"}`}
-                        >
-                            <option value="" disabled>
-                                Select...
-                            </option>
-                            <option value="Indian">Indian</option>
-                            <option value="OCI">OCI</option>
-                            <option value="Foreign National">
-                                Foreign National
-                            </option>
-                        </select>
-                        {localErrors.nationality && (
-                            <p className="text-xs text-red-500">
-                                {localErrors.nationality}
-                            </p>
-                        )}
-                    </div>
-                    <div className="space-y-2">
-                        <Label>ID Proof Type & Number</Label>
-                        <div className="flex gap-2">
-                            <select
-                                value={p.id_proof_type || ""}
-                                onChange={(e) =>
-                                    updateFormData(
-                                        "personal_details",
-                                        "id_proof_type",
-                                        e.target.value,
-                                    )
-                                }
-                                className="flex h-11 w-1/3 rounded-md border border-slate-200 bg-white px-2 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-                            >
-                                <option value="" disabled>
-                                    Type
-                                </option>
-                                <option value="Aadhar">Aadhar</option>
-                                <option value="PAN">PAN</option>
-                                <option value="Passport">Passport</option>
-                                <option value="Voter ID">Voter ID</option>
-                                <option value="Driving License">
-                                    Driving License
-                                </option>
-                            </select>
-                            <Input
-                                value={p.id_proof_number || ""}
-                                onChange={(e) =>
-                                    updateFormData(
-                                        "personal_details",
-                                        "id_proof_number",
-                                        e.target.value,
-                                    )
-                                }
-                                placeholder="ID Number"
-                                className="w-2/3"
-                            />
+                        <div className="grid grid-cols-3 gap-2 items-start">
+                            <div className="col-span-1">
+                                <SelectField
+                                    id="id_proof_type"
+                                    label="ID Proof Type & Number"
+                                    value={p.id_proof_type}
+                                    onChange={(v) => setField("id_proof_type", v)}
+                                    options={ID_PROOF_TYPE_OPTIONS}
+                                    placeholder="Type"
+                                />
+                            </div>
+                            <div className="col-span-2">
+                                <TextField
+                                    id="id_proof_number"
+                                    label={" "}
+                                    value={p.id_proof_number}
+                                    onChange={(v) => setField("id_proof_number", v)}
+                                    placeholder="ID Number"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -466,73 +313,37 @@ export default function Step2Personal({
                         Correspondence Address
                     </h4>
                     <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label>Street Address</Label>
-                            <textarea
-                                value={p.corr_address || ""}
-                                onChange={(e) =>
-                                    updateFormData(
-                                        "personal_details",
-                                        "corr_address",
-                                        e.target.value,
-                                    )
-                                }
-                                className="flex w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 min-h-[80px]"
-                            />
-                        </div>
+                        <TextareaField
+                            id="corr_address"
+                            label="Street Address"
+                            value={p.corr_address}
+                            onChange={(v) => setField("corr_address", v)}
+                        />
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>City/District</Label>
-                                <Input
-                                    value={p.corr_city || ""}
-                                    onChange={(e) =>
-                                        updateFormData(
-                                            "personal_details",
-                                            "corr_city",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>State/Province</Label>
-                                <Input
-                                    value={p.corr_state || ""}
-                                    onChange={(e) =>
-                                        updateFormData(
-                                            "personal_details",
-                                            "corr_state",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Country</Label>
-                                <Input
-                                    value={p.corr_country || ""}
-                                    onChange={(e) =>
-                                        updateFormData(
-                                            "personal_details",
-                                            "corr_country",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>PIN Code</Label>
-                                <Input
-                                    value={p.corr_pincode || ""}
-                                    onChange={(e) =>
-                                        updateFormData(
-                                            "personal_details",
-                                            "corr_pincode",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
+                            <TextField
+                                id="corr_city"
+                                label="City/District"
+                                value={p.corr_city}
+                                onChange={(v) => setField("corr_city", v)}
+                            />
+                            <TextField
+                                id="corr_state"
+                                label="State/Province"
+                                value={p.corr_state}
+                                onChange={(v) => setField("corr_state", v)}
+                            />
+                            <TextField
+                                id="corr_country"
+                                label="Country"
+                                value={p.corr_country}
+                                onChange={(v) => setField("corr_country", v)}
+                            />
+                            <TextField
+                                id="corr_pincode"
+                                label="PIN Code"
+                                value={p.corr_pincode}
+                                onChange={(v) => setField("corr_pincode", v)}
+                            />
                         </div>
                     </div>
                 </div>
@@ -564,73 +375,37 @@ export default function Step2Personal({
                         </button>
                     </div>
                     <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label>Street Address</Label>
-                            <textarea
-                                value={p.perm_address || ""}
-                                onChange={(e) =>
-                                    updateFormData(
-                                        "personal_details",
-                                        "perm_address",
-                                        e.target.value,
-                                    )
-                                }
-                                className="flex w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 min-h-[80px]"
-                            />
-                        </div>
+                        <TextareaField
+                            id="perm_address"
+                            label="Street Address"
+                            value={p.perm_address}
+                            onChange={(v) => setField("perm_address", v)}
+                        />
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>City/District</Label>
-                                <Input
-                                    value={p.perm_city || ""}
-                                    onChange={(e) =>
-                                        updateFormData(
-                                            "personal_details",
-                                            "perm_city",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>State/Province</Label>
-                                <Input
-                                    value={p.perm_state || ""}
-                                    onChange={(e) =>
-                                        updateFormData(
-                                            "personal_details",
-                                            "perm_state",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Country</Label>
-                                <Input
-                                    value={p.perm_country || ""}
-                                    onChange={(e) =>
-                                        updateFormData(
-                                            "personal_details",
-                                            "perm_country",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>PIN Code</Label>
-                                <Input
-                                    value={p.perm_pincode || ""}
-                                    onChange={(e) =>
-                                        updateFormData(
-                                            "personal_details",
-                                            "perm_pincode",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
+                            <TextField
+                                id="perm_city"
+                                label="City/District"
+                                value={p.perm_city}
+                                onChange={(v) => setField("perm_city", v)}
+                            />
+                            <TextField
+                                id="perm_state"
+                                label="State/Province"
+                                value={p.perm_state}
+                                onChange={(v) => setField("perm_state", v)}
+                            />
+                            <TextField
+                                id="perm_country"
+                                label="Country"
+                                value={p.perm_country}
+                                onChange={(v) => setField("perm_country", v)}
+                            />
+                            <TextField
+                                id="perm_pincode"
+                                label="PIN Code"
+                                value={p.perm_pincode}
+                                onChange={(v) => setField("perm_pincode", v)}
+                            />
                         </div>
                     </div>
                 </div>
@@ -641,115 +416,38 @@ export default function Step2Personal({
                     Contact Details
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <Label>
-                            Primary E-mail{" "}
-                            <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                            type="email"
-                            value={p.email || ""}
-                            onChange={(e) =>
-                                updateFormData(
-                                    "personal_details",
-                                    "email",
-                                    e.target.value,
-                                )
-                            }
-                            className={
-                                localErrors.email ? "border-red-500" : ""
-                            }
-                        />
-                        {localErrors.email && (
-                            <p className="text-xs text-red-500">
-                                {localErrors.email}
-                            </p>
-                        )}
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Alternate E-mail</Label>
-                        <Input
-                            type="email"
-                            value={p.alt_email || ""}
-                            onChange={(e) =>
-                                updateFormData(
-                                    "personal_details",
-                                    "alt_email",
-                                    e.target.value,
-                                )
-                            }
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>
-                            Primary Mobile{" "}
-                            <span className="text-red-500">*</span>
-                        </Label>
-                        <div className="flex gap-2">
-                            <Input
-                                type="text"
-                                value={p.phone_code || "+91"}
-                                onChange={(e) =>
-                                    updateFormData(
-                                        "personal_details",
-                                        "phone_code",
-                                        e.target.value.replace(/[^\d+]/g, ""),
-                                    )
-                                }
-                                className="w-20 text-center px-1 bg-slate-50"
-                                maxLength={5}
-                            />
-                            <Input
-                                type="tel"
-                                value={p.phone || ""}
-                                onChange={(e) =>
-                                    updateFormData(
-                                        "personal_details",
-                                        "phone",
-                                        e.target.value.replace(/\D/g, ""),
-                                    )
-                                }
-                                className={`flex-1 ${localErrors.phone ? "border-red-500" : ""}`}
-                                maxLength={10}
-                            />
-                        </div>
-                        {localErrors.phone && (
-                            <p className="text-xs text-red-500">
-                                {localErrors.phone}
-                            </p>
-                        )}
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Alternate Mobile</Label>
-                        <div className="flex gap-2">
-                            <Input
-                                type="text"
-                                value={p.alt_phone_code || "+91"}
-                                onChange={(e) =>
-                                    updateFormData(
-                                        "personal_details",
-                                        "alt_phone_code",
-                                        e.target.value.replace(/[^\d+]/g, ""),
-                                    )
-                                }
-                                className="w-20 text-center px-1 bg-slate-50"
-                                maxLength={5}
-                            />
-                            <Input
-                                type="tel"
-                                value={p.alt_phone || ""}
-                                onChange={(e) =>
-                                    updateFormData(
-                                        "personal_details",
-                                        "alt_phone",
-                                        e.target.value.replace(/\D/g, ""),
-                                    )
-                                }
-                                className="flex-1"
-                                maxLength={10}
-                            />
-                        </div>
-                    </div>
+                    <EmailField
+                        id="email"
+                        label="Primary E-mail"
+                        required
+                        value={p.email}
+                        onChange={(v) => setField("email", v)}
+                        error={localErrors.email}
+                    />
+                    <EmailField
+                        id="alt_email"
+                        label="Alternate E-mail"
+                        value={p.alt_email}
+                        onChange={(v) => setField("alt_email", v)}
+                    />
+                    <PhoneField
+                        id="phone"
+                        label="Primary Mobile"
+                        required
+                        code={p.phone_code}
+                        onCodeChange={(v) => setField("phone_code", v)}
+                        value={p.phone}
+                        onChange={(v) => setField("phone", v)}
+                        error={localErrors.phone}
+                    />
+                    <PhoneField
+                        id="alt_phone"
+                        label="Alternate Mobile"
+                        code={p.alt_phone_code}
+                        onCodeChange={(v) => setField("alt_phone_code", v)}
+                        value={p.alt_phone}
+                        onChange={(v) => setField("alt_phone", v)}
+                    />
                 </div>
             </div>
         </div>

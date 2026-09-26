@@ -3,8 +3,8 @@
 namespace App\Http\Requests\Admin\Applications;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-// TODO(Phase 2): fill in per docs/validation.md.
 class UpdateStatusRequest extends FormRequest
 {
     public function authorize(): bool
@@ -14,6 +14,11 @@ class UpdateStatusRequest extends FormRequest
 
     public function rules(): array
     {
-        return [];
+        return [
+            // 'draft' is intentionally excluded — draft -> * is not a valid
+            // admin/HOD transition, and getScopedQuery() already excludes
+            // draft rows from the query this status update runs against.
+            'status' => ['required', Rule::in(['submitted', 'shortlisted', 'rejected'])],
+        ];
     }
 }

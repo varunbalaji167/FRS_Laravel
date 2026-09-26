@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Applications\UpdateStatusRequest;
 use App\Models\Advertisement;
 use App\Models\Department;
 use App\Models\JobApplication;
@@ -93,12 +94,8 @@ class ApplicationController extends Controller
         ]);
     }
 
-    public function updateStatus(Request $request, $id)
+    public function updateStatus(UpdateStatusRequest $request, $id)
     {
-        $request->validate([
-            'status' => 'required|in:submitted,shortlisted,rejected',
-        ]);
-
         $application = clone $this->getScopedQuery($request)->findOrFail($id);
 
         $application->update(['status' => $request->status]);

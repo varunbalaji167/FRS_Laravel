@@ -18,11 +18,16 @@ class RegistrationTest extends TestCase
 
     public function test_new_users_can_register(): void
     {
+        // Password meets RegisterRequest's Password::min(10)->mixedCase()
+        // ->numbers()->symbols()->uncompromised() rule — plain "password"
+        // no longer clears registration now that Phase 2 enforces it.
+        $strongPassword = 'Zx9!qLr7-Vt2#Wm';
+
         $response = $this->post('/register', [
             'name' => 'Test User',
             'email' => 'test@example.com',
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'password' => $strongPassword,
+            'password_confirmation' => $strongPassword,
         ]);
 
         $this->assertAuthenticated();

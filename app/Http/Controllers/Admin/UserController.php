@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Users\StoreUserRequest;
+use App\Http\Requests\Admin\Users\UpdateRoleRequest;
 use App\Mail\AccountAccessNotification;
 use App\Models\Department;
 use App\Models\User;
@@ -33,15 +35,8 @@ class UserController extends Controller
     /**
      * Pre-provision a new Admin or HOD manually
      */
-    public function storeUser(Request $request)
+    public function storeUser(StoreUserRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email',
-            'role' => 'required|in:admin,hod',
-            'department' => 'required_if:role,hod|string|nullable|max:255',
-        ]);
-
         // 1. CAPTURE the created user into the $user variable
         $user = User::create([
             'name' => $request->name,
@@ -60,13 +55,8 @@ class UserController extends Controller
     /**
      * Update an existing user's role/department
      */
-    public function updateRole(Request $request, User $user)
+    public function updateRole(UpdateRoleRequest $request, User $user)
     {
-        $request->validate([
-            'role' => 'required|in:admin,hod,applicant',
-            'department' => 'required_if:role,hod|string|nullable|max:255',
-        ]);
-
         // Prevent the admin from accidentally demoting themselves and locking themselves out
         if ($user->id === $request->user()->id && $request->role !== 'admin') {
             return back()->with('error', 'You cannot demote yourself from the admin role.');

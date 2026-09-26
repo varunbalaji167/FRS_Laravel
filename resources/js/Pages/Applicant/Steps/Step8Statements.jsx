@@ -1,4 +1,4 @@
-import { Label } from "@/Components/ui/label";
+import TextareaField from "@/Components/inputs/TextareaField";
 
 export default function Step8Statements({ data, setData, localErrors = {} }) {
     // Grouping these under a new 'statements' object in our JSON
@@ -26,101 +26,66 @@ export default function Step8Statements({ data, setData, localErrors = {} }) {
 
             {/* (A) Research Contribution & Plans */}
             <div className="space-y-4 bg-slate-50 p-6 rounded-xl border border-slate-100">
-                <div className="space-y-2">
-                    <Label className="text-lg font-bold text-slate-800">
-                        (A) Significant research contribution and future plans{" "}
-                        <span className="text-red-500">*</span>
-                    </Label>
-                    <p className="text-xs text-slate-500 mb-2">
-                        Outline your core research interests, methodologies,
-                        past achievements, and specific goals for your tenure at
-                        IIT Indore.
-                    </p>
-                    <textarea
-                        value={statements.research_plan || ""}
-                        onChange={(e) =>
-                            updateStatement("research_plan", e.target.value)
-                        }
-                        className={`flex w-full rounded-md border bg-white px-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 min-h-[300px] leading-relaxed ${localErrors["statements.research_plan"] ? "border-red-500" : "border-slate-200"}`}
-                        placeholder="My primary research interests focus on understanding the dynamics of..."
-                    />
-                    {localErrors["statements.research_plan"] && (
-                        <p className="text-sm font-bold text-red-500">
-                            {localErrors["statements.research_plan"]}
-                        </p>
-                    )}
-                </div>
+                <p className="text-xs text-slate-500">
+                    Outline your core research interests, methodologies, past
+                    achievements, and specific goals for your tenure at IIT
+                    Indore.
+                </p>
+                <TextareaField
+                    id="research_plan"
+                    label="(A) Significant research contribution and future plans"
+                    required
+                    rows={12}
+                    value={statements.research_plan}
+                    onChange={(v) => updateStatement("research_plan", v)}
+                    placeholder="My primary research interests focus on understanding the dynamics of..."
+                    error={localErrors["statements.research_plan"]}
+                />
             </div>
 
             {/* (B) Teaching Contribution & Plans */}
             <div className="space-y-4 bg-slate-50 p-6 rounded-xl border border-slate-100">
-                <div className="space-y-2">
-                    <Label className="text-lg font-bold text-slate-800">
-                        (B) Significant teaching contribution and future plans{" "}
-                        <span className="text-red-500">*</span>
-                    </Label>
-                    <p className="text-xs text-slate-500 mb-2">
-                        Detail your teaching philosophy, proposed UG/PG courses,
-                        and pedagogical approach.
-                    </p>
-                    <textarea
-                        value={statements.teaching_plan || ""}
-                        onChange={(e) =>
-                            updateStatement("teaching_plan", e.target.value)
-                        }
-                        className={`flex w-full rounded-md border bg-white px-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 min-h-[300px] leading-relaxed ${localErrors["statements.teaching_plan"] ? "border-red-500" : "border-slate-200"}`}
-                        placeholder="With my academic background in..."
-                    />
-                    {localErrors["statements.teaching_plan"] && (
-                        <p className="text-sm font-bold text-red-500">
-                            {localErrors["statements.teaching_plan"]}
-                        </p>
-                    )}
-                </div>
+                <p className="text-xs text-slate-500">
+                    Detail your teaching philosophy, proposed UG/PG courses,
+                    and pedagogical approach.
+                </p>
+                <TextareaField
+                    id="teaching_plan"
+                    label="(B) Significant teaching contribution and future plans"
+                    required
+                    rows={12}
+                    value={statements.teaching_plan}
+                    onChange={(v) => updateStatement("teaching_plan", v)}
+                    placeholder="With my academic background in..."
+                    error={localErrors["statements.teaching_plan"]}
+                />
             </div>
 
             {/* (C) Professional Service */}
             <div className="space-y-4">
-                <div className="space-y-2">
-                    <Label className="text-lg font-bold text-slate-800">
-                        (C) Professional Service as Reviewer/Editor etc.
-                    </Label>
-                    <p className="text-xs text-slate-500 mb-2">
-                        List journals you review for, editorial board
-                        memberships, or conference committees.
-                    </p>
-                    <textarea
-                        value={statements.professional_service || ""}
-                        onChange={(e) =>
-                            updateStatement(
-                                "professional_service",
-                                e.target.value,
-                            )
-                        }
-                        className="flex w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 min-h-[150px] leading-relaxed"
-                        placeholder="1. Reviewer for Advances in Space Research (Elsevier)&#10;2. ..."
-                    />
-                </div>
+                <p className="text-xs text-slate-500">
+                    List journals you review for, editorial board
+                    memberships, or conference committees.
+                </p>
+                <TextareaField
+                    id="professional_service"
+                    label="(C) Professional Service as Reviewer/Editor etc."
+                    rows={6}
+                    value={statements.professional_service}
+                    onChange={(v) => updateStatement("professional_service", v)}
+                    placeholder={"1. Reviewer for Advances in Space Research (Elsevier)\n2. ..."}
+                />
             </div>
 
             {/* (D) Any other relevant information */}
             <div className="space-y-4">
-                <div className="space-y-2">
-                    <Label className="text-lg font-bold text-slate-800">
-                        (D) Any other relevant information
-                    </Label>
-                    <p className="text-xs text-slate-500 mb-2">
-                        Provide any additional context or achievements not
-                        covered in previous sections.
-                    </p>
-                    <textarea
-                        value={statements.other_info || ""}
-                        onChange={(e) =>
-                            updateStatement("other_info", e.target.value)
-                        }
-                        className="flex w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 min-h-[150px] leading-relaxed"
-                    />
-                </div>
+                <TextareaField
+                    id="other_info"
+                    label="(D) Any other relevant information"
+                    rows={6}
+                    value={statements.other_info}
+                    onChange={(v) => updateStatement("other_info", v)}
+                />
             </div>
         </div>
     );

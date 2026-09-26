@@ -1,7 +1,29 @@
-import { Label } from "@/Components/ui/label";
-import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
 import { PlusCircle, Trash2 } from "lucide-react";
+import TextField from "@/Components/inputs/TextField";
+import NumberField from "@/Components/inputs/NumberField";
+import YearField from "@/Components/inputs/YearField";
+
+const AWARD_FIELDS = [
+    { key: "name", label: "Name of the Award", className: "md:col-span-2" },
+    { key: "awarded_by", label: "Awarded By", className: "pr-8" },
+];
+
+const SUPERVISION_FIELDS = [
+    { key: "student_name", label: "Name of Student/Scholar", className: "md:col-span-2" },
+    { key: "title", label: "Title of the Thesis/Project", className: "md:col-span-2 pr-8" },
+    { key: "role", label: "Role", className: "", placeholder: "e.g. Supervisor" },
+    { key: "status", label: "Ongoing / Completed", className: "md:col-span-2" },
+    { key: "year", label: "Ongoing Since / Year of Completion", className: "md:col-span-3" },
+];
+
+const PROJECT_FIELDS = [
+    { key: "agency", label: "Sponsoring Agency", className: "md:col-span-2" },
+    { key: "title", label: "Title of the Project", className: "md:col-span-3 pr-8" },
+    { key: "period", label: "Period (From - To)", className: "md:col-span-2", placeholder: "e.g. 2021 - 2024" },
+    { key: "role", label: "Role", className: "md:col-span-2", placeholder: "e.g. PI, Co-PI" },
+    { key: "status", label: "Status", className: "md:col-span-2", placeholder: "Ongoing / Completed" },
+];
 
 export default function Step7AwardsProjects({
     data,
@@ -61,62 +83,26 @@ export default function Step7AwardsProjects({
                 <Trash2 className="h-4 w-4" />
             </Button>
 
-            <div className="space-y-2 md:col-span-2">
-                <Label>Name of Student/Scholar</Label>
-                <Input
-                    value={item.student_name || ""}
-                    onChange={(e) =>
-                        handleArrayChange(
-                            section,
-                            idx,
-                            "student_name",
-                            e.target.value,
-                        )
-                    }
-                />
-            </div>
-            <div className="space-y-2 md:col-span-2 pr-8">
-                <Label>Title of the Thesis/Project</Label>
-                <Input
-                    value={item.title || ""}
-                    onChange={(e) =>
-                        handleArrayChange(section, idx, "title", e.target.value)
-                    }
-                />
-            </div>
-            <div className="space-y-2">
-                <Label>Role</Label>
-                <Input
-                    value={item.role || ""}
-                    onChange={(e) =>
-                        handleArrayChange(section, idx, "role", e.target.value)
-                    }
-                    placeholder="e.g. Supervisor"
-                />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-                <Label>Ongoing / Completed</Label>
-                <Input
-                    value={item.status || ""}
-                    onChange={(e) =>
-                        handleArrayChange(
-                            section,
-                            idx,
-                            "status",
-                            e.target.value,
-                        )
-                    }
-                />
-            </div>
-            <div className="space-y-2 md:col-span-3">
-                <Label>Ongoing Since / Year of Completion</Label>
-                <Input
-                    value={item.year || ""}
-                    onChange={(e) =>
-                        handleArrayChange(section, idx, "year", e.target.value)
-                    }
-                />
-            </div>
+            {SUPERVISION_FIELDS.map(({ key, label, className, placeholder }) => (
+                <div key={key} className={className}>
+                    {key === "year" ? (
+                        <TextField
+                            id={`${section}-${idx}-${key}`}
+                            label={label}
+                            value={item[key]}
+                            onChange={(v) => handleArrayChange(section, idx, key, v)}
+                        />
+                    ) : (
+                        <TextField
+                            id={`${section}-${idx}-${key}`}
+                            label={label}
+                            value={item[key]}
+                            onChange={(v) => handleArrayChange(section, idx, key, v)}
+                            placeholder={placeholder}
+                        />
+                    )}
+                </div>
+            ))}
         </div>
     );
 
@@ -140,83 +126,25 @@ export default function Step7AwardsProjects({
                 <Trash2 className="h-4 w-4" />
             </Button>
 
-            <div className="space-y-2 md:col-span-2">
-                <Label>Sponsoring Agency</Label>
-                <Input
-                    value={item.agency || ""}
-                    onChange={(e) =>
-                        handleArrayChange(
-                            section,
-                            idx,
-                            "agency",
-                            e.target.value,
-                        )
-                    }
-                />
-            </div>
-            <div className="space-y-2 md:col-span-3 pr-8">
-                <Label>Title of the Project</Label>
-                <Input
-                    value={item.title || ""}
-                    onChange={(e) =>
-                        handleArrayChange(section, idx, "title", e.target.value)
-                    }
-                />
-            </div>
-            <div className="space-y-2">
-                <Label>Amount (₹)</Label>
-                <Input
-                    value={item.amount || ""}
-                    onChange={(e) => {
-                        const val = e.target.value;
-                        // Allows only digits and a single decimal point
-                        if (/^\d*\.?\d*$/.test(val)) {
-                            handleArrayChange(section, idx, "amount", val);
-                        }
-                    }}
-                    placeholder="₹"
-                />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-                <Label>Period (From - To)</Label>
-                <Input
-                    value={item.period || ""}
-                    onChange={(e) =>
-                        handleArrayChange(
-                            section,
-                            idx,
-                            "period",
-                            e.target.value,
-                        )
-                    }
-                    placeholder="e.g. 2021 - 2024"
-                />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-                <Label>Role</Label>
-                <Input
-                    value={item.role || ""}
-                    onChange={(e) =>
-                        handleArrayChange(section, idx, "role", e.target.value)
-                    }
-                    placeholder="e.g. PI, Co-PI"
-                />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-                <Label>Status</Label>
-                <Input
-                    value={item.status || ""}
-                    onChange={(e) =>
-                        handleArrayChange(
-                            section,
-                            idx,
-                            "status",
-                            e.target.value,
-                        )
-                    }
-                    placeholder="Ongoing / Completed"
-                />
-            </div>
+            {PROJECT_FIELDS.map(({ key, label, className, placeholder }) => (
+                <div key={key} className={className}>
+                    <TextField
+                        id={`${section}-${idx}-${key}`}
+                        label={label}
+                        value={item[key]}
+                        onChange={(v) => handleArrayChange(section, idx, key, v)}
+                        placeholder={placeholder}
+                    />
+                </div>
+            ))}
+            <NumberField
+                id={`${section}-${idx}-amount`}
+                label="Amount (₹)"
+                min={0}
+                value={item.amount}
+                onChange={(v) => handleArrayChange(section, idx, "amount", v)}
+                placeholder="₹"
+            />
         </div>
     );
 
@@ -273,49 +201,22 @@ export default function Step7AwardsProjects({
                             <Trash2 className="h-4 w-4" />
                         </Button>
 
-                        <div className="space-y-2 md:col-span-2">
-                            <Label>Name of the Award</Label>
-                            <Input
-                                value={item.name || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "awards",
-                                        idx,
-                                        "name",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2 pr-8">
-                            <Label>Awarded By</Label>
-                            <Input
-                                value={item.awarded_by || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "awards",
-                                        idx,
-                                        "awarded_by",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Year</Label>
-                            <Input
-                                type="number"
-                                value={item.year || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "awards",
-                                        idx,
-                                        "year",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
+                        {AWARD_FIELDS.map(({ key, label, className }) => (
+                            <div key={key} className={className}>
+                                <TextField
+                                    id={`awards-${idx}-${key}`}
+                                    label={label}
+                                    value={item[key]}
+                                    onChange={(v) => handleArrayChange("awards", idx, key, v)}
+                                />
+                            </div>
+                        ))}
+                        <YearField
+                            id={`awards-${idx}-year`}
+                            label="Year"
+                            value={item.year}
+                            onChange={(v) => handleArrayChange("awards", idx, "year", v)}
+                        />
                     </div>
                 ))}
             </div>

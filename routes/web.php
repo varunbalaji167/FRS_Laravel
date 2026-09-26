@@ -35,10 +35,14 @@ Route::middleware(['auth', 'role:applicant'])->group(function () {
     Route::get('/applications/{id}/export/pdf', [ExportController::class, 'exportPdf'])->name('applicant.applications.export.pdf');
     Route::get('/applications/{id}/export/excel', [ExportController::class, 'exportExcel'])->name('applicant.applications.export.excel');
 
-    // Application Wizard Routes
-    Route::get('/apply/{advertisement}', [WizardController::class, 'showApplyForm'])->name('applicant.apply');
-    Route::post('/apply/{advertisement}/draft', [WizardController::class, 'saveDraft'])->name('applicant.draft');
-    Route::post('/apply/{advertisement}/submit', [WizardController::class, 'submitApplication'])->name('applicant.store');
+    // Application Wizard Routes — email verification required, they touch dossier state
+    Route::middleware('verified')->group(function () {
+        Route::get('/apply/{advertisement}', [WizardController::class, 'showApplyForm'])->name('applicant.apply');
+        Route::post('/apply/{advertisement}/draft', [WizardController::class, 'saveDraft'])->name('applicant.draft');
+        Route::post('/apply/{advertisement}/step/{n}/validate', [WizardController::class, 'validateStep'])
+            ->where('n', '[0-9]+')->name('applicant.step.validate');
+        Route::post('/apply/{advertisement}/submit', [WizardController::class, 'submitApplication'])->name('applicant.store');
+    });
 });
 
 // --- ADMIN ONLY ROUTES ---

@@ -2,12 +2,15 @@
 
 namespace App\Http\Requests\Applicant\Rules;
 
-// TODO(Phase 2): fill in per docs/validation.md — composed by both
-// ValidateStepRequest (single step) and SubmitApplicationRequest (all steps).
+// Composed by both ValidateStepRequest (single step) and
+// SubmitApplicationRequest (all steps). See docs/validation.md.
 class StepPositionRules
 {
     public static function rules(int $currentYear): array
     {
-        return [];
+        return [
+            'department' => ['required', 'string', 'max:255'],
+            'grade' => ['required', 'string', 'max:255'],
+        ];
     }
 }

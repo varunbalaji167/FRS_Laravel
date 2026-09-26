@@ -1,39 +1,26 @@
-import { Label } from "@/Components/ui/label";
-import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
 import { PlusCircle, Trash2 } from "lucide-react";
+import TextField from "@/Components/inputs/TextField";
+import EmailField from "@/Components/inputs/EmailField";
+import PhoneField from "@/Components/inputs/PhoneField";
+
+const REFEREE_TEMPLATE = {
+    name: "",
+    position: "",
+    association: "",
+    institute: "",
+    email: "",
+    contact_code: "+91",
+    contact_number: "",
+};
 
 export default function Step10Referees({ data, setData, localErrors = {} }) {
     const section = data.form_data.referees_section || {};
     // Pre-populate with 3 empty referees since 3 are mandatory
     const referees = section.referees || [
-        {
-            name: "",
-            position: "",
-            association: "",
-            institute: "",
-            email: "",
-            contact_code: "+91",
-            contact_number: "",
-        },
-        {
-            name: "",
-            position: "",
-            association: "",
-            institute: "",
-            email: "",
-            contact_code: "+91",
-            contact_number: "",
-        },
-        {
-            name: "",
-            position: "",
-            association: "",
-            institute: "",
-            email: "",
-            contact_code: "+91",
-            contact_number: "",
-        },
+        { ...REFEREE_TEMPLATE },
+        { ...REFEREE_TEMPLATE },
+        { ...REFEREE_TEMPLATE },
     ];
 
     const updateReferees = (newReferees) => {
@@ -50,18 +37,7 @@ export default function Step10Referees({ data, setData, localErrors = {} }) {
     };
 
     const addReferee = () => {
-        updateReferees([
-            ...referees,
-            {
-                name: "",
-                position: "",
-                association: "",
-                institute: "",
-                email: "",
-                contact_code: "+91",
-                contact_number: "",
-            },
-        ]);
+        updateReferees([...referees, { ...REFEREE_TEMPLATE }]);
     };
 
     const removeReferee = (index) => {
@@ -129,169 +105,74 @@ export default function Step10Referees({ data, setData, localErrors = {} }) {
                             </Button>
                         )}
 
-                        {/* ── Name ── */}
-                        <div className="space-y-2 md:col-span-2">
-                            <Label>
-                                Name <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                value={item.name || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(idx, "name", e.target.value)
-                                }
-                                className={
-                                    localErrors[`referee_${idx}_name`]
-                                        ? "border-red-500"
-                                        : ""
-                                }
+                        <div className="md:col-span-2">
+                            <TextField
+                                id={`referee-${idx}-name`}
+                                label="Name"
+                                required
+                                value={item.name}
+                                onChange={(v) => handleArrayChange(idx, "name", v)}
+                                error={localErrors[`referee_${idx}_name`]}
                             />
-                            {localErrors[`referee_${idx}_name`] && (
-                                <p className="text-xs text-red-500">
-                                    {localErrors[`referee_${idx}_name`]}
-                                </p>
-                            )}
                         </div>
 
-                        {/* ── Position ── */}
-                        <div className="space-y-2 md:col-span-2 pr-8">
-                            <Label>
-                                Position <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                value={item.position || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(idx, "position", e.target.value)
-                                }
+                        <div className="md:col-span-2 pr-8">
+                            <TextField
+                                id={`referee-${idx}-position`}
+                                label="Position"
+                                required
+                                value={item.position}
+                                onChange={(v) => handleArrayChange(idx, "position", v)}
                                 placeholder="e.g. Professor"
-                                className={
-                                    localErrors[`referee_${idx}_position`]
-                                        ? "border-red-500"
-                                        : ""
-                                }
+                                error={localErrors[`referee_${idx}_position`]}
                             />
-                            {localErrors[`referee_${idx}_position`] && (
-                                <p className="text-xs text-red-500">
-                                    {localErrors[`referee_${idx}_position`]}
-                                </p>
-                            )}
                         </div>
 
-                        {/* ── Association ── */}
-                        <div className="space-y-2 md:col-span-2">
-                            <Label>
-                                Association{" "}
-                                <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                value={item.association || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(idx, "association", e.target.value)
-                                }
+                        <div className="md:col-span-2">
+                            <TextField
+                                id={`referee-${idx}-association`}
+                                label="Association"
+                                required
+                                value={item.association}
+                                onChange={(v) => handleArrayChange(idx, "association", v)}
                                 placeholder="e.g. Thesis Supervisor"
-                                className={
-                                    localErrors[`referee_${idx}_association`]
-                                        ? "border-red-500"
-                                        : ""
-                                }
+                                error={localErrors[`referee_${idx}_association`]}
                             />
-                            {localErrors[`referee_${idx}_association`] && (
-                                <p className="text-xs text-red-500">
-                                    {localErrors[`referee_${idx}_association`]}
-                                </p>
-                            )}
                         </div>
 
-                        {/* ── Institute ── */}
-                        <div className="space-y-2 md:col-span-2">
-                            <Label>
-                                Institute/Organization{" "}
-                                <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                value={item.institute || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(idx, "institute", e.target.value)
-                                }
-                                className={
-                                    localErrors[`referee_${idx}_institute`]
-                                        ? "border-red-500"
-                                        : ""
-                                }
+                        <div className="md:col-span-2">
+                            <TextField
+                                id={`referee-${idx}-institute`}
+                                label="Institute/Organization"
+                                required
+                                value={item.institute}
+                                onChange={(v) => handleArrayChange(idx, "institute", v)}
+                                error={localErrors[`referee_${idx}_institute`]}
                             />
-                            {localErrors[`referee_${idx}_institute`] && (
-                                <p className="text-xs text-red-500">
-                                    {localErrors[`referee_${idx}_institute`]}
-                                </p>
-                            )}
                         </div>
 
-                        {/* ── Email ── */}
-                        <div className="space-y-2 md:col-span-2 pr-8">
-                            <Label>
-                                E-mail <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                type="email"
-                                value={item.email || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(idx, "email", e.target.value)
-                                }
-                                className={
-                                    localErrors[`referee_${idx}_email`]
-                                        ? "border-red-500"
-                                        : ""
-                                }
+                        <div className="md:col-span-2 pr-8">
+                            <EmailField
+                                id={`referee-${idx}-email`}
+                                label="E-mail"
+                                required
+                                value={item.email}
+                                onChange={(v) => handleArrayChange(idx, "email", v)}
+                                error={localErrors[`referee_${idx}_email`]}
                             />
-                            {localErrors[`referee_${idx}_email`] && (
-                                <p className="text-xs text-red-500">
-                                    {localErrors[`referee_${idx}_email`]}
-                                </p>
-                            )}
                         </div>
 
-                        {/* ── Contact ── */}
-                        <div className="space-y-2 md:col-span-2">
-                            <Label>
-                                Contact No.{" "}
-                                <span className="text-red-500">*</span>
-                            </Label>
-                            <div className="flex gap-2">
-                                <Input
-                                    type="text"
-                                    value={item.contact_code || "+91"}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            idx,
-                                            "contact_code",
-                                            e.target.value.replace(/[^\d+]/g, ""),
-                                        )
-                                    }
-                                    className="w-20 text-center px-1 bg-slate-50"
-                                    maxLength={5}
-                                />
-                                <Input
-                                    type="tel"
-                                    value={item.contact_number || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            idx,
-                                            "contact_number",
-                                            e.target.value.replace(/\D/g, ""),
-                                        )
-                                    }
-                                    className={`flex-1 ${
-                                        localErrors[`referee_${idx}_contact`]
-                                            ? "border-red-500"
-                                            : ""
-                                    }`}
-                                    maxLength={10}
-                                />
-                            </div>
-                            {localErrors[`referee_${idx}_contact`] && (
-                                <p className="text-xs text-red-500">
-                                    {localErrors[`referee_${idx}_contact`]}
-                                </p>
-                            )}
+                        <div className="md:col-span-2">
+                            <PhoneField
+                                id={`referee-${idx}-contact`}
+                                label="Contact No."
+                                required
+                                code={item.contact_code}
+                                onCodeChange={(v) => handleArrayChange(idx, "contact_code", v)}
+                                value={item.contact_number}
+                                onChange={(v) => handleArrayChange(idx, "contact_number", v)}
+                                error={localErrors[`referee_${idx}_contact`]}
+                            />
                         </div>
                     </div>
                 ))}

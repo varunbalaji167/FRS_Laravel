@@ -1,7 +1,29 @@
-import { Label } from "@/Components/ui/label";
-import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
 import { PlusCircle, Trash2 } from "lucide-react";
+import TextField from "@/Components/inputs/TextField";
+import YearField from "@/Components/inputs/YearField";
+
+const JOURNAL_FIELDS = [
+    { key: "authors", label: "Author's Names", className: "md:col-span-2" },
+    { key: "title", label: "Paper Title", className: "md:col-span-4 pr-8" },
+    { key: "journal_name", label: "Name of Journal", className: "md:col-span-2" },
+    { key: "year", widget: "year", label: "Year" },
+    { key: "volume", label: "Volume" },
+    { key: "issue", label: "Issue" },
+    { key: "pages", label: "Page Nos." },
+    { key: "impact_factor", label: "Impact Factor" },
+    { key: "doi", label: "DOI", className: "md:col-span-3", placeholder: "https://doi.org/..." },
+    { key: "status", label: "Status", className: "md:col-span-2", placeholder: "Published/Accepted" },
+];
+
+const CONFERENCE_FIELDS = [
+    { key: "authors", label: "Author's Names", className: "md:col-span-2" },
+    { key: "title", label: "Paper Title", className: "md:col-span-4 pr-8" },
+    { key: "conference_name", label: "Name of the Conference", className: "md:col-span-3" },
+    { key: "year", widget: "year", label: "Year" },
+    { key: "pages", label: "Page Nos." },
+    { key: "doi", label: "DOI (If any)" },
+];
 
 export default function Step9DetailedPubs({ data, setData, localErrors = {} }) {
     // Grouping under 'detailed_pubs'
@@ -33,6 +55,47 @@ export default function Step9DetailedPubs({ data, setData, localErrors = {} }) {
         currentArray.splice(index, 1);
         updatePubsSection(section, currentArray);
     };
+
+    const renderRow = (section, fields, item, idx, badgeClass) => (
+        <div
+            key={idx}
+            className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 pl-12 bg-white border border-slate-200 rounded-lg relative mt-2 shadow-sm"
+        >
+            <div className={`absolute top-4 left-4 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${badgeClass}`}>
+                {idx + 1}
+            </div>
+            <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => removeArrayItem(section, idx)}
+                className="absolute top-2 right-2 text-red-500 hover:bg-red-50"
+            >
+                <Trash2 className="h-4 w-4" />
+            </Button>
+
+            {fields.map(({ key, label, className, placeholder, widget }) => (
+                <div key={key} className={className}>
+                    {widget === "year" ? (
+                        <YearField
+                            id={`${section}-${idx}-${key}`}
+                            label={label}
+                            value={item[key]}
+                            onChange={(v) => handleArrayChange(section, idx, key, v)}
+                        />
+                    ) : (
+                        <TextField
+                            id={`${section}-${idx}-${key}`}
+                            label={label}
+                            value={item[key]}
+                            onChange={(v) => handleArrayChange(section, idx, key, v)}
+                            placeholder={placeholder}
+                        />
+                    )}
+                </div>
+            ))}
+        </div>
+    );
 
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
@@ -76,171 +139,9 @@ export default function Step9DetailedPubs({ data, setData, localErrors = {} }) {
                     </Button>
                 </div>
 
-                {journals.map((item, idx) => (
-                    <div
-                        key={idx}
-                        className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 pl-12 bg-white border border-slate-200 rounded-lg relative mt-2 shadow-sm"
-                    >
-                        <div className="absolute top-4 left-4 flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
-                            {idx + 1}
-                        </div>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeArrayItem("journals", idx)}
-                            className="absolute top-2 right-2 text-red-500 hover:bg-red-50"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-
-                        <div className="space-y-2 md:col-span-2">
-                            <Label>Author's Names</Label>
-                            <Input
-                                value={item.authors || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "journals",
-                                        idx,
-                                        "authors",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2 md:col-span-4 pr-8">
-                            <Label>Paper Title</Label>
-                            <Input
-                                value={item.title || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "journals",
-                                        idx,
-                                        "title",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-
-                        <div className="space-y-2 md:col-span-2">
-                            <Label>Name of Journal</Label>
-                            <Input
-                                value={item.journal_name || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "journals",
-                                        idx,
-                                        "journal_name",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Year</Label>
-                            <Input
-                                type="number"
-                                value={item.year || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "journals",
-                                        idx,
-                                        "year",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Volume</Label>
-                            <Input
-                                value={item.volume || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "journals",
-                                        idx,
-                                        "volume",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Issue</Label>
-                            <Input
-                                value={item.issue || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "journals",
-                                        idx,
-                                        "issue",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Page Nos.</Label>
-                            <Input
-                                value={item.pages || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "journals",
-                                        idx,
-                                        "pages",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label>Impact Factor</Label>
-                            <Input
-                                value={item.impact_factor || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "journals",
-                                        idx,
-                                        "impact_factor",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2 md:col-span-3">
-                            <Label>DOI</Label>
-                            <Input
-                                value={item.doi || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "journals",
-                                        idx,
-                                        "doi",
-                                        e.target.value,
-                                    )
-                                }
-                                placeholder="https://doi.org/..."
-                            />
-                        </div>
-                        <div className="space-y-2 md:col-span-2">
-                            <Label>Status</Label>
-                            <Input
-                                value={item.status || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "journals",
-                                        idx,
-                                        "status",
-                                        e.target.value,
-                                    )
-                                }
-                                placeholder="Published/Accepted"
-                            />
-                        </div>
-                    </div>
-                ))}
+                {journals.map((item, idx) =>
+                    renderRow("journals", JOURNAL_FIELDS, item, idx, "bg-blue-100 text-blue-700"),
+                )}
             </div>
 
             {/* 19. Detailed List of Conference Publications */}
@@ -269,112 +170,9 @@ export default function Step9DetailedPubs({ data, setData, localErrors = {} }) {
                     </Button>
                 </div>
 
-                {conferences.map((item, idx) => (
-                    <div
-                        key={idx}
-                        className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 pl-12 bg-white border border-slate-200 rounded-lg relative mt-2 shadow-sm"
-                    >
-                        <div className="absolute top-4 left-4 flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
-                            {idx + 1}
-                        </div>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeArrayItem("conferences", idx)}
-                            className="absolute top-2 right-2 text-red-500 hover:bg-red-50"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-
-                        <div className="space-y-2 md:col-span-2">
-                            <Label>Author's Names</Label>
-                            <Input
-                                value={item.authors || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "conferences",
-                                        idx,
-                                        "authors",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2 md:col-span-4 pr-8">
-                            <Label>Paper Title</Label>
-                            <Input
-                                value={item.title || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "conferences",
-                                        idx,
-                                        "title",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-
-                        <div className="space-y-2 md:col-span-3">
-                            <Label>Name of the Conference</Label>
-                            <Input
-                                value={item.conference_name || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "conferences",
-                                        idx,
-                                        "conference_name",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Year</Label>
-                            <Input
-                                type="number"
-                                value={item.year || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "conferences",
-                                        idx,
-                                        "year",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Page Nos.</Label>
-                            <Input
-                                value={item.pages || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "conferences",
-                                        idx,
-                                        "pages",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>DOI (If any)</Label>
-                            <Input
-                                value={item.doi || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "conferences",
-                                        idx,
-                                        "doi",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                    </div>
-                ))}
+                {conferences.map((item, idx) =>
+                    renderRow("conferences", CONFERENCE_FIELDS, item, idx, "bg-slate-100 text-slate-600"),
+                )}
             </div>
         </div>
     );

@@ -1,7 +1,30 @@
-import { Label } from "@/Components/ui/label";
-import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
 import { PlusCircle, Trash2 } from "lucide-react";
+import TextField from "@/Components/inputs/TextField";
+import TextareaField from "@/Components/inputs/TextareaField";
+import NumberField from "@/Components/inputs/NumberField";
+import YearField from "@/Components/inputs/YearField";
+
+const SUMMARY_FIELDS = [
+    { key: "intl_journals", label: "Intl. Journal Papers" },
+    { key: "natl_journals", label: "National Journal Papers" },
+    { key: "intl_conferences", label: "Intl. Conference Papers" },
+    { key: "natl_conferences", label: "Natl. Conference Papers" },
+    { key: "patents", label: "Number of Patent(s)" },
+    { key: "books", label: "Number of Book(s)" },
+    { key: "book_chapters", label: "Number of Book Chapter(s)", className: "md:col-span-2" },
+];
+
+const PUBLICATION_FIELDS = [
+    { key: "title", label: "Title", className: "md:col-span-2", widget: "text" },
+    { key: "authors", label: "Author(s)", className: "md:col-span-2", widget: "text" },
+    { key: "journal", label: "Name of Journal/Conf.", className: "md:col-span-2 pr-8", widget: "text" },
+    { key: "year", label: "Year", widget: "year" },
+    { key: "vol_page", label: "Vol. & Page", widget: "text", placeholder: "e.g. Vol 4, Pg 12-15" },
+    { key: "impact_factor", label: "Impact Factor", widget: "text" },
+    { key: "doi", label: "DOI / URL", className: "md:col-span-2", widget: "text", placeholder: "https://doi.org/..." },
+    { key: "status", label: "Status", widget: "text", placeholder: "e.g. Published, Accepted" },
+];
 
 export default function Step5Research({ data, setData, localErrors = {} }) {
     const res = data.form_data.research || {};
@@ -76,52 +99,26 @@ export default function Step5Research({ data, setData, localErrors = {} }) {
                     Area(s) of Specialization and Research
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <Label>
-                            Area(s) of Specialization{" "}
-                            <span className="text-red-500">*</span>
-                        </Label>
-                        <textarea
-                            value={specialization.area_of_specialization || ""}
-                            onChange={(e) =>
-                                handleSpecChange(
-                                    "area_of_specialization",
-                                    e.target.value,
-                                )
-                            }
-                            className={`flex w-full rounded-md border bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 min-h-[100px] ${localErrors["spec.area"] ? "border-red-500" : "border-slate-200"}`}
-                            placeholder="e.g. VEGETATION REMOTE SENSING, EARTH OBSERVATION..."
-                        />
-                        {localErrors["spec.area"] && (
-                            <p className="text-xs text-red-500">
-                                {localErrors["spec.area"]}
-                            </p>
-                        )}
-                    </div>
-                    <div className="space-y-2">
-                        <Label>
-                            Current Area(s) of Research{" "}
-                            <span className="text-red-500">*</span>
-                        </Label>
-                        <textarea
-                            value={
-                                specialization.current_area_of_research || ""
-                            }
-                            onChange={(e) =>
-                                handleSpecChange(
-                                    "current_area_of_research",
-                                    e.target.value,
-                                )
-                            }
-                            className={`flex w-full rounded-md border bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 min-h-[100px] ${localErrors["spec.current"] ? "border-red-500" : "border-slate-200"}`}
-                            placeholder="e.g. 1. BIOPHYSICAL PARAMETER ESTIMATION..."
-                        />
-                        {localErrors["spec.current"] && (
-                            <p className="text-xs text-red-500">
-                                {localErrors["spec.current"]}
-                            </p>
-                        )}
-                    </div>
+                    <TextareaField
+                        id="spec-area"
+                        label="Area(s) of Specialization"
+                        required
+                        rows={5}
+                        value={specialization.area_of_specialization}
+                        onChange={(v) => handleSpecChange("area_of_specialization", v)}
+                        placeholder="e.g. VEGETATION REMOTE SENSING, EARTH OBSERVATION..."
+                        error={localErrors["spec.area"]}
+                    />
+                    <TextareaField
+                        id="spec-current"
+                        label="Current Area(s) of Research"
+                        required
+                        rows={5}
+                        value={specialization.current_area_of_research}
+                        onChange={(v) => handleSpecChange("current_area_of_research", v)}
+                        placeholder="e.g. 1. BIOPHYSICAL PARAMETER ESTIMATION..."
+                        error={localErrors["spec.current"]}
+                    />
                 </div>
             </div>
 
@@ -131,98 +128,18 @@ export default function Step5Research({ data, setData, localErrors = {} }) {
                     Summary of Publications
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
-                    <div className="space-y-2">
-                        <Label>Intl. Journal Papers</Label>
-                        <Input
-                            type="number"
-                            value={summary.intl_journals || ""}
-                            onChange={(e) =>
-                                handleSummaryChange(
-                                    "intl_journals",
-                                    e.target.value,
-                                )
-                            }
-                            placeholder="0"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>National Journal Papers</Label>
-                        <Input
-                            type="number"
-                            value={summary.natl_journals || ""}
-                            onChange={(e) =>
-                                handleSummaryChange(
-                                    "natl_journals",
-                                    e.target.value,
-                                )
-                            }
-                            placeholder="0"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Intl. Conference Papers</Label>
-                        <Input
-                            type="number"
-                            value={summary.intl_conferences || ""}
-                            onChange={(e) =>
-                                handleSummaryChange(
-                                    "intl_conferences",
-                                    e.target.value,
-                                )
-                            }
-                            placeholder="0"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Natl. Conference Papers</Label>
-                        <Input
-                            type="number"
-                            value={summary.natl_conferences || ""}
-                            onChange={(e) =>
-                                handleSummaryChange(
-                                    "natl_conferences",
-                                    e.target.value,
-                                )
-                            }
-                            placeholder="0"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Number of Patent(s)</Label>
-                        <Input
-                            type="number"
-                            value={summary.patents || ""}
-                            onChange={(e) =>
-                                handleSummaryChange("patents", e.target.value)
-                            }
-                            placeholder="0"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Number of Book(s)</Label>
-                        <Input
-                            type="number"
-                            value={summary.books || ""}
-                            onChange={(e) =>
-                                handleSummaryChange("books", e.target.value)
-                            }
-                            placeholder="0"
-                        />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                        <Label>Number of Book Chapter(s)</Label>
-                        <Input
-                            type="number"
-                            value={summary.book_chapters || ""}
-                            onChange={(e) =>
-                                handleSummaryChange(
-                                    "book_chapters",
-                                    e.target.value,
-                                )
-                            }
-                            placeholder="0"
-                        />
-                    </div>
+                    {SUMMARY_FIELDS.map(({ key, label, className }) => (
+                        <div key={key} className={className}>
+                            <NumberField
+                                id={`summary-${key}`}
+                                label={label}
+                                min={0}
+                                value={summary[key]}
+                                onChange={(v) => handleSummaryChange(key, v)}
+                                placeholder="0"
+                            />
+                        </div>
+                    ))}
                 </div>
             </div>
 
@@ -267,123 +184,26 @@ export default function Step5Research({ data, setData, localErrors = {} }) {
                         >
                             <Trash2 className="h-4 w-4" />
                         </Button>
-                        <div className="space-y-2 md:col-span-2">
-                            <Label>Title</Label>
-                            <Input
-                                value={item.title || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "publications",
-                                        idx,
-                                        "title",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2 md:col-span-2">
-                            <Label>Author(s)</Label>
-                            <Input
-                                value={item.authors || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "publications",
-                                        idx,
-                                        "authors",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2 md:col-span-2 pr-8">
-                            <Label>Name of Journal/Conf.</Label>
-                            <Input
-                                value={item.journal || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "publications",
-                                        idx,
-                                        "journal",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label>Year</Label>
-                            <Input
-                                type="number"
-                                value={item.year || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "publications",
-                                        idx,
-                                        "year",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Vol. & Page</Label>
-                            <Input
-                                value={item.vol_page || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "publications",
-                                        idx,
-                                        "vol_page",
-                                        e.target.value,
-                                    )
-                                }
-                                placeholder="e.g. Vol 4, Pg 12-15"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Impact Factor</Label>
-                            <Input
-                                value={item.impact_factor || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "publications",
-                                        idx,
-                                        "impact_factor",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2 md:col-span-2">
-                            <Label>DOI / URL</Label>
-                            <Input
-                                value={item.doi || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "publications",
-                                        idx,
-                                        "doi",
-                                        e.target.value,
-                                    )
-                                }
-                                placeholder="https://doi.org/..."
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Status</Label>
-                            <Input
-                                value={item.status || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "publications",
-                                        idx,
-                                        "status",
-                                        e.target.value,
-                                    )
-                                }
-                                placeholder="e.g. Published, Accepted"
-                            />
-                        </div>
+                        {PUBLICATION_FIELDS.map(({ key, label, className, widget, placeholder }) => (
+                            <div key={key} className={className}>
+                                {widget === "year" ? (
+                                    <YearField
+                                        id={`publications-${idx}-${key}`}
+                                        label={label}
+                                        value={item[key]}
+                                        onChange={(v) => handleArrayChange("publications", idx, key, v)}
+                                    />
+                                ) : (
+                                    <TextField
+                                        id={`publications-${idx}-${key}`}
+                                        label={label}
+                                        value={item[key]}
+                                        onChange={(v) => handleArrayChange("publications", idx, key, v)}
+                                        placeholder={placeholder}
+                                    />
+                                )}
+                            </div>
+                        ))}
                     </div>
                 ))}
             </div>

@@ -3,21 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Users\StoreDepartmentRequest;
 use App\Models\Department;
-use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
 {
     /**
      * Store a new department (Admin only)
      */
-    public function storeDepartment(Request $request)
+    public function storeDepartment(StoreDepartmentRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|unique:departments,name|max:255',
-        ]);
-
-        Department::create($request->only('name'));
+        Department::create($request->validated());
 
         return back()->with('success', 'Department added successfully.');
     }

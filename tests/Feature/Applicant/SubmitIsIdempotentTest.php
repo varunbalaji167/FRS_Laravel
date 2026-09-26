@@ -28,7 +28,7 @@ class SubmitIsIdempotentTest extends TestCase
                     'last_name' => 'Lovelace',
                     'dob' => '1990-01-01',
                     'gender' => 'Female',
-                    'category' => 'General',
+                    'category' => 'UR',
                     'nationality' => 'Indian',
                     'email' => 'ada@example.com',
                     'phone' => '9876543210',
@@ -46,7 +46,7 @@ class SubmitIsIdempotentTest extends TestCase
                         'organization' => 'IIT Indore',
                         'date_joining' => '2020-01-01',
                     ],
-                    'has_three_years_exp' => 'yes',
+                    'has_three_years_exp' => 'Yes',
                 ],
                 'research' => [
                     'specialization' => [

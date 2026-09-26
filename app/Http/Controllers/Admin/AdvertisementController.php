@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Ads\StoreAdvertisementRequest;
 use App\Models\Advertisement;
 use App\Models\Department;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class AdvertisementController extends Controller
@@ -24,15 +24,9 @@ class AdvertisementController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreAdvertisementRequest $request)
     {
-        $validated = $request->validate([
-            'reference_number' => 'required|string|unique:advertisements,reference_number',
-            'title' => 'required|string|max:255',
-            'deadline' => 'required|date',
-            'document' => 'required|file|mimes:pdf|max:5120',
-            'departments' => 'required|array|min:1',
-        ]);
+        $validated = $request->validated();
 
         $filePath = $request->file('document')->store('advertisements', 'public');
 

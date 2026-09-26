@@ -1,7 +1,20 @@
 import { useState } from "react";
+import axios from "axios";
 import { Head, useForm, router, usePage } from "@inertiajs/react";
 import { Card, CardContent } from "@/Components/ui/card";
 import { Button } from "@/Components/ui/button";
+import { flattenServerErrors } from "@/lib/errors";
+import step1Schema from "./Steps/schemas/step1";
+import step2Schema from "./Steps/schemas/step2";
+import step3Schema from "./Steps/schemas/step3";
+import step4Schema from "./Steps/schemas/step4";
+import step5Schema from "./Steps/schemas/step5";
+import step6Schema from "./Steps/schemas/step6";
+import step7Schema from "./Steps/schemas/step7";
+import step8Schema from "./Steps/schemas/step8";
+import step9Schema from "./Steps/schemas/step9";
+import step10Schema from "./Steps/schemas/step10";
+import step11Schema from "./Steps/schemas/step11";
 import {
     User,
     Briefcase,
@@ -50,8 +63,66 @@ const STEPS = [
     { id: 11, title: "Documents & Submit", icon: UploadCloud },
 ];
 
-// Email regex used consistently across frontend validations
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// One zod schema per step (see Steps/schemas/) — kept in sync with the
+// server's Rules/Step{Name}Rules.php per docs/validation.md.
+const STEP_SCHEMAS = {
+    1: step1Schema,
+    2: step2Schema,
+    3: step3Schema,
+    4: step4Schema,
+    5: step5Schema,
+    6: step6Schema,
+    7: step7Schema,
+    8: step8Schema,
+    9: step9Schema,
+    10: step10Schema,
+    11: step11Schema,
+};
+
+// A handful of step schema field paths don't match the error keys the step
+// components have always displayed against (chosen before the schemas
+// existed) — remap those so inline errors keep landing on the right widget.
+function toLegacyErrorKey(step, path) {
+    const key = path.join(".");
+
+    if (step === 4 && key === "has_three_years_exp") return "emp.has_three_years_exp";
+    if (step === 5 && key === "specialization.area_of_specialization") return "spec.area";
+    if (step === 5 && key === "specialization.current_area_of_research") return "spec.current";
+    if (step === 8 && key === "research_plan") return "statements.research_plan";
+    if (step === 8 && key === "teaching_plan") return "statements.teaching_plan";
+    if (step === 10 && path[0] === "referees" && typeof path[1] === "number") {
+        const suffix = { name: "name", position: "position", association: "association", institute: "institute", email: "email", contact_number: "contact" }[path[2]];
+        if (suffix) return `referee_${path[1]}_${suffix}`;
+    }
+    if (step === 11 && path[0] === "documents") return path[1];
+
+    return key;
+}
+
+function flattenZodError(step, zodError) {
+    const out = {};
+    for (const issue of zodError.issues) {
+        out[toLegacyErrorKey(step, issue.path)] = issue.message;
+    }
+    if (step === 10 && Object.keys(out).some((k) => k.startsWith("referee_")) && !out.referees) {
+        out.referees = "Please fill all required fields for at least 3 referees.";
+    }
+    return out;
+}
+
+function stripFiles(value) {
+    if (value instanceof File) return undefined;
+    if (Array.isArray(value)) return value.map(stripFiles);
+    if (value && typeof value === "object") {
+        const out = {};
+        for (const [k, v] of Object.entries(value)) {
+            const stripped = stripFiles(v);
+            if (stripped !== undefined) out[k] = stripped;
+        }
+        return out;
+    }
+    return value;
+}
 
 export default function ApplyForm({
     advertisement,
@@ -120,6 +191,75 @@ export default function ApplyForm({
 
     const combinedErrors = { ...errors, ...localErrors };
 
+    // The slice of `data` each step's zod schema validates against — matches
+    // each schema's own shape (see Steps/schemas/step{n}.js).
+    const dataForStep = (step) => {
+        const fd = data.form_data || {};
+        switch (step) {
+            case 1:
+                return { department: data.department, grade: data.grade };
+            case 2:
+                return fd.personal_details || {};
+            case 3:
+                return fd.education || {};
+            case 4:
+                return fd.employment || {};
+            case 5:
+                return fd.research || {};
+            case 6:
+                return fd.additional_info || {};
+            case 7:
+                return fd.awards_projects || {};
+            case 8:
+                return fd.statements || {};
+            case 9:
+                return fd.detailed_pubs || {};
+            case 10:
+                return fd.referees_section || {};
+            case 11:
+                return {
+                    declaration: !!fd.declaration,
+                    documents: data.documents || {},
+                    best_papers: data.best_papers || {},
+                };
+            default:
+                return {};
+        }
+    };
+
+    // The real request body for POST /apply/{ad}/step/{n}/validate — nested
+    // under `form_data.<container>` to match ValidateStepRequest's rules.
+    // File fields are stripped (see stripFiles) since this is a lightweight
+    // JSON probe, not a multipart upload; the final submit still validates
+    // files for real.
+    const payloadForStep = (step) => {
+        const fd = data.form_data || {};
+        switch (step) {
+            case 1:
+                return { department: data.department, grade: data.grade };
+            case 2:
+                return { form_data: { personal_details: stripFiles(fd.personal_details || {}) } };
+            case 3:
+                return { form_data: { education: fd.education || {} } };
+            case 4:
+                return { form_data: { employment: fd.employment || {} } };
+            case 5:
+                return { form_data: { research: fd.research || {} } };
+            case 6:
+                return { form_data: { additional_info: fd.additional_info || {} } };
+            case 7:
+                return { form_data: { awards_projects: fd.awards_projects || {} } };
+            case 8:
+                return { form_data: { statements: fd.statements || {} } };
+            case 9:
+                return { form_data: { detailed_pubs: fd.detailed_pubs || {} } };
+            case 10:
+                return { form_data: { referees_section: fd.referees_section || {} } };
+            default:
+                return {};
+        }
+    };
+
     const updateFormData = (section, field, value) => {
         setData("form_data", {
             ...data.form_data,
@@ -160,242 +300,45 @@ export default function ApplyForm({
     };
 
     // -------------------------------------------------------------------
-    // FRONTEND VALIDATION GATEKEEPER
+    // VALIDATION GATEKEEPER — client zod schema first (immediate UX), then
+    // the server's per-step tier (the actual security boundary; see
+    // docs/validation.md). Step 11 skips the server probe — its files can't
+    // be JSON-serialised for a lightweight check, and the real submit
+    // request that immediately follows validates them for real.
     // -------------------------------------------------------------------
-    const validateStep = (step) => {
-        let isValid = true;
-        let newErrors = {};
+    const validateStep = async (step) => {
+        const schemaFactory = STEP_SCHEMAS[step];
+        if (!schemaFactory) return true;
 
-        if (step === 1) {
-            if (!data.department) {
-                newErrors.department = "Required";
-                isValid = false;
-            }
-            if (!data.grade) {
-                newErrors.grade = "Required";
-                isValid = false;
-            }
-        }
+        const currentYear = new Date().getFullYear();
+        const localResult = schemaFactory(currentYear).safeParse(dataForStep(step));
 
-        if (step === 2) {
-            const p = data.form_data.personal_details || {};
-            if (!p.first_name?.trim()) {
-                newErrors.first_name = "First name is required";
-                isValid = false;
-            }
-            if (!p.last_name?.trim()) {
-                newErrors.last_name = "Last name is required";
-                isValid = false;
-            }
-            if (!p.dob) {
-                newErrors.dob = "Date of birth is required";
-                isValid = false;
-            }
-            if (!p.gender) {
-                newErrors.gender = "Gender is required";
-                isValid = false;
-            }
-            if (!p.category) {
-                newErrors.category = "Category is required";
-                isValid = false;
-            }
-            if (!p.nationality) {
-                newErrors.nationality = "Nationality is required";
-                isValid = false;
-            }
-            if (!p.email?.trim()) {
-                newErrors.email = "Email is required";
-                isValid = false;
-            } else if (!EMAIL_REGEX.test(p.email.trim())) {
-                newErrors.email = "Invalid email format";
-                isValid = false;
-            }
-            if (p.alt_email?.trim() && !EMAIL_REGEX.test(p.alt_email.trim())) {
-                newErrors.alt_email = "Invalid alternate email format";
-                isValid = false;
-            }
-            if (!p.phone || String(p.phone).replace(/\D/g, "").length < 10) {
-                newErrors.phone = "10-digit phone number required";
-                isValid = false;
-            }
-        }
-
-        if (step === 3) {
-            const phd = data.form_data.education?.phd || {};
-
-            if (!phd.university?.trim()) {
-                newErrors["phd.university"] = "University is required";
-                isValid = false;
-            }
-
-            if (!phd.department?.trim()) {
-                newErrors["phd.department"] = "Department is required";
-                isValid = false;
-            }
-            if (!phd.date_joining) {
-                newErrors["phd.date_joining"] = "Date of joining is required";
-                isValid = false;
-            } else {
-                const joiningDate = new Date(phd.date_joining);
-                const currentYear = new Date().getFullYear();
-
-                if (
-                    isNaN(joiningDate.getTime()) ||
-                    joiningDate.getFullYear() < 1950 ||
-                    joiningDate.getFullYear() > currentYear
-                ) {
-                    newErrors["phd.date_joining"] = "Enter a valid date";
-                    isValid = false;
-                }
-            }
-        }
-
-        if (step === 4) {
-            const emp = data.form_data.employment || {};
-            const present = emp.present || {};
-
-            if (!present.position?.trim()) {
-                newErrors["present.position"] = "Position is required";
-                isValid = false;
-            }
-            if (!present.organization?.trim()) {
-                newErrors["present.organization"] = "Organization is required";
-                isValid = false;
-            }
-            if (!present.date_joining) {
-                newErrors["present.date_joining"] =
-                    "Date of joining is required";
-                isValid = false;
-            }
-
-            if (!emp.has_three_years_exp) {
-                newErrors["emp.has_three_years_exp"] =
-                    "Please select Yes or No";
-                isValid = false;
-            }
-        }
-
-        if (step === 5) {
-            const res = data.form_data.research || {};
-            const spec = res.specialization || {};
-
-            if (!spec.area_of_specialization?.trim()) {
-                newErrors["spec.area"] = "Area of Specialization is required";
-                isValid = false;
-            }
-            if (!spec.current_area_of_research?.trim()) {
-                newErrors["spec.current"] =
-                    "Current Area of Research is required";
-                isValid = false;
-            }
-        }
-
-        if (step === 8) {
-            const statements = data.form_data.statements || {};
-            if (!statements.research_plan?.trim()) {
-                newErrors["statements.research_plan"] =
-                    "Research contribution & future plans are required";
-                isValid = false;
-            }
-            if (!statements.teaching_plan?.trim()) {
-                newErrors["statements.teaching_plan"] =
-                    "Teaching contribution & future plans are required";
-                isValid = false;
-            }
-        }
-
-        if (step === 10) {
-            const refs = data.form_data.referees_section?.referees || [];
-
-            if (refs.length < 3) {
-                newErrors["referees"] = "You must provide at least 3 referees.";
-                isValid = false;
-            } else {
-                for (let i = 0; i < refs.length; i++) {
-                    const r = refs[i];
-                    const isMandatory = i < 3;
-
-                    if (isMandatory && !r.name?.trim()) {
-                        newErrors[`referee_${i}_name`] = "Name is required";
-                        isValid = false;
-                    }
-                    if (isMandatory && !r.position?.trim()) {
-                        newErrors[`referee_${i}_position`] =
-                            "Position is required";
-                        isValid = false;
-                    }
-                    if (isMandatory && !r.association?.trim()) {
-                        newErrors[`referee_${i}_association`] =
-                            "Association is required";
-                        isValid = false;
-                    }
-                    if (isMandatory && !r.institute?.trim()) {
-                        newErrors[`referee_${i}_institute`] =
-                            "Institute is required";
-                        isValid = false;
-                    }
-                    if (isMandatory && !r.email?.trim()) {
-                        newErrors[`referee_${i}_email`] = "Email is required";
-                        isValid = false;
-                    } else if (
-                        r.email?.trim() &&
-                        !EMAIL_REGEX.test(r.email.trim())
-                    ) {
-                        newErrors[`referee_${i}_email`] =
-                            "Invalid email format";
-                        isValid = false;
-                    }
-                    if (isMandatory && !r.contact_number) {
-                        newErrors[`referee_${i}_contact`] =
-                            "Contact number is required";
-                        isValid = false;
-                    } else if (
-                        r.contact_number &&
-                        String(r.contact_number).replace(/\D/g, "").length !==
-                            10
-                    ) {
-                        newErrors[`referee_${i}_contact`] =
-                            "Phone must be exactly 10 digits";
-                        isValid = false;
-                    }
-                }
-
-                if (!isValid && !newErrors["referees"]) {
-                    newErrors["referees"] =
-                        "Please fill all required fields for at least 3 referees.";
-                }
-            }
-        }
-
-        if (step === 11) {
-            if (!data.form_data.declaration) {
-                newErrors.declaration =
-                    "You must agree to the final declaration before submitting.";
-                isValid = false;
-            }
-            const docs = data.documents || {};
-            if (!docs.phd_cert) {
-                newErrors.phd_cert = "PhD Certificate is required";
-                isValid = false;
-            }
-            if (!docs.ssc_cert) {
-                newErrors.ssc_cert = "10th/SSC Certificate is required";
-                isValid = false;
-            }
-            if (!docs.signature) {
-                newErrors.signature = "Digital signature is required";
-                isValid = false;
-            }
-        }
-
-        setLocalErrors(newErrors);
-        if (!isValid)
+        if (!localResult.success) {
+            setLocalErrors(flattenZodError(step, localResult.error));
             toast.error("Please fill all required fields before proceeding.");
-        return isValid;
+            return false;
+        }
+
+        setLocalErrors({});
+
+        if (step === 11) return true;
+
+        try {
+            await axios.post(
+                route("applicant.step.validate", { advertisement: advertisement.id, n: step }),
+                payloadForStep(step),
+            );
+            return true;
+        } catch (err) {
+            if (! err.response) throw err;
+            setLocalErrors(flattenServerErrors(err.response.data));
+            toast.error("Please fix the highlighted fields before proceeding.");
+            return false;
+        }
     };
 
-    const handleNext = () => {
-        if (!validateStep(currentStep)) return;
+    const handleNext = async () => {
+        if (!(await validateStep(currentStep))) return;
 
         setLocalErrors({});
         const nextStep = Math.min(currentStep + 1, STEPS.length);
@@ -413,10 +356,10 @@ export default function ApplyForm({
     // -------------------------------------------------------------------
     // FINAL SUBMIT
     // -------------------------------------------------------------------
-    const submitFinal = (e) => {
+    const submitFinal = async (e) => {
         e.preventDefault();
 
-        if (!validateStep(11)) return;
+        if (!(await validateStep(11))) return;
 
         post(route("applicant.store", advertisement.id), {
             forceFormData: true,
@@ -563,10 +506,10 @@ export default function ApplyForm({
                                 return (
                                     <button
                                         key={step.id}
-                                        onClick={() => {
+                                        onClick={async () => {
                                             if (
                                                 step.id > currentStep &&
-                                                !validateStep(currentStep)
+                                                !(await validateStep(currentStep))
                                             )
                                                 return;
                                             setLocalErrors({});

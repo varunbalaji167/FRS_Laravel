@@ -1,7 +1,30 @@
-import { Label } from "@/Components/ui/label";
-import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
 import { PlusCircle, Trash2 } from "lucide-react";
+import TextField from "@/Components/inputs/TextField";
+import DatePicker from "@/Components/inputs/DatePicker";
+import YearField from "@/Components/inputs/YearField";
+
+const PATENT_FIELDS = [
+    { key: "inventors", label: "Inventor(s)", className: "md:col-span-2", widget: "text" },
+    { key: "title", label: "Title of Patent", className: "md:col-span-2 pr-8", widget: "text" },
+    { key: "country", label: "Country", widget: "text" },
+    { key: "number", label: "Patent Number", widget: "text" },
+    { key: "date_filed", label: "Date of Filing", widget: "date" },
+    { key: "date_published", label: "Date Published", widget: "date" },
+    { key: "status", label: "Status (Filed/Published/Granted)", className: "md:col-span-2", widget: "text" },
+];
+
+const SOCIETY_FIELDS = [
+    { key: "name", label: "Name of the Professional Society", className: "pr-8" },
+    { key: "status", label: "Membership Status (e.g., Lifetime/Annual)" },
+];
+
+const TRAINING_FIELDS = [
+    { key: "type", label: "Type of Training Received", widget: "text" },
+    { key: "organization", label: "Organisation", className: "pr-8", widget: "text" },
+    { key: "year", label: "Year", widget: "year" },
+    { key: "duration", label: "Duration (Years/Months/Days)", widget: "text" },
+];
 
 export default function Step6AdditionalInfo({
     data,
@@ -59,46 +82,34 @@ export default function Step6AdditionalInfo({
             >
                 <Trash2 className="h-4 w-4" />
             </Button>
-            <div className="space-y-2 md:col-span-2">
-                <Label>Author(s)</Label>
-                <Input
-                    value={item.authors || ""}
-                    onChange={(e) =>
-                        handleArrayChange(
-                            section,
-                            idx,
-                            "authors",
-                            e.target.value,
-                        )
-                    }
+            <div className="md:col-span-2">
+                <TextField
+                    id={`${section}-${idx}-authors`}
+                    label="Author(s)"
+                    value={item.authors}
+                    onChange={(v) => handleArrayChange(section, idx, "authors", v)}
                 />
             </div>
-            <div className="space-y-2 md:col-span-2 pr-8">
-                <Label>Title</Label>
-                <Input
-                    value={item.title || ""}
-                    onChange={(e) =>
-                        handleArrayChange(section, idx, "title", e.target.value)
-                    }
+            <div className="md:col-span-2 pr-8">
+                <TextField
+                    id={`${section}-${idx}-title`}
+                    label="Title"
+                    value={item.title}
+                    onChange={(v) => handleArrayChange(section, idx, "title", v)}
                 />
             </div>
-            <div className="space-y-2">
-                <Label>Year</Label>
-                <Input
-                    type="number"
-                    value={item.year || ""}
-                    onChange={(e) =>
-                        handleArrayChange(section, idx, "year", e.target.value)
-                    }
-                />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-                <Label>ISBN</Label>
-                <Input
-                    value={item.isbn || ""}
-                    onChange={(e) =>
-                        handleArrayChange(section, idx, "isbn", e.target.value)
-                    }
+            <YearField
+                id={`${section}-${idx}-year`}
+                label="Year"
+                value={item.year}
+                onChange={(v) => handleArrayChange(section, idx, "year", v)}
+            />
+            <div className="md:col-span-2">
+                <TextField
+                    id={`${section}-${idx}-isbn`}
+                    label="ISBN"
+                    value={item.isbn}
+                    onChange={(v) => handleArrayChange(section, idx, "isbn", v)}
                 />
             </div>
         </div>
@@ -155,106 +166,25 @@ export default function Step6AdditionalInfo({
                         >
                             <Trash2 className="h-4 w-4" />
                         </Button>
-                        <div className="space-y-2 md:col-span-2">
-                            <Label>Inventor(s)</Label>
-                            <Input
-                                value={item.inventors || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "patents",
-                                        idx,
-                                        "inventors",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2 md:col-span-2 pr-8">
-                            <Label>Title of Patent</Label>
-                            <Input
-                                value={item.title || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "patents",
-                                        idx,
-                                        "title",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Country</Label>
-                            <Input
-                                value={item.country || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "patents",
-                                        idx,
-                                        "country",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Patent Number</Label>
-                            <Input
-                                value={item.number || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "patents",
-                                        idx,
-                                        "number",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Date of Filing</Label>
-                            <Input
-                                type="date"
-                                value={item.date_filed || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "patents",
-                                        idx,
-                                        "date_filed",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Date Published</Label>
-                            <Input
-                                type="date"
-                                value={item.date_published || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "patents",
-                                        idx,
-                                        "date_published",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2 md:col-span-2">
-                            <Label>Status (Filed/Published/Granted)</Label>
-                            <Input
-                                value={item.status || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "patents",
-                                        idx,
-                                        "status",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
+                        {PATENT_FIELDS.map(({ key, label, className, widget }) => (
+                            <div key={key} className={className}>
+                                {widget === "date" ? (
+                                    <DatePicker
+                                        id={`patents-${idx}-${key}`}
+                                        label={label}
+                                        value={item[key]}
+                                        onChange={(v) => handleArrayChange("patents", idx, key, v)}
+                                    />
+                                ) : (
+                                    <TextField
+                                        id={`patents-${idx}-${key}`}
+                                        label={label}
+                                        value={item[key]}
+                                        onChange={(v) => handleArrayChange("patents", idx, key, v)}
+                                    />
+                                )}
+                            </div>
+                        ))}
                     </div>
                 ))}
             </div>
@@ -316,16 +246,13 @@ export default function Step6AdditionalInfo({
                 <h4 className="font-bold text-lg text-blue-900">
                     Google Scholar Profile
                 </h4>
-                <div className="space-y-2">
-                    <Label className="text-slate-800">URL</Label>
-                    <Input
-                        type="url"
-                        value={info.google_scholar || ""}
-                        onChange={(e) => handleScholarChange(e.target.value)}
-                        placeholder="https://scholar.google.com/citations?user=..."
-                        className="bg-white"
-                    />
-                </div>
+                <TextField
+                    id="google_scholar"
+                    label="URL"
+                    value={info.google_scholar}
+                    onChange={handleScholarChange}
+                    placeholder="https://scholar.google.com/citations?user=..."
+                />
             </div>
 
             {/* 9. Professional Societies */}
@@ -359,36 +286,16 @@ export default function Step6AdditionalInfo({
                         >
                             <Trash2 className="h-4 w-4" />
                         </Button>
-                        <div className="space-y-2 pr-8">
-                            <Label>Name of the Professional Society</Label>
-                            <Input
-                                value={item.name || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "societies",
-                                        idx,
-                                        "name",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>
-                                Membership Status (e.g., Lifetime/Annual)
-                            </Label>
-                            <Input
-                                value={item.status || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "societies",
-                                        idx,
-                                        "status",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
+                        {SOCIETY_FIELDS.map(({ key, label, className }) => (
+                            <div key={key} className={className}>
+                                <TextField
+                                    id={`societies-${idx}-${key}`}
+                                    label={label}
+                                    value={item[key]}
+                                    onChange={(v) => handleArrayChange("societies", idx, key, v)}
+                                />
+                            </div>
+                        ))}
                     </div>
                 ))}
             </div>
@@ -429,63 +336,25 @@ export default function Step6AdditionalInfo({
                         >
                             <Trash2 className="h-4 w-4" />
                         </Button>
-                        <div className="space-y-2">
-                            <Label>Type of Training Received</Label>
-                            <Input
-                                value={item.type || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "training",
-                                        idx,
-                                        "type",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2 pr-8">
-                            <Label>Organisation</Label>
-                            <Input
-                                value={item.organization || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "training",
-                                        idx,
-                                        "organization",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Year</Label>
-                            <Input
-                                type="number"
-                                value={item.year || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "training",
-                                        idx,
-                                        "year",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Duration (Years/Months/Days)</Label>
-                            <Input
-                                value={item.duration || ""}
-                                onChange={(e) =>
-                                    handleArrayChange(
-                                        "training",
-                                        idx,
-                                        "duration",
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
+                        {TRAINING_FIELDS.map(({ key, label, className, widget }) => (
+                            <div key={key} className={className}>
+                                {widget === "year" ? (
+                                    <YearField
+                                        id={`training-${idx}-${key}`}
+                                        label={label}
+                                        value={item[key]}
+                                        onChange={(v) => handleArrayChange("training", idx, key, v)}
+                                    />
+                                ) : (
+                                    <TextField
+                                        id={`training-${idx}-${key}`}
+                                        label={label}
+                                        value={item[key]}
+                                        onChange={(v) => handleArrayChange("training", idx, key, v)}
+                                    />
+                                )}
+                            </div>
+                        ))}
                     </div>
                 ))}
             </div>

@@ -3,6 +3,12 @@ import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
 import { PlusCircle, Trash2 } from "lucide-react";
 import { calculateDuration } from "@/lib/dateUtils";
+import TextField from "@/Components/inputs/TextField";
+import DatePicker from "@/Components/inputs/DatePicker";
+import SelectField from "@/Components/inputs/SelectField";
+import NumberField from "@/Components/inputs/NumberField";
+
+const HAS_THREE_YEARS_EXP_OPTIONS = ["Yes", "No"];
 
 export default function Step4Employment({ data, setData, localErrors = {} }) {
     const emp = data.form_data.employment || {};
@@ -79,6 +85,18 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
         updateEmpSection(section, arr);
     };
 
+    const durationField = (value) => (
+        <div className="space-y-2">
+            <Label className="whitespace-nowrap">Duration (YY-MM-DD)</Label>
+            <Input
+                readOnly
+                value={value || ""}
+                className="bg-slate-100 text-slate-600 focus-visible:ring-0"
+                placeholder="00-00-00"
+            />
+        </div>
+    );
+
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
             <div>
@@ -97,80 +115,33 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
                     (A) Present Employment
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
-                    <div className="space-y-2">
-                        <Label>
-                            Position <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                            value={present.position || ""}
-                            onChange={(e) =>
-                                handlePresentChange("position", e.target.value)
-                            }
-                            className={
-                                localErrors["present.position"]
-                                    ? "border-red-500"
-                                    : ""
-                            }
-                            placeholder="e.g. N/A if none"
-                        />
-                        {localErrors["present.position"] && (
-                            <p className="text-xs text-red-500">
-                                {localErrors["present.position"]}
-                            </p>
-                        )}
-                    </div>
-                    <div className="space-y-2">
-                        <Label>
-                            Organization <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                            value={present.organization || ""}
-                            onChange={(e) =>
-                                handlePresentChange(
-                                    "organization",
-                                    e.target.value,
-                                )
-                            }
-                            className={
-                                localErrors["present.organization"]
-                                    ? "border-red-500"
-                                    : ""
-                            }
-                            placeholder="e.g. N/A"
-                        />
-                        {localErrors["present.organization"] && (
-                            <p className="text-xs text-red-500">
-                                {localErrors["present.organization"]}
-                            </p>
-                        )}
-                    </div>
-                    <div className="space-y-2">
-                        <Label>
-                            Date of Joining{" "}
-                            <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                            type="date"
-                            max={todayStr}
-                            value={present.date_joining || ""}
-                            onChange={(e) =>
-                                handlePresentChange(
-                                    "date_joining",
-                                    e.target.value,
-                                )
-                            }
-                            className={`w-full [&::-webkit-calendar-picker-indicator]:ml-auto ${
-                                localErrors["present.date_joining"]
-                                    ? "border-red-500"
-                                    : ""
-                            }`}
-                        />
-                        {localErrors["present.date_joining"] && (
-                            <p className="text-xs text-red-500">
-                                {localErrors["present.date_joining"]}
-                            </p>
-                        )}
-                    </div>
+                    <TextField
+                        id="present-position"
+                        label="Position"
+                        required
+                        value={present.position}
+                        onChange={(v) => handlePresentChange("position", v)}
+                        placeholder="e.g. N/A if none"
+                        error={localErrors["present.position"]}
+                    />
+                    <TextField
+                        id="present-organization"
+                        label="Organization"
+                        required
+                        value={present.organization}
+                        onChange={(v) => handlePresentChange("organization", v)}
+                        placeholder="e.g. N/A"
+                        error={localErrors["present.organization"]}
+                    />
+                    <DatePicker
+                        id="present-date_joining"
+                        label="Date of Joining"
+                        required
+                        max={todayStr}
+                        value={present.date_joining}
+                        onChange={(v) => handlePresentChange("date_joining", v)}
+                        error={localErrors["present.date_joining"]}
+                    />
                     <div className="space-y-2">
                         <Label>Date of Leaving</Label>
                         <Input
@@ -179,17 +150,7 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
                             className="bg-white font-bold text-slate-500"
                         />
                     </div>
-                    <div className="space-y-2">
-                        <Label className="whitespace-nowrap">
-                            Duration (YY-MM-DD)
-                        </Label>
-                        <Input
-                            readOnly
-                            value={present.duration || ""}
-                            className="bg-slate-100 text-slate-600 focus-visible:ring-0"
-                            placeholder="00-00-00"
-                        />
-                    </div>
+                    {durationField(present.duration)}
                 </div>
             </div>
 
@@ -198,34 +159,17 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
                 <h4 className="font-bold text-lg text-blue-900">
                     Experience Eligibility
                 </h4>
-                <div className="space-y-2">
-                    <Label className="text-slate-800 font-semibold leading-relaxed">
-                        Minimum three years of industrial/ research/ teaching
-                        experience, excluding, however, the experience gained
-                        while pursuing Ph.D.{" "}
-                        <span className="text-red-500">*</span>
-                    </Label>
-                    <select
-                        value={emp.has_three_years_exp || ""}
-                        onChange={(e) =>
-                            updateEmpSection(
-                                "has_three_years_exp",
-                                e.target.value,
-                            )
-                        }
-                        className={`flex h-11 w-full md:w-64 rounded-md border bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 ${localErrors["emp.has_three_years_exp"] ? "border-red-500" : "border-slate-200"}`}
-                    >
-                        <option value="" disabled>
-                            Select Yes or No...
-                        </option>
-                        <option value="Yes">Yes</option>
-                        <option value="No">No</option>
-                    </select>
-                    {localErrors["emp.has_three_years_exp"] && (
-                        <p className="text-sm font-medium text-red-500 mt-1">
-                            {localErrors["emp.has_three_years_exp"]}
-                        </p>
-                    )}
+                <div className="max-w-xs">
+                    <SelectField
+                        id="has_three_years_exp"
+                        label="Minimum three years of industrial/ research/ teaching experience, excluding, however, the experience gained while pursuing Ph.D."
+                        required
+                        value={emp.has_three_years_exp}
+                        onChange={(v) => updateEmpSection("has_three_years_exp", v)}
+                        options={HAS_THREE_YEARS_EXP_OPTIONS}
+                        placeholder="Select Yes or No..."
+                        error={localErrors["emp.has_three_years_exp"]}
+                    />
                 </div>
             </div>
 
@@ -267,79 +211,33 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
                             <Trash2 className="h-4 w-4" />
                         </Button>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
-                            <div className="space-y-2">
-                                <Label>Position</Label>
-                                <Input
-                                    value={item.position || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "history",
-                                            idx,
-                                            "position",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Organization</Label>
-                                <Input
-                                    value={item.organization || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "history",
-                                            idx,
-                                            "organization",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Date of Joining</Label>
-                                <Input
-                                    type="date"
-                                    max={todayStr}
-                                    value={item.date_joining || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "history",
-                                            idx,
-                                            "date_joining",
-                                            e.target.value,
-                                        )
-                                    }
-                                    className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Date of Leaving</Label>
-                                <Input
-                                    type="date"
-                                    max={todayStr}
-                                    value={item.date_leaving || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "history",
-                                            idx,
-                                            "date_leaving",
-                                            e.target.value,
-                                        )
-                                    }
-                                    className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label className="whitespace-nowrap">
-                                    Duration (YY-MM-DD)
-                                </Label>
-                                <Input
-                                    readOnly
-                                    value={item.duration || ""}
-                                    className="bg-slate-100 text-slate-600 focus-visible:ring-0"
-                                    placeholder="00-00-00"
-                                />
-                            </div>
+                            <TextField
+                                id={`history-${idx}-position`}
+                                label="Position"
+                                value={item.position}
+                                onChange={(v) => handleArrayChange("history", idx, "position", v)}
+                            />
+                            <TextField
+                                id={`history-${idx}-organization`}
+                                label="Organization"
+                                value={item.organization}
+                                onChange={(v) => handleArrayChange("history", idx, "organization", v)}
+                            />
+                            <DatePicker
+                                id={`history-${idx}-date_joining`}
+                                label="Date of Joining"
+                                max={todayStr}
+                                value={item.date_joining}
+                                onChange={(v) => handleArrayChange("history", idx, "date_joining", v)}
+                            />
+                            <DatePicker
+                                id={`history-${idx}-date_leaving`}
+                                label="Date of Leaving"
+                                max={todayStr}
+                                value={item.date_leaving}
+                                onChange={(v) => handleArrayChange("history", idx, "date_leaving", v)}
+                            />
+                            {durationField(item.duration)}
                         </div>
                     </div>
                 ))}
@@ -386,122 +284,52 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
                             <Trash2 className="h-4 w-4" />
                         </Button>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-                            <div className="space-y-2">
-                                <Label>Position</Label>
-                                <Input
-                                    value={item.position || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "teaching",
-                                            idx,
-                                            "position",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Employer</Label>
-                                <Input
-                                    value={item.employer || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "teaching",
-                                            idx,
-                                            "employer",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Course Taught</Label>
-                                <Input
-                                    value={item.courses || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "teaching",
-                                            idx,
-                                            "courses",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>UG/PG</Label>
-                                <Input
-                                    value={item.level || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "teaching",
-                                            idx,
-                                            "level",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>No. of Students</Label>
-                                <Input
-                                    type="number"
-                                    value={item.students || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "teaching",
-                                            idx,
-                                            "students",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Date of Joining</Label>
-                                <Input
-                                    type="date"
-                                    max={todayStr}
-                                    value={item.date_joining || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "teaching",
-                                            idx,
-                                            "date_joining",
-                                            e.target.value,
-                                        )
-                                    }
-                                    className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Date of Leaving</Label>
-                                <Input
-                                    type="date"
-                                    max={todayStr}
-                                    value={item.date_leaving || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "teaching",
-                                            idx,
-                                            "date_leaving",
-                                            e.target.value,
-                                        )
-                                    }
-                                    className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label className="whitespace-nowrap">
-                                    Duration (YY-MM-DD)
-                                </Label>
-                                <Input
-                                    readOnly
-                                    value={item.duration || ""}
-                                    className="bg-slate-100 text-slate-600 focus-visible:ring-0"
-                                    placeholder="00-00-00"
-                                />
-                            </div>
+                            <TextField
+                                id={`teaching-${idx}-position`}
+                                label="Position"
+                                value={item.position}
+                                onChange={(v) => handleArrayChange("teaching", idx, "position", v)}
+                            />
+                            <TextField
+                                id={`teaching-${idx}-employer`}
+                                label="Employer"
+                                value={item.employer}
+                                onChange={(v) => handleArrayChange("teaching", idx, "employer", v)}
+                            />
+                            <TextField
+                                id={`teaching-${idx}-courses`}
+                                label="Course Taught"
+                                value={item.courses}
+                                onChange={(v) => handleArrayChange("teaching", idx, "courses", v)}
+                            />
+                            <TextField
+                                id={`teaching-${idx}-level`}
+                                label="UG/PG"
+                                value={item.level}
+                                onChange={(v) => handleArrayChange("teaching", idx, "level", v)}
+                            />
+                            <NumberField
+                                id={`teaching-${idx}-students`}
+                                label="No. of Students"
+                                value={item.students}
+                                onChange={(v) => handleArrayChange("teaching", idx, "students", v)}
+                                min={0}
+                            />
+                            <DatePicker
+                                id={`teaching-${idx}-date_joining`}
+                                label="Date of Joining"
+                                max={todayStr}
+                                value={item.date_joining}
+                                onChange={(v) => handleArrayChange("teaching", idx, "date_joining", v)}
+                            />
+                            <DatePicker
+                                id={`teaching-${idx}-date_leaving`}
+                                label="Date of Leaving"
+                                max={todayStr}
+                                value={item.date_leaving}
+                                onChange={(v) => handleArrayChange("teaching", idx, "date_leaving", v)}
+                            />
+                            {durationField(item.duration)}
                         </div>
                     </div>
                 ))}
@@ -546,93 +374,39 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
                             <Trash2 className="h-4 w-4" />
                         </Button>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
-                            <div className="space-y-2">
-                                <Label>Position</Label>
-                                <Input
-                                    value={item.position || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "research",
-                                            idx,
-                                            "position",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Institute</Label>
-                                <Input
-                                    value={item.institute || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "research",
-                                            idx,
-                                            "institute",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Supervisor</Label>
-                                <Input
-                                    value={item.supervisor || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "research",
-                                            idx,
-                                            "supervisor",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Date of Joining</Label>
-                                <Input
-                                    type="date"
-                                    max={todayStr}
-                                    value={item.date_joining || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "research",
-                                            idx,
-                                            "date_joining",
-                                            e.target.value,
-                                        )
-                                    }
-                                    className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Date of Leaving</Label>
-                                <Input
-                                    type="date"
-                                    max={todayStr}
-                                    value={item.date_leaving || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "research",
-                                            idx,
-                                            "date_leaving",
-                                            e.target.value,
-                                        )
-                                    }
-                                    className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label className="whitespace-nowrap">
-                                    Duration (YY-MM-DD)
-                                </Label>
-                                <Input
-                                    readOnly
-                                    value={item.duration || ""}
-                                    className="bg-slate-100 text-slate-600 focus-visible:ring-0"
-                                    placeholder="00-00-00"
-                                />
-                            </div>
+                            <TextField
+                                id={`research-${idx}-position`}
+                                label="Position"
+                                value={item.position}
+                                onChange={(v) => handleArrayChange("research", idx, "position", v)}
+                            />
+                            <TextField
+                                id={`research-${idx}-institute`}
+                                label="Institute"
+                                value={item.institute}
+                                onChange={(v) => handleArrayChange("research", idx, "institute", v)}
+                            />
+                            <TextField
+                                id={`research-${idx}-supervisor`}
+                                label="Supervisor"
+                                value={item.supervisor}
+                                onChange={(v) => handleArrayChange("research", idx, "supervisor", v)}
+                            />
+                            <DatePicker
+                                id={`research-${idx}-date_joining`}
+                                label="Date of Joining"
+                                max={todayStr}
+                                value={item.date_joining}
+                                onChange={(v) => handleArrayChange("research", idx, "date_joining", v)}
+                            />
+                            <DatePicker
+                                id={`research-${idx}-date_leaving`}
+                                label="Date of Leaving"
+                                max={todayStr}
+                                value={item.date_leaving}
+                                onChange={(v) => handleArrayChange("research", idx, "date_leaving", v)}
+                            />
+                            {durationField(item.duration)}
                         </div>
                     </div>
                 ))}
@@ -676,79 +450,33 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
                             <Trash2 className="h-4 w-4" />
                         </Button>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
-                            <div className="space-y-2">
-                                <Label>Organization</Label>
-                                <Input
-                                    value={item.organization || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "industrial",
-                                            idx,
-                                            "organization",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Work Profile</Label>
-                                <Input
-                                    value={item.profile || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "industrial",
-                                            idx,
-                                            "profile",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Date of Joining</Label>
-                                <Input
-                                    type="date"
-                                    max={todayStr}
-                                    value={item.date_joining || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "industrial",
-                                            idx,
-                                            "date_joining",
-                                            e.target.value,
-                                        )
-                                    }
-                                    className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Date of Leaving</Label>
-                                <Input
-                                    type="date"
-                                    max={todayStr}
-                                    value={item.date_leaving || ""}
-                                    onChange={(e) =>
-                                        handleArrayChange(
-                                            "industrial",
-                                            idx,
-                                            "date_leaving",
-                                            e.target.value,
-                                        )
-                                    }
-                                    className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label className="whitespace-nowrap">
-                                    Duration (YY-MM-DD)
-                                </Label>
-                                <Input
-                                    readOnly
-                                    value={item.duration || ""}
-                                    className="bg-slate-100 text-slate-600 focus-visible:ring-0"
-                                    placeholder="00-00-00"
-                                />
-                            </div>
+                            <TextField
+                                id={`industrial-${idx}-organization`}
+                                label="Organization"
+                                value={item.organization}
+                                onChange={(v) => handleArrayChange("industrial", idx, "organization", v)}
+                            />
+                            <TextField
+                                id={`industrial-${idx}-profile`}
+                                label="Work Profile"
+                                value={item.profile}
+                                onChange={(v) => handleArrayChange("industrial", idx, "profile", v)}
+                            />
+                            <DatePicker
+                                id={`industrial-${idx}-date_joining`}
+                                label="Date of Joining"
+                                max={todayStr}
+                                value={item.date_joining}
+                                onChange={(v) => handleArrayChange("industrial", idx, "date_joining", v)}
+                            />
+                            <DatePicker
+                                id={`industrial-${idx}-date_leaving`}
+                                label="Date of Leaving"
+                                max={todayStr}
+                                value={item.date_leaving}
+                                onChange={(v) => handleArrayChange("industrial", idx, "date_leaving", v)}
+                            />
+                            {durationField(item.duration)}
                         </div>
                     </div>
                 ))}
