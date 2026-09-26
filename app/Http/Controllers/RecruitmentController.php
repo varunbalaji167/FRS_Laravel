@@ -12,6 +12,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -364,25 +365,35 @@ class RecruitmentController extends Controller
 
     public function saveDraft(Request $request, Advertisement $advertisement)
     {
-        $data = collect($request->only(['department', 'grade']))
-            ->map(fn ($value) => $value ?? '')
-            ->all();
-
         $formData = $request->input('form_data', []);
 
         if ($request->hasFile('form_data.personal_details.profile_image')) {
             $path = $request->file('form_data.personal_details.profile_image')
-                ->store('applications/'.Auth::id()."/{$advertisement->id}/photos", 'public');
+                ->store('applications/'.Auth::id()."/{$advertisement->id}/photos", 'local');
             $formData['personal_details']['profile_image'] = $path;
         }
 
-        JobApplication::updateOrCreate(
-            ['user_id' => Auth::id(), 'advertisement_id' => $advertisement->id],
-            array_merge($data, [
-                'form_data' => $formData,
-                'status' => 'draft',
-            ])
-        );
+        $data = collect($request->only(['department', 'grade']))
+            ->map(fn ($value) => $value ?? '')
+            ->all();
+
+        DB::transaction(function () use ($advertisement, $data, $formData) {
+            $existing = JobApplication::where('user_id', Auth::id())
+                ->where('advertisement_id', $advertisement->id)
+                ->lockForUpdate()
+                ->first();
+
+            // TODO(Phase 3): replace with throw new DomainException(ErrorCode::APP_DRAFT_CONFLICT)
+            abort_if($existing && $existing->status !== 'draft', 409, 'draft conflict');
+
+            JobApplication::updateOrCreate(
+                ['user_id' => Auth::id(), 'advertisement_id' => $advertisement->id],
+                array_merge($data, [
+                    'form_data' => $formData,
+                    'status' => 'draft',
+                ])
+            );
+        });
 
         return redirect()->back();
     }
@@ -510,7 +521,7 @@ class RecruitmentController extends Controller
             if ($imgFile->getSize() > 2 * 1024 * 1024) {
                 return back()->withErrors(['profile_image' => 'Profile photo must be smaller than 2 MB.'])->withInput();
             }
-            $path = $imgFile->store("applications/{$user->id}/{$advertisement->id}/photos", 'public');
+            $path = $imgFile->store("applications/{$user->id}/{$advertisement->id}/photos", 'local');
             $formData['personal_details']['profile_image'] = $path;
         }
 
@@ -518,7 +529,7 @@ class RecruitmentController extends Controller
         if ($request->hasFile('documents')) {
             foreach ($request->file('documents') as $key => $file) {
                 $documentPaths[$key] = $file->store(
-                    "applications/{$user->id}/{$advertisement->id}", 'public'
+                    "applications/{$user->id}/{$advertisement->id}", 'local'
                 );
             }
         }
@@ -527,52 +538,64 @@ class RecruitmentController extends Controller
         if ($request->hasFile('best_papers')) {
             foreach ($request->file('best_papers') as $key => $file) {
                 $documentPaths[$key] = $file->store(
-                    "applications/{$user->id}/{$advertisement->id}/best_papers", 'public'
+                    "applications/{$user->id}/{$advertisement->id}/best_papers", 'local'
                 );
             }
         }
 
         $formData['uploaded_documents'] = $documentPaths;
 
-        // ── Persist
-        $application = JobApplication::updateOrCreate(
-            ['user_id' => $user->id, 'advertisement_id' => $advertisement->id],
-            [
-                'department' => $validated['department'],
-                'grade' => $validated['grade'],
-                'form_data' => $formData,
-                'status' => 'submitted',
-            ]
-        );
+        // ── Persist — locked so a duplicate submit can't race the status transition
+        $application = null;
+        $isNewSubmission = false;
 
-        // ── Generate & store PDF
-        $pdf = Pdf::loadView('pdf.application_format', [
-            'application' => $application,
-            'user' => $user,
-            'advertisement' => $advertisement,
-            'data' => $formData,
-        ]);
+        DB::transaction(function () use ($user, $advertisement, $validated, $formData, &$application, &$isNewSubmission) {
+            $existing = JobApplication::where('user_id', $user->id)
+                ->where('advertisement_id', $advertisement->id)
+                ->lockForUpdate()
+                ->first();
 
-        // 1. Define the path and save the PDF to the disk
-        $pdfPath = "applications/{$user->id}/{$advertisement->id}/Final_Application_Form.pdf";
-        Storage::disk('public')->put($pdfPath, $pdf->output());
+            $isNewSubmission = in_array($existing?->status, [null, 'draft'], true);
 
-        // 2. QUEUE the confirmation email, passing the PATH, not the raw output!
-        Mail::to($user->email)->queue(new ApplicationSubmitted($application, $pdfPath));
+            $application = JobApplication::updateOrCreate(
+                ['user_id' => $user->id, 'advertisement_id' => $advertisement->id],
+                [
+                    'department' => $validated['department'],
+                    'grade' => $validated['grade'],
+                    'form_data' => $formData,
+                    'status' => 'submitted',
+                ]
+            );
+        });
 
-        // ── Referee notification emails
-        $referees = $formData['referees_section']['referees'] ?? [];
-        $applicantName = trim(
-            ($formData['personal_details']['first_name'] ?? '').' '.
-            ($formData['personal_details']['last_name'] ?? '')
-        );
+        // Only the null|draft → submitted transition generates the PDF and
+        // fires mail — a duplicate submit on an already-submitted row must
+        // not re-queue the applicant/referee emails.
+        if ($isNewSubmission) {
+            $pdf = Pdf::loadView('pdf.application_format', [
+                'application' => $application,
+                'user' => $user,
+                'advertisement' => $advertisement,
+                'data' => $formData,
+            ]);
 
-        foreach ($referees as $referee) {
-            if (! empty($referee['email']) && filter_var($referee['email'], FILTER_VALIDATE_EMAIL)) {
-                // 3. QUEUE the referee emails
-                Mail::to($referee['email'])->queue(
-                    new RefereeNotification($application, $applicantName, $referee)
-                );
+            $pdfPath = "applications/{$user->id}/{$advertisement->id}/Final_Application_Form.pdf";
+            Storage::disk('local')->put($pdfPath, $pdf->output());
+
+            Mail::to($user->email)->queue(new ApplicationSubmitted($application, $pdfPath));
+
+            $referees = $formData['referees_section']['referees'] ?? [];
+            $applicantName = trim(
+                ($formData['personal_details']['first_name'] ?? '').' '.
+                ($formData['personal_details']['last_name'] ?? '')
+            );
+
+            foreach ($referees as $referee) {
+                if (! empty($referee['email']) && filter_var($referee['email'], FILTER_VALIDATE_EMAIL)) {
+                    Mail::to($referee['email'])->queue(
+                        new RefereeNotification($application, $applicantName, $referee)
+                    );
+                }
             }
         }
 

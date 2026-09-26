@@ -21,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (app()->environment('production') && config('app.debug')) {
+            throw new \RuntimeException('APP_DEBUG must be false in production.');
+        }
+
         Vite::prefetch(concurrency: 3);
         // STOPS THE N+1 QUERY PROBLEM:
         // This will throw an exception locally if you forget to eager load,

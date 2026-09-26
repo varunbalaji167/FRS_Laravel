@@ -41,9 +41,9 @@ class ApplicationSubmitted extends Mailable implements ShouldQueue
 
     public function attachments(): array
     {
-        // Safely pull the PDF from the public disk during the background job
+        // Pull the PDF from the private disk during the background job
         return [
-            Attachment::fromStorageDisk('public', $this->pdfPath)
+            Attachment::fromStorageDisk('local', $this->pdfPath)
                 ->as('IIT_Indore_Application.pdf')
                 ->withMime('application/pdf'),
         ];

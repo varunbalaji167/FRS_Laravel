@@ -13,8 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Trust all proxies (Cloudflare, Load Balancers, etc.)
-        $middleware->trustProxies(at: '*');
+        // Trust only the configured proxy/load-balancer (defaults to '*' until
+        // TRUSTED_PROXIES is set to the CloudPanel LB CIDR — see .env.production.example).
+        $middleware->trustProxies(at: env('TRUSTED_PROXIES', '*'));
         // 1. Reconnect Inertia! This tells Laravel to append the Inertia data
         // (including flash messages and errors) to every single web request.
         $middleware->web(append: [

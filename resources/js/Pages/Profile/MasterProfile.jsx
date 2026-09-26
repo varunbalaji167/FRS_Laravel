@@ -36,7 +36,7 @@ export default function MasterProfile({ mustVerifyEmail, status }) {
                             <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
                                 <div className="h-28 w-28 shrink-0 overflow-hidden rounded-[1.5rem] border border-white/15 bg-white/10 ring-1 ring-inset ring-white/10 flex items-center justify-center text-4xl font-black">
                                     {profile.photo_path ? (
-                                        <img src={`/storage/${profile.photo_path}`} alt={user.name || 'Profile'} className="h-full w-full object-cover" />
+                                        <img src={route("files.show", { path: profile.photo_path })} alt={user.name || 'Profile'} className="h-full w-full object-cover" />
                                     ) : (
                                         initials
                                     )}

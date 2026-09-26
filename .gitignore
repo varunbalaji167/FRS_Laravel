@@ -5,6 +5,7 @@
 .env.production
 .phpactor.json
 .phpunit.result.cache
+PLAN.md
 /.fleet
 /.idea
 /.nova
@@ -22,3 +23,5 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+FRS_Maintenance.pdf
+FRS_Testing_Document.pdf

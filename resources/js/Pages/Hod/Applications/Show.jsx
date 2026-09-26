@@ -170,7 +170,7 @@ export default function ApplicationShow({ application }) {
 
     const photoUrl = p.profile_image
         ? typeof p.profile_image === "string"
-            ? `/storage/${p.profile_image}`
+            ? route("files.show", { path: p.profile_image })
             : null
         : null;
 
@@ -1599,7 +1599,7 @@ export default function ApplicationShow({ application }) {
                                     .map(([key, path]) => (
                                         <a
                                             key={key}
-                                            href={`/storage/${path}`}
+                                            href={route("files.show", { path })}
                                             target="_blank"
                                             rel="noreferrer"
                                             className="flex items-center p-3 rounded-lg border border-slate-200 hover:bg-slate-50 hover:border-indigo-300 transition-colors group"
@@ -1623,7 +1623,7 @@ export default function ApplicationShow({ application }) {
                                     </span>
                                     <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 inline-block">
                                         <img
-                                            src={`/storage/${docs["signature"]}`}
+                                            src={route("files.show", { path: docs["signature"] })}
                                             alt="Signature"
                                             className="max-h-20 object-contain mix-blend-multiply"
                                         />

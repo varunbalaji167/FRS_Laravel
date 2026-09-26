@@ -33,11 +33,39 @@ class ProfileController extends Controller
         ]);
 
         if ($user->role === 'applicant') {
-            $request->validate([
+            $profileData = $request->validate([
                 'profile_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+                'father_name' => ['nullable', 'string', 'max:255'],
+                'date_of_birth' => ['nullable', 'date'],
+                'gender' => ['nullable', 'string', 'max:50'],
+                'marital_status' => ['nullable', 'string', 'max:50'],
+                'category' => ['nullable', 'string', 'max:50'],
+                'nationality' => ['nullable', 'string', 'max:100'],
+                'id_proof' => ['nullable', 'string', 'max:255'],
+                'phone' => ['nullable', 'string', 'max:20'],
+                'phone_code' => ['nullable', 'string', 'max:6'],
+                'alt_phone' => ['nullable', 'string', 'max:20'],
+                'alt_phone_code' => ['nullable', 'string', 'max:6'],
+                'alt_email' => ['nullable', 'email', 'max:255'],
+                'corr_address' => ['nullable', 'string'],
+                'corr_city' => ['nullable', 'string', 'max:100'],
+                'corr_state' => ['nullable', 'string', 'max:100'],
+                'corr_pincode' => ['nullable', 'string', 'max:20'],
+                'corr_country' => ['nullable', 'string', 'max:100'],
+                'perm_address' => ['nullable', 'string'],
+                'perm_city' => ['nullable', 'string', 'max:100'],
+                'perm_state' => ['nullable', 'string', 'max:100'],
+                'perm_pincode' => ['nullable', 'string', 'max:20'],
+                'perm_country' => ['nullable', 'string', 'max:100'],
+                'designation' => ['nullable', 'string', 'max:255'],
+                'affiliation' => ['nullable', 'string', 'max:255'],
+                'google_scholar_url' => ['nullable', 'url', 'max:255'],
+                'orcid_url' => ['nullable', 'url', 'max:255'],
+                'linkedin_url' => ['nullable', 'url', 'max:255'],
+                'github_url' => ['nullable', 'url', 'max:255'],
             ]);
 
-            $profileData = $request->except(['name', 'email', 'profile_image', '_method']);
+            unset($profileData['profile_image']);
 
             // Handle File Uploads for the Applicant Profile
             if ($request->hasFile('profile_image')) {
@@ -45,11 +73,11 @@ class ProfileController extends Controller
 
                 // Delete the old image if it exists
                 if ($currentProfile && $currentProfile->photo_path) {
-                    Storage::disk('public')->delete($currentProfile->photo_path);
+                    Storage::disk('local')->delete($currentProfile->photo_path);
                 }
 
                 // Store the new image
-                $profileData['photo_path'] = $request->file('profile_image')->store("profiles/{$user->id}", 'public');
+                $profileData['photo_path'] = $request->file('profile_image')->store("profiles/{$user->id}", 'local');
             }
 
             // Update or Create the 1-to-1 Applicant Profile
@@ -83,7 +111,7 @@ class ProfileController extends Controller
         // Clean up the user's profile image folder before deleting the user (if they have one)
         $profile = $user->applicantProfile;
         if ($profile && $profile->photo_path) {
-            Storage::disk('public')->deleteDirectory("profiles/{$user->id}");
+            Storage::disk('local')->deleteDirectory("profiles/{$user->id}");
         }
 
         Auth::logout();

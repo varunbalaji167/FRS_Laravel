@@ -19,7 +19,8 @@ class ApplicationController extends Controller
      */
     private function getScopedQuery(Request $request)
     {
-        $query = JobApplication::with(['user', 'advertisement']);
+        $query = JobApplication::with(['user', 'advertisement'])
+            ->whereIn('status', ['submitted', 'shortlisted', 'rejected']);
 
         if ($request->user()->role === 'hod') {
             $query->where('department', $request->user()->department);
@@ -31,8 +32,7 @@ class ApplicationController extends Controller
     public function index(Request $request)
     {
         // 1. Secure the base query
-        $query = $this->getScopedQuery($request)
-            ->whereIn('status', ['submitted', 'shortlisted', 'rejected']);
+        $query = $this->getScopedQuery($request);
 
         if ($request->filled('advertisement_id')) {
             $query->where('advertisement_id', $request->advertisement_id);

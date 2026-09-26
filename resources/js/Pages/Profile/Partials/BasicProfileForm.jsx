@@ -27,7 +27,7 @@ export default function BasicProfileForm({ className = "" }) {
     const storedIdNum = storedIdParts.slice(1).join(":").trim(); // safe if number itself contains ":"
 
     const [preview, setPreview] = useState(
-        profile.photo_path ? `/storage/${profile.photo_path}` : null,
+        profile.photo_path ? route("files.show", { path: profile.photo_path }) : null,
     );
     const [imageError, setImageError] = useState("");
     const [frontendErrors, setFrontendErrors] = useState({});
