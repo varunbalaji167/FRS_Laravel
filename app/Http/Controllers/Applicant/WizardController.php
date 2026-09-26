@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Applicant;
 
-use App\Http\Controllers\Admin\ApplicationController;
+use App\Http\Controllers\Controller;
 use App\Mail\ApplicationSubmitted;
 use App\Mail\RefereeNotification;
 use App\Models\Advertisement;
-use App\Models\Department;
 use App\Models\JobApplication;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +16,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
-class RecruitmentController extends Controller
+class WizardController extends Controller
 {
     // -------------------------------------------------------------------------
     // Helpers
@@ -226,119 +225,6 @@ class RecruitmentController extends Controller
         return $errors;
     }
 
-    // PUBLIC ROUTES
-
-    /**
-     * Dashboard: Display active advertisements.
-     */
-    public function index()
-    {
-        $advertisements = Advertisement::where('is_active', true)->latest()->get();
-        $submittedAdvtIds = [];
-        $draftAdvtIds = [];
-
-        if (Auth::check()) {
-            $applications = JobApplication::where('user_id', Auth::id())
-                ->get(['advertisement_id', 'status']);
-
-            foreach ($applications as $app) {
-                // Treat submitted, shortlisted, and rejected all as "Locked" applications
-                if (in_array($app->status, ['submitted', 'shortlisted', 'rejected'])) {
-                    $submittedAdvtIds[] = $app->advertisement_id;
-                } elseif ($app->status === 'draft') {
-                    $draftAdvtIds[] = $app->advertisement_id;
-                }
-            }
-        }
-
-        return Inertia::render('Dashboard', [
-            'advertisements' => $advertisements,
-            'submittedAdvtIds' => $submittedAdvtIds,
-            'draftAdvtIds' => $draftAdvtIds,
-        ]);
-    }
-
-    /**
-     * Applicant: View their own application list.
-     */
-    public function myApplications()
-    {
-        $applications = JobApplication::with('advertisement')
-            ->where('user_id', Auth::id())
-            ->orderBy('updated_at', 'desc')
-            ->get()
-            ->map(function ($app) {
-                return [
-                    'id' => $app->id,
-                    'advertisement' => $app->advertisement,
-                    'department' => $app->department,
-                    'grade' => $app->grade,
-                    'status' => $app->status,
-                    'current_step' => $app->form_data['current_step'] ?? 1,
-                    'updated_at' => $app->updated_at->format('M d, Y - h:i A'),
-                    'has_pdf' => $app->status === 'submitted',
-                    'pdf_url' => $app->status === 'submitted'
-                        ? route('applicant.applications.export.pdf', $app->id)
-                        : null,
-                ];
-            });
-
-        return Inertia::render('Applicant/MyApplications', [
-            'applications' => $applications,
-        ]);
-    }
-
-    /**
-     * Applicant: View their detailed read-only application.
-     */
-    public function show($id)
-    {
-        $application = JobApplication::with('advertisement')
-            ->where('user_id', Auth::id())
-            ->findOrFail($id);
-
-        return Inertia::render('Applicant/ApplicationShow', [
-            'application' => $application,
-        ]);
-    }
-
-    /**
-     * Applicant: Securely export their own PDF.
-     */
-    public function exportPdf($id)
-    {
-        $application = JobApplication::with(['user', 'advertisement'])
-            ->where('user_id', Auth::id())
-            ->findOrFail($id);
-
-        $data = $application->form_data;
-        $p = $data['personal_details'] ?? [];
-
-        $pdf = Pdf::loadView('pdf.application_format', [
-            'application' => $application,
-            'advertisement' => $application->advertisement,
-            'data' => $data,
-        ]);
-
-        $safeRef = str_replace(['/', '\\'], '_', $application->advertisement->reference_number ?? 'Ref');
-        $name = str_replace(' ', '_', $p['first_name'] ?? 'Applicant');
-        $fileName = "Application_{$name}_{$safeRef}.pdf";
-
-        return $pdf->stream($fileName);
-    }
-
-    /**
-     * Applicant: Securely export their own Excel data.
-     */
-    public function exportExcel(Request $request, $id) // 1. Inject the Request here
-    {
-        // Ensure the applicant actually owns this application
-        $application = JobApplication::where('user_id', Auth::id())->findOrFail($id);
-
-        // 2. Pass both $request and $id to the target controller
-        return app(ApplicationController::class)->exportExcel($request, $id);
-    }
-
     /**
      * Show the application form wizard.
      */
@@ -406,7 +292,7 @@ class RecruitmentController extends Controller
     // Keep this method available if you later add steps that require DB lookups
     // (e.g. email uniqueness). To enable, add to web.php:
     //   Route::post('/jobs/{advertisement}/validate-step',
-    //       [RecruitmentController::class, 'validateStep'])
+    //       [WizardController::class, 'validateStep'])
     //       ->name('applicant.validateStep')->middleware('auth');
 
     public function validateStep(Request $request, Advertisement $advertisement): JsonResponse
@@ -424,6 +310,7 @@ class RecruitmentController extends Controller
             'errors' => $errors,
         ], empty($errors) ? 200 : 422);
     }
+
     // FINAL SUBMIT — Full server-side validation across every required step.
 
     public function submitApplication(Request $request, Advertisement $advertisement)
@@ -601,45 +488,5 @@ class RecruitmentController extends Controller
 
         return redirect()->route('dashboard')
             ->with('success', 'Application Submitted! A confirmation copy has been sent to your email.');
-    }
-
-    // ADMIN — Advertisement management
-
-    public function adminIndex()
-    {
-        return Inertia::render('Admin/Jobs/Index', [
-            'advertisements' => Advertisement::latest()->get(),
-        ]);
-    }
-
-    public function create()
-    {
-        return Inertia::render('Admin/Jobs/Create', [
-            'departments' => Department::orderBy('name')->get(),
-        ]);
-    }
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'reference_number' => 'required|string|unique:advertisements,reference_number',
-            'title' => 'required|string|max:255',
-            'deadline' => 'required|date',
-            'document' => 'required|file|mimes:pdf|max:5120',
-            'departments' => 'required|array|min:1',
-        ]);
-
-        $filePath = $request->file('document')->store('advertisements', 'public');
-
-        Advertisement::create([
-            'reference_number' => $validated['reference_number'],
-            'title' => $validated['title'],
-            'deadline' => $validated['deadline'],
-            'departments' => $validated['departments'],
-            'document_path' => $filePath,
-        ]);
-
-        return redirect()->route('admin.jobs.create')
-            ->with('success', 'Advertisement published successfully!');
     }
 }

@@ -47,7 +47,7 @@ The entire development stack is containerized using **Laravel Sail**, ensuring e
 ### 11-Step Application State
 To support the intensive data collection required for academic hiring, the system implements a robust "Save as Draft" mechanism.
 * **Database Persistence:** Instead of ephemeral session storage, the system uses a `json` column (`form_data`) in the `job_applications` table to persist the state of all 11 steps.
-* **Draft Logic:** The `RecruitmentController` uses an `updateOrCreate` strategy, allowing applicants to save their progress at any step without triggering full-form validation.
+* **Draft Logic:** `Applicant\WizardController::saveDraft` uses an `updateOrCreate` strategy, allowing applicants to save their progress at any step without triggering full-form validation.
 * **Data Casting:** Laravel's Eloquent casting automatically transforms the JSON blob into a manageable PHP array for the backend and a JSON object for the React frontend.
 
 ## Visual Workflow
@@ -255,177 +255,21 @@ resources/js
     └── Welcome.jsx         # Public-facing landing page
 ```
 
+## Architecture & conventions
+
+The backend/frontend folder layout, file-placement rules, error contract, and
+validation tiers are documented in:
+
+- [docs/architecture.md](docs/architecture.md) — folder layout & where new code goes
+- [docs/errors.md](docs/errors.md) — the `ErrorCode` table and JSON error contract
+- [docs/validation.md](docs/validation.md) — the three validation tiers & widget-first guide
+- [docs/wizard-steps.md](docs/wizard-steps.md) — the canonical 11-step wizard list
+
 ## API Endpoints & Role-Based Logic Flow
 
-This section provides a technical map of the system's communication layer, categorized by user role. Each endpoint follows the **Inertia.js protocol**, where the backend provides a JSON state that the React frontend renders into a seamless SPA experience.
-
-- Refer /routes/web.php and /routes/auth.php
-
----
-
-### **1. Authentication Endpoints (Public & Guest)**
-
-These endpoints manage user authentication using Laravel Breeze + Socialite.
-
-#### **Authentication Routes**
-
-| **Method** | **Endpoint** | **Controller Function** | **Flow** |
-| --- | --- | --- | --- |
-| GET | /register | RegisteredUserController@create | Render registration page |
-| POST | /register | RegisteredUserController@store | Validate → Create user → Redirect |
-| GET | /login | AuthenticatedSessionController@create | Render login page |
-| POST | /login | AuthenticatedSessionController@store | Validate → Start session → Redirect |
-| POST | /logout | AuthenticatedSessionController@destroy | Logout → Session destroyed |
-
----
-
-#### **Social Authentication (Google OAuth)**
-
-| **Method** | **Endpoint** | **Controller Function** | **Flow** |
-| --- | --- | --- | --- |
-| GET | /auth/google | SocialAuthController@redirect | Redirect to Google OAuth |
-| GET | /auth/google/callback | SocialAuthController@callback | Handle Google response → Login/Register → Redirect |
-
----
-
-#### **Password Management**
-
-| **Method** | **Endpoint** | **Controller Function** | **Flow** |
-| --- | --- | --- | --- |
-| GET | /forgot-password | PasswordResetLinkController@create | Show reset request form |
-| POST | /forgot-password | PasswordResetLinkController@store | Send reset link email |
-| GET | /reset-password/{token} | NewPasswordController@create | Show reset form |
-| POST | /reset-password | NewPasswordController@store | Reset password |
-| PUT | /password | PasswordController@update | Update password (auth required) |
-
----
-
-#### **Email Verification**
-
-| **Method** | **Endpoint** | **Controller Function** | **Flow** |
-| --- | --- | --- | --- |
-| GET | /verify-email | EmailVerificationPromptController | Show verification notice |
-| GET | /verify-email/{id}/{hash} | VerifyEmailController | Verify email |
-| POST | /email/verification-notification | EmailVerificationNotificationController@store | Resend verification email |
-
----
-
-### **2. Profile Management Endpoints (Authenticated)**
-
-#### **User Profile**
-
-| **Method** | **Endpoint** | **Controller Function** | **Flow** |
-| --- | --- | --- | --- |
-| GET | /profile | ProfileController@edit | Render profile page |
-| PATCH | /profile | ProfileController@update | Update profile details |
-| DELETE | /profile | ProfileController@destroy | Delete user account |
-
----
-
-### **3. Applicant Recruitment Endpoints (Authenticated + role:applicant)**
-
-#### **Applicant Dashboard & Applications**
-
-| **Method** | **Endpoint** | **Controller Function** | **Flow** |
-| --- | --- | --- | --- |
-| GET | /dashboard | RecruitmentController@index | Show applicant dashboard |
-| GET | /applications | RecruitmentController@myApplications | List user’s applications |
-| GET | /applications/{id} | RecruitmentController@show | View single application |
-
----
-
-#### **Application Export**
-
-| **Method** | **Endpoint** | **Controller Function** | **Flow** |
-| --- | --- | --- | --- |
-| GET | /applications/{id}/export/pdf | RecruitmentController@exportPdf | Download PDF |
-| GET | /applications/{id}/export/excel | RecruitmentController@exportExcel | Download Excel |
-
----
-
-#### **Application Workflow**
-
-| **Method** | **Endpoint** | **Controller Function** | **Flow** |
-| --- | --- | --- | --- |
-| GET | /apply/{advertisement} | RecruitmentController@showApplyForm | Show application form |
-| POST | /apply/{advertisement}/draft | RecruitmentController@saveDraft | Save draft |
-| POST | /apply/{advertisement}/submit | RecruitmentController@submitApplication | Submit final application |
-
----
-
-### **4. Admin Management Endpoints (Authenticated + role:admin)**
-
-> All routes prefixed with /admin
-> 
-
----
-
-#### **Admin Dashboard & Settings**
-
-| **Method** | **Endpoint** | **Controller Function** | **Flow** |
-| --- | --- | --- | --- |
-| GET | /admin | AdminController@dashboard | Admin dashboard |
-| GET | /admin/settings | AdminController@settings | Manage settings |
-| POST | /admin/departments | AdminController@storeDepartment | Create department |
-| DELETE | /admin/departments/{department} | AdminController@destroyDepartment | Delete department |
-
----
-
-#### **User Management**
-
-| **Method** | **Endpoint** | **Controller Function** | **Flow** |
-| --- | --- | --- | --- |
-| GET | /admin/users | AdminController@users | List users |
-| POST | /admin/users | AdminController@storeUser | Create user |
-| PATCH | /admin/users/{user}/role | AdminController@updateRole | Update role |
-| DELETE | /admin/users/{user} | AdminController@destroyUser | Delete user |
-
----
-
-#### **Job Management**
-
-| **Method** | **Endpoint** | **Controller Function** | **Flow** |
-| --- | --- | --- | --- |
-| GET | /admin/jobs | RecruitmentController@adminIndex | List jobs |
-| GET | /admin/jobs/create | RecruitmentController@create | Show job creation form |
-| POST | /admin/jobs | RecruitmentController@store | Create job |
-
----
-
-#### **Application Management (Admin)**
-
-| **Method** | **Endpoint** | **Controller Function** | **Flow** |
-| --- | --- | --- | --- |
-| GET | /admin/applications | ApplicationController@index | List all applications |
-| GET | /admin/applications/{id} | ApplicationController@show | View application |
-| PATCH | /admin/applications/{id} | ApplicationController@updateStatus | Update status |
-| GET | /admin/applications/{id}/export/pdf | ApplicationController@exportPdf | Export PDF |
-| GET | /admin/applications/{id}/export/excel | ApplicationController@exportExcel | Export Excel |
-
----
-
-### **5. HOD Endpoints (Authenticated + role:hod)**
-
-> All routes prefixed with /hod
-> 
-
----
-
-#### **HOD Dashboard & Settings**
-
-| **Method** | **Endpoint** | **Controller Function** | **Flow** |
-| --- | --- | --- | --- |
-| GET | /hod | AdminController@dashboard | HOD dashboard |
-| GET | /hod/settings | AdminController@settings | View settings |
-
----
-
-#### **Department Applications (Scoped)**
-
-| **Method** | **Endpoint** | **Controller Function** | **Flow** |
-| --- | --- | --- | --- |
-| GET | /hod/applications | ApplicationController@index | List department applications |
-| GET | /hod/applications/{id} | ApplicationController@show | View application |
-| PATCH | /hod/applications/{id} | ApplicationController@updateStatus | Update status |
-| GET | /hod/applications/{id}/export/pdf | ApplicationController@exportPdf | Export PDF |
-| GET | /hod/applications/{id}/export/excel | ApplicationController@exportExcel | Export Excel |
+Each endpoint follows the **Inertia.js protocol**, where the backend provides
+a JSON state that the React frontend renders into a seamless SPA experience.
+For the current, authoritative endpoint-to-controller map, see
+[routes/web.php](routes/web.php) and [routes/auth.php](routes/auth.php) — run
+`php artisan route:list` for a live view, since this is the one place that
+can't silently drift from the code.

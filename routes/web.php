@@ -1,27 +1,19 @@
 <?php
 
-use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\AdvertisementController;
 use App\Http\Controllers\Admin\ApplicationController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\DepartmentController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Applicant\DashboardController as ApplicantDashboardController;
+use App\Http\Controllers\Applicant\ExportController;
+use App\Http\Controllers\Applicant\WizardController;
 use App\Http\Controllers\FileAccessController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\RecruitmentController;
-use App\Models\Advertisement;
-use Illuminate\Foundation\Application;
+use App\Http\Controllers\Public\WelcomeController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-        'advertisements' => Advertisement::where('is_active', true)
-            ->latest()
-            ->take(5)
-            ->get(['id', 'reference_number', 'title', 'deadline', 'departments', 'document_path']),
-    ]);
-});
+Route::get('/', [WelcomeController::class, 'show']);
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -35,28 +27,28 @@ Route::middleware('auth')->group(function () {
 
 // Applicant Routes
 Route::middleware(['auth', 'role:applicant'])->group(function () {
-    Route::get('/dashboard', [RecruitmentController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [ApplicantDashboardController::class, 'index'])->name('dashboard');
 
     // --- NEW APPLICANT DASHBOARD ROUTES ---
-    Route::get('/applications', [RecruitmentController::class, 'myApplications'])->name('applicant.applications');
-    Route::get('/applications/{id}', [RecruitmentController::class, 'show'])->name('applicant.applications.show');
-    Route::get('/applications/{id}/export/pdf', [RecruitmentController::class, 'exportPdf'])->name('applicant.applications.export.pdf');
-    Route::get('/applications/{id}/export/excel', [RecruitmentController::class, 'exportExcel'])->name('applicant.applications.export.excel');
+    Route::get('/applications', [ApplicantDashboardController::class, 'myApplications'])->name('applicant.applications');
+    Route::get('/applications/{id}', [ApplicantDashboardController::class, 'show'])->name('applicant.applications.show');
+    Route::get('/applications/{id}/export/pdf', [ExportController::class, 'exportPdf'])->name('applicant.applications.export.pdf');
+    Route::get('/applications/{id}/export/excel', [ExportController::class, 'exportExcel'])->name('applicant.applications.export.excel');
 
     // Application Wizard Routes
-    Route::get('/apply/{advertisement}', [RecruitmentController::class, 'showApplyForm'])->name('applicant.apply');
-    Route::post('/apply/{advertisement}/draft', [RecruitmentController::class, 'saveDraft'])->name('applicant.draft');
-    Route::post('/apply/{advertisement}/submit', [RecruitmentController::class, 'submitApplication'])->name('applicant.store');
+    Route::get('/apply/{advertisement}', [WizardController::class, 'showApplyForm'])->name('applicant.apply');
+    Route::post('/apply/{advertisement}/draft', [WizardController::class, 'saveDraft'])->name('applicant.draft');
+    Route::post('/apply/{advertisement}/submit', [WizardController::class, 'submitApplication'])->name('applicant.store');
 });
 
 // --- ADMIN ONLY ROUTES ---
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/', [AdminDashboardController::class, 'dashboard'])->name('dashboard');
 
     // Settings
-    Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
-    Route::post('/departments', [AdminController::class, 'storeDepartment'])->name('departments.store');
-    Route::delete('/departments/{department}', [AdminController::class, 'destroyDepartment'])->name('departments.destroy');
+    Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings');
+    Route::post('/departments', [DepartmentController::class, 'storeDepartment'])->name('departments.store');
+    Route::delete('/departments/{department}', [DepartmentController::class, 'destroyDepartment'])->name('departments.destroy');
 
     // Applications
     Route::get('/applications', [ApplicationController::class, 'index'])->name('applications.index');
@@ -66,23 +58,23 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/applications/{id}/export/excel', [ApplicationController::class, 'exportExcel'])->name('applications.export.excel');
 
     // Jobs
-    Route::get('/jobs', [RecruitmentController::class, 'adminIndex'])->name('jobs.index');
-    Route::get('/jobs/create', [RecruitmentController::class, 'create'])->name('jobs.create');
-    Route::post('/jobs', [RecruitmentController::class, 'store'])->name('jobs.store');
+    Route::get('/jobs', [AdvertisementController::class, 'index'])->name('jobs.index');
+    Route::get('/jobs/create', [AdvertisementController::class, 'create'])->name('jobs.create');
+    Route::post('/jobs', [AdvertisementController::class, 'store'])->name('jobs.store');
 
     // Users Management
-    Route::get('/users', [AdminController::class, 'users'])->name('users.index');
-    Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
-    Route::patch('/users/{user}/role', [AdminController::class, 'updateRole'])->name('users.update-role');
-    Route::delete('/users/{user}', [AdminController::class, 'destroyUser'])->name('users.destroy');
+    Route::get('/users', [UserController::class, 'users'])->name('users.index');
+    Route::post('/users', [UserController::class, 'storeUser'])->name('users.store');
+    Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.update-role');
+    Route::delete('/users/{user}', [UserController::class, 'destroyUser'])->name('users.destroy');
 });
 
 // --- HOD ONLY ROUTES ---
 Route::middleware(['auth', 'role:hod'])->prefix('hod')->name('hod.')->group(function () {
-    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/', [AdminDashboardController::class, 'dashboard'])->name('dashboard');
 
     // Settings
-    Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
+    Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings');
     // Applications (HODs only see their scoped data)
     Route::get('/applications', [ApplicationController::class, 'index'])->name('applications.index');
     Route::get('/applications/{id}', [ApplicationController::class, 'show'])->name('applications.show');

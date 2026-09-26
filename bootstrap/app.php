@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AttachRequestId;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // (including flash messages and errors) to every single web request.
         $middleware->web(append: [
             HandleInertiaRequests::class,
+            AttachRequestId::class,
         ]);
 
         // 2. Keep your custom role middleware alias intact

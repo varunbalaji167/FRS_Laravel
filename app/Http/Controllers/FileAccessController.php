@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-// TODO(Phase 1): move to app/Http/Controllers/FileAccessController.php final location per docs/architecture.md
 class FileAccessController extends Controller
 {
     /**
