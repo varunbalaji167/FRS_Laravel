@@ -62,9 +62,6 @@ jobs:
       - name: Clear config cache
         run: php artisan config:clear
 
-      - name: Run PHP tests
-        run: php artisan test --parallel
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -76,3 +73,9 @@ jobs:
 
       - name: Build frontend assets
         run: npm run build
+
+      # Must run after the build: a full-page (non-Inertia-partial) response
+      # renders app.blade.php's @vite(...) tags, which throw a 500 if
+      # public/build/manifest.json doesn't exist yet.
+      - name: Run PHP tests
+        run: php artisan test --parallel
