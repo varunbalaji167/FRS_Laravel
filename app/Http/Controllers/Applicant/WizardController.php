@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Applicant;
 
+use App\Exceptions\DomainException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Applicant\SaveDraftRequest;
 use App\Http\Requests\Applicant\SubmitApplicationRequest;
@@ -10,6 +11,7 @@ use App\Mail\ApplicationSubmitted;
 use App\Mail\RefereeNotification;
 use App\Models\Advertisement;
 use App\Models\JobApplication;
+use App\Support\ErrorCode;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -77,8 +79,9 @@ class WizardController extends Controller
                 ->lockForUpdate()
                 ->first();
 
-            // TODO(Phase 3): replace with throw new DomainException(ErrorCode::APP_DRAFT_CONFLICT)
-            abort_if($existing && $existing->status !== 'draft', 409, 'draft conflict');
+            if ($existing && $existing->status !== 'draft') {
+                throw new DomainException(ErrorCode::APP_DRAFT_CONFLICT);
+            }
 
             JobApplication::updateOrCreate(
                 ['user_id' => Auth::id(), 'advertisement_id' => $advertisement->id],
@@ -116,15 +119,13 @@ class WizardController extends Controller
 
         foreach (array_keys($request->file('documents', [])) as $key) {
             if (! in_array($key, self::ALLOWED_DOCUMENT_KEYS, true)) {
-                // TODO(Phase 3): replace with throw new DomainException(ErrorCode::FILE_KEY_NOT_ALLOWED)
-                abort(422, "Unrecognised document upload key: {$key}");
+                throw new DomainException(ErrorCode::FILE_KEY_NOT_ALLOWED, ['key' => $key]);
             }
         }
 
         foreach (array_keys($request->file('best_papers', [])) as $key) {
             if (! in_array($key, self::ALLOWED_BEST_PAPER_KEYS, true)) {
-                // TODO(Phase 3): replace with throw new DomainException(ErrorCode::FILE_KEY_NOT_ALLOWED)
-                abort(422, "Unrecognised document upload key: {$key}");
+                throw new DomainException(ErrorCode::FILE_KEY_NOT_ALLOWED, ['key' => $key]);
             }
         }
 

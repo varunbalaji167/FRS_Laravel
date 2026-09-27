@@ -10,10 +10,18 @@ use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class ApplicationSubmitted extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
+
+    public $tries = 3;
+
+    public $backoff = [30, 120, 300];
+
+    public $timeout = 60;
 
     public JobApplication $application;
 
@@ -23,6 +31,14 @@ class ApplicationSubmitted extends Mailable implements ShouldQueue
     {
         $this->application = $application;
         $this->pdfPath = $pdfPath;
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        Log::error('ApplicationSubmitted mail failed permanently', [
+            'application_id' => $this->application->id,
+            'exception' => $exception->getMessage(),
+        ]);
     }
 
     public function envelope(): Envelope

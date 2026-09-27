@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exceptions\DomainException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Users\StoreUserRequest;
 use App\Http\Requests\Admin\Users\UpdateRoleRequest;
 use App\Mail\AccountAccessNotification;
 use App\Models\Department;
 use App\Models\User;
+use App\Support\ErrorCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -59,7 +61,7 @@ class UserController extends Controller
     {
         // Prevent the admin from accidentally demoting themselves and locking themselves out
         if ($user->id === $request->user()->id && $request->role !== 'admin') {
-            return back()->with('error', 'You cannot demote yourself from the admin role.');
+            throw new DomainException(ErrorCode::ADMIN_SELF_DEMOTE_FORBIDDEN);
         }
 
         // Update the user

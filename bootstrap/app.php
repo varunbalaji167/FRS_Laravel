@@ -6,6 +6,9 @@ use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -31,5 +34,23 @@ return Application::configure(basePath: dirname(__DIR__))
 
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        // Single render pipeline — see docs/errors.md and Handler::render().
+        $exceptions->render(fn (Throwable $e, Request $request) => (new \App\Exceptions\Handler)->render($request, $e));
+
+        // Any unhandled exception that reaches a 500 in production is shown
+        // as an Inertia page (Pages/Error.jsx) instead of Laravel's default
+        // error view, so it renders inside the SPA shell with the
+        // request-id the user can quote to support.
+        $exceptions->respond(function (SymfonyResponse $response, Throwable $e, Request $request) {
+            if (app()->hasDebugModeEnabled() || $response->getStatusCode() !== 500) {
+                return $response;
+            }
+
+            $requestId = $request->attributes->get('request_id');
+
+            return Inertia::render('Error', ['status' => 500, 'requestId' => $requestId])
+                ->toResponse($request)
+                ->setStatusCode(500)
+                ->header('X-Request-Id', $requestId);
+        });
     })->create();

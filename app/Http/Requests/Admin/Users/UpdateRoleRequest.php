@@ -9,8 +9,9 @@ class UpdateRoleRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // ADMIN_SELF_DEMOTE_FORBIDDEN is handled in the controller (soft
-        // flash-message UX) until Phase 3 wires DomainException rendering.
+        // ADMIN_SELF_DEMOTE_FORBIDDEN is thrown from the controller — it
+        // needs the route-bound $user compared against the acting admin,
+        // which isn't available here without a duplicate lookup.
         return true;
     }
 

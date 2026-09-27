@@ -9,10 +9,18 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class RefereeNotification extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
+
+    public $tries = 3;
+
+    public $backoff = [30, 120, 300];
+
+    public $timeout = 60;
 
     public JobApplication $application;
     public string $applicantName;
@@ -23,6 +31,15 @@ class RefereeNotification extends Mailable implements ShouldQueue
         $this->application = $application;
         $this->applicantName = $applicantName;
         $this->referee = $referee;
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        Log::error('RefereeNotification mail failed permanently', [
+            'application_id' => $this->application->id,
+            'referee_email' => $this->referee['email'] ?? null,
+            'exception' => $exception->getMessage(),
+        ]);
     }
 
     public function envelope(): Envelope

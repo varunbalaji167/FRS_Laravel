@@ -71,7 +71,20 @@ class UserValidationTest extends TestCase
             'role' => 'applicant',
         ]);
 
+        $response->assertStatus(403)->assertJson(['code' => 'ADMIN_SELF_DEMOTE_FORBIDDEN']);
+        $this->assertSame('admin', $admin->fresh()->role);
+    }
+
+    public function test_admin_self_demote_is_flashed_back_for_a_real_inertia_visit(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)
+            ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+            ->patch("/admin/users/{$admin->id}/role", ['role' => 'applicant']);
+
         $response->assertRedirect();
+        $response->assertSessionHas('error');
         $this->assertSame('admin', $admin->fresh()->role);
     }
 

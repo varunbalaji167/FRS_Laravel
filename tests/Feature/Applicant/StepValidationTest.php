@@ -17,6 +17,24 @@ class StepValidationTest extends TestCase
             ->postJson("/apply/{$advertisement->id}/step/{$step}/validate", $payload);
     }
 
+    /**
+     * Failures on this endpoint use the Phase 3 error contract
+     * (App\Exceptions\Handler / docs/errors.md), not Laravel's default
+     * { message, errors } shape: { code, message, details: { fields } }.
+     */
+    private function assertStepInvalid($response, array $fields): void
+    {
+        $response->assertStatus(422)->assertJson(['code' => 'APP_STEP_INVALID']);
+
+        foreach ($fields as $field) {
+            $this->assertArrayHasKey(
+                $field,
+                $response->json('details.fields'),
+                "Expected a validation error for [{$field}]."
+            );
+        }
+    }
+
     public function test_step_1_happy_and_failing_path(): void
     {
         $applicant = User::factory()->create();
@@ -25,9 +43,10 @@ class StepValidationTest extends TestCase
         $this->validate($applicant, $advertisement, 1, ['department' => 'Computer Science', 'grade' => 'Assistant Professor'])
             ->assertOk();
 
-        $this->validate($applicant, $advertisement, 1, ['department' => '', 'grade' => ''])
-            ->assertStatus(422)
-            ->assertJsonValidationErrors(['department', 'grade']);
+        $this->assertStepInvalid(
+            $this->validate($applicant, $advertisement, 1, ['department' => '', 'grade' => '']),
+            ['department', 'grade']
+        );
     }
 
     public function test_step_2_happy_and_failing_path(): void
@@ -41,15 +60,16 @@ class StepValidationTest extends TestCase
             'email' => 'ada@example.com', 'phone' => '9876543210',
         ]]])->assertOk();
 
-        $this->validate($applicant, $advertisement, 2, ['form_data' => ['personal_details' => [
-            'first_name' => 'Ada', 'email' => 'not-an-email', 'phone' => '123',
-        ]]])
-            ->assertStatus(422)
-            ->assertJsonValidationErrors([
+        $this->assertStepInvalid(
+            $this->validate($applicant, $advertisement, 2, ['form_data' => ['personal_details' => [
+                'first_name' => 'Ada', 'email' => 'not-an-email', 'phone' => '123',
+            ]]]),
+            [
                 'form_data.personal_details.last_name',
                 'form_data.personal_details.email',
                 'form_data.personal_details.phone',
-            ]);
+            ]
+        );
     }
 
     public function test_step_3_rejects_a_phd_joining_year_outside_the_allowed_range(): void
@@ -61,11 +81,12 @@ class StepValidationTest extends TestCase
             'university' => 'IIT Indore', 'department' => 'CSE', 'date_joining' => '2015-01-01',
         ]]]])->assertOk();
 
-        $this->validate($applicant, $advertisement, 3, ['form_data' => ['education' => ['phd' => [
-            'university' => 'IIT Indore', 'department' => 'CSE', 'date_joining' => '1900-01-01',
-        ]]]])
-            ->assertStatus(422)
-            ->assertJsonValidationErrors(['form_data.education.phd.date_joining']);
+        $this->assertStepInvalid(
+            $this->validate($applicant, $advertisement, 3, ['form_data' => ['education' => ['phd' => [
+                'university' => 'IIT Indore', 'department' => 'CSE', 'date_joining' => '1900-01-01',
+            ]]]]),
+            ['form_data.education.phd.date_joining']
+        );
     }
 
     public function test_step_6_has_no_mandatory_fields(): void
@@ -91,11 +112,12 @@ class StepValidationTest extends TestCase
             'referees' => [$referee, $referee, $referee],
         ]]])->assertOk();
 
-        $this->validate($applicant, $advertisement, 10, ['form_data' => ['referees_section' => [
-            'referees' => [$referee],
-        ]]])
-            ->assertStatus(422)
-            ->assertJsonValidationErrors(['form_data.referees_section.referees']);
+        $this->assertStepInvalid(
+            $this->validate($applicant, $advertisement, 10, ['form_data' => ['referees_section' => [
+                'referees' => [$referee],
+            ]]]),
+            ['form_data.referees_section.referees']
+        );
     }
 
     public function test_unknown_step_number_is_not_found(): void

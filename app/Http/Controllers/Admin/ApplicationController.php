@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exceptions\DomainException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Applications\UpdateStatusRequest;
 use App\Models\Advertisement;
 use App\Models\Department;
 use App\Models\JobApplication;
+use App\Support\ErrorCode;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -28,6 +30,26 @@ class ApplicationController extends Controller
         }
 
         return $query;
+    }
+
+    /**
+     * Fetch a single application by id, still hiding drafts as 404 (an HOD
+     * or admin has no legitimate reason to look one up — see
+     * Feature\Security\HodCannotSeeDraftsTest), but distinguishing an HOD
+     * reaching outside their own department as a scope violation rather
+     * than folding it into the same "not found" as a missing/draft row.
+     */
+    private function findVisibleOrFail(Request $request, $id): JobApplication
+    {
+        $application = JobApplication::with(['user', 'advertisement'])
+            ->whereIn('status', ['submitted', 'shortlisted', 'rejected'])
+            ->findOrFail($id);
+
+        if ($request->user()->role === 'hod' && $application->department !== $request->user()->department) {
+            throw new DomainException(ErrorCode::HOD_DEPT_SCOPE_VIOLATION);
+        }
+
+        return $application;
     }
 
     public function index(Request $request)
@@ -84,7 +106,7 @@ class ApplicationController extends Controller
 
     public function show(Request $request, $id)
     {
-        $application = clone $this->getScopedQuery($request)->findOrFail($id);
+        $application = $this->findVisibleOrFail($request, $id);
 
         // Dynamically choose view folder
         $viewFolder = $request->user()->role === 'admin' ? 'Admin' : 'Hod';
@@ -96,7 +118,7 @@ class ApplicationController extends Controller
 
     public function updateStatus(UpdateStatusRequest $request, $id)
     {
-        $application = clone $this->getScopedQuery($request)->findOrFail($id);
+        $application = $this->findVisibleOrFail($request, $id);
 
         $application->update(['status' => $request->status]);
 
@@ -109,7 +131,7 @@ class ApplicationController extends Controller
      */
     public function exportPdf(Request $request, $id)
     {
-        $application = clone $this->getScopedQuery($request)->findOrFail($id);
+        $application = $this->findVisibleOrFail($request, $id);
 
         $data = $application->form_data ?? [];
         $p = $data['personal_details'] ?? [];
@@ -134,9 +156,7 @@ class ApplicationController extends Controller
      */
     public function exportExcel(Request $request, $id)
     {
-        $application = clone $this->getScopedQuery($request)
-            ->with('advertisement')
-            ->findOrFail($id);
+        $application = $this->findVisibleOrFail($request, $id);
 
         $data = $application->form_data ?? [];
         $p = $data['personal_details'] ?? [];

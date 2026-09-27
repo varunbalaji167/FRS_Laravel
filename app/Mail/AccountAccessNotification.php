@@ -8,10 +8,18 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class AccountAccessNotification extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
+
+    public $tries = 3;
+
+    public $backoff = [30, 120, 300];
+
+    public $timeout = 60;
 
     // Use safe strings instead of the Eloquent Model
     public string $name;
@@ -25,6 +33,15 @@ class AccountAccessNotification extends Mailable implements ShouldQueue
         $this->role = $role;
         $this->department = $department;
         $this->type = $type;
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        Log::error('AccountAccessNotification mail failed permanently', [
+            'name' => $this->name,
+            'type' => $this->type,
+            'exception' => $exception->getMessage(),
+        ]);
     }
 
     public function envelope(): Envelope

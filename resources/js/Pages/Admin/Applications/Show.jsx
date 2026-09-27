@@ -162,10 +162,8 @@ export default function ApplicationShow({ application }) {
             `/admin/applications/${application.id}`,
             { status: newStatus },
             {
-                onFinish: () => {
-                    setSaving(false);
-                    setStatus(newStatus);
-                },
+                onSuccess: () => setStatus(newStatus),
+                onFinish: () => setSaving(false),
             },
         );
     }

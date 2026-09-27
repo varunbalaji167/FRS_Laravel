@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Applicant;
 
+use App\Exceptions\DomainException;
 use App\Http\Requests\Applicant\Rules\StepAdditionalInfoRules;
 use App\Http\Requests\Applicant\Rules\StepAwardsProjectsRules;
 use App\Http\Requests\Applicant\Rules\StepDetailedPubsRules;
@@ -13,6 +14,8 @@ use App\Http\Requests\Applicant\Rules\StepPositionRules;
 use App\Http\Requests\Applicant\Rules\StepRefereesRules;
 use App\Http\Requests\Applicant\Rules\StepResearchRules;
 use App\Http\Requests\Applicant\Rules\StepStatementsRules;
+use App\Support\ErrorCode;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -51,5 +54,15 @@ class ValidateStepRequest extends FormRequest
         }
 
         return self::STEP_RULES[$step]::rules((int) date('Y'));
+    }
+
+    /**
+     * Per C3, this endpoint's contract is { code: APP_STEP_INVALID,
+     * details: { fields } } rather than Laravel's default { message, errors }
+     * — see docs/errors.md.
+     */
+    protected function failedValidation(Validator $validator)
+    {
+        throw new DomainException(ErrorCode::APP_STEP_INVALID, ['fields' => $validator->errors()->messages()]);
     }
 }

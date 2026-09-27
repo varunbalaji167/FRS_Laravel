@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Applicant;
 
+use App\Exceptions\DomainException;
 use App\Http\Requests\Applicant\Rules\StepAdditionalInfoRules;
 use App\Http\Requests\Applicant\Rules\StepAwardsProjectsRules;
 use App\Http\Requests\Applicant\Rules\StepDetailedPubsRules;
@@ -13,6 +14,7 @@ use App\Http\Requests\Applicant\Rules\StepPositionRules;
 use App\Http\Requests\Applicant\Rules\StepRefereesRules;
 use App\Http\Requests\Applicant\Rules\StepResearchRules;
 use App\Http\Requests\Applicant\Rules\StepStatementsRules;
+use App\Support\ErrorCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
 
@@ -42,13 +44,11 @@ class SubmitApplicationRequest extends FormRequest
         $advertisement = $this->route('advertisement');
 
         if (! $advertisement->is_active) {
-            // TODO(Phase 3): replace with throw new DomainException(ErrorCode::APP_AD_INACTIVE)
-            abort(422, 'This advertisement is no longer accepting applications.');
+            throw new DomainException(ErrorCode::APP_AD_INACTIVE);
         }
 
         if ($advertisement->deadline && Carbon::parse($advertisement->deadline)->isPast()) {
-            // TODO(Phase 3): replace with throw new DomainException(ErrorCode::APP_AD_DEADLINE_PASSED)
-            abort(422, 'The deadline for this advertisement has passed.');
+            throw new DomainException(ErrorCode::APP_AD_DEADLINE_PASSED);
         }
 
         // Re-submit is intentionally allowed (a network retry or a user
