@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Applicant;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -44,23 +45,21 @@ class SaveDraftRequest extends FormRequest
                 },
             ],
             'form_data.current_step' => ['nullable', 'integer', 'min:1', 'max:11'],
-            'form_data.personal_details.profile_image' => [
-                'nullable',
-                function (string $attribute, mixed $value, \Closure $fail) {
-                    if ($value === null || is_string($value)) {
-                        return;
-                    }
-                    $probe = validator(
-                        [$attribute => $value],
-                        [$attribute => ['image', 'mimes:jpeg,png,jpg', 'max:2048']]
-                    );
-                    if ($probe->fails()) {
-                        foreach ($probe->errors()->get($attribute) as $message) {
-                            $fail($message);
-                        }
-                    }
-                },
-            ],
+            // File rules are attached in withValidator() so the failed-rule
+            // tags (image/mimes/max) survive for Handler::isPurelyMimeFailure.
+            'form_data.personal_details.profile_image' => ['nullable'],
         ];
+    }
+
+    // Accepts a fresh upload OR the string path of an already-stored image
+    // (copy-from-profile, or a redrawn draft). File rules apply only to the
+    // upload branch; the path is already validated on original upload.
+    public function withValidator(Validator $validator): void
+    {
+        $validator->sometimes(
+            'form_data.personal_details.profile_image',
+            ['image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            fn ($input) => ! is_string(data_get($input, 'form_data.personal_details.profile_image'))
+        );
     }
 }

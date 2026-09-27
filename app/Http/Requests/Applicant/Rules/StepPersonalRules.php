@@ -24,11 +24,11 @@ class StepPersonalRules
                         return;
                     }
                     $probe = validator(
-                        [$attribute => $value],
-                        [$attribute => ['image', 'mimes:jpeg,png,jpg', 'max:2048']]
+                        ['file' => $value],
+                        ['file' => ['image', 'mimes:jpeg,png,jpg', 'max:2048']]
                     );
                     if ($probe->fails()) {
-                        foreach ($probe->errors()->get($attribute) as $message) {
+                        foreach ($probe->errors()->get('file') as $message) {
                             $fail($message);
                         }
                     }
