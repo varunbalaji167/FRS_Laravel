@@ -25,7 +25,7 @@ const CONFERENCE_FIELDS = [
     { key: "doi", label: "DOI (If any)" },
 ];
 
-export default function Step9DetailedPubs({ data, setData, localErrors = {} }) {
+export default function Step9DetailedPubs({ data, setData }) {
     // Grouping under 'detailed_pubs'
     const pubs = data.form_data.detailed_pubs || {};
     const journals = pubs.journals || [];
@@ -61,7 +61,9 @@ export default function Step9DetailedPubs({ data, setData, localErrors = {} }) {
             key={idx}
             className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 pl-12 bg-white border border-slate-200 rounded-lg relative mt-2 shadow-sm"
         >
-            <div className={`absolute top-4 left-4 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${badgeClass}`}>
+            <div
+                className={`absolute top-4 left-4 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${badgeClass}`}
+            >
                 {idx + 1}
             </div>
             <Button
@@ -100,21 +102,16 @@ export default function Step9DetailedPubs({ data, setData, localErrors = {} }) {
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
             <div>
-                <h3 className="text-2xl font-bold text-slate-900">
-                    8. Detailed Publications
-                </h3>
+                <h3 className="text-2xl font-bold text-slate-900">8. Detailed Publications</h3>
                 <p className="text-sm text-slate-500 mt-1">
-                    Provide an exhaustive list of all your journal and
-                    conference publications.
+                    Provide an exhaustive list of all your journal and conference publications.
                 </p>
             </div>
 
             {/* 18. Detailed List of Journal Publications */}
             <div className="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-100">
                 <div className="flex justify-between items-center border-b border-slate-200 pb-2">
-                    <h4 className="font-bold text-lg text-slate-800">
-                        (A) Detailed List of Journal Publications
-                    </h4>
+                    <h4 className="font-bold text-lg text-slate-800">(A) Detailed List of Journal Publications</h4>
                     <Button
                         type="button"
                         size="sm"
@@ -134,8 +131,7 @@ export default function Step9DetailedPubs({ data, setData, localErrors = {} }) {
                             })
                         }
                     >
-                        <PlusCircle className="mr-2 h-4 w-4" /> Add Journal
-                        Paper
+                        <PlusCircle className="mr-2 h-4 w-4" /> Add Journal Paper
                     </Button>
                 </div>
 
@@ -147,9 +143,7 @@ export default function Step9DetailedPubs({ data, setData, localErrors = {} }) {
             {/* 19. Detailed List of Conference Publications */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
-                    <h4 className="font-bold text-lg text-slate-800">
-                        (B) Detailed List of Conference Publications
-                    </h4>
+                    <h4 className="font-bold text-lg text-slate-800">(B) Detailed List of Conference Publications</h4>
                     <Button
                         type="button"
                         size="sm"
@@ -165,8 +159,7 @@ export default function Step9DetailedPubs({ data, setData, localErrors = {} }) {
                             })
                         }
                     >
-                        <PlusCircle className="mr-2 h-4 w-4" /> Add Conference
-                        Paper
+                        <PlusCircle className="mr-2 h-4 w-4" /> Add Conference Paper
                     </Button>
                 </div>
 

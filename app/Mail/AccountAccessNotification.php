@@ -23,8 +23,11 @@ class AccountAccessNotification extends Mailable implements ShouldQueue
 
     // Use safe strings instead of the Eloquent Model
     public string $name;
+
     public string $role;
+
     public ?string $department;
+
     public string $type;
 
     public function __construct(string $name, string $role, ?string $department, string $type)
@@ -47,10 +50,10 @@ class AccountAccessNotification extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         // Add the 'deleted' subject line
-        $subject = match($this->type) {
+        $subject = match ($this->type) {
             'created' => 'Welcome to the IIT Indore Recruitment Portal',
             'deleted' => 'Notice: Your Portal Access has been Revoked',
-            default   => 'Security Alert: Your Access Level has changed',
+            default => 'Security Alert: Your Access Level has changed',
         };
 
         return new Envelope(subject: $subject);

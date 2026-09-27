@@ -34,20 +34,14 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
 
     const handlePresentChange = (field, value) => {
         // Strict block for manual future dates
-        if (
-            (field === "date_joining" || field === "date_leaving") &&
-            value > todayStr
-        ) {
+        if ((field === "date_joining" || field === "date_leaving") && value > todayStr) {
             return;
         }
 
         const updatedPresent = { ...present, [field]: value };
 
         if (field === "date_joining" || field === "date_leaving") {
-            updatedPresent.duration = calculateDuration(
-                updatedPresent.date_joining,
-                updatedPresent.date_leaving,
-            );
+            updatedPresent.duration = calculateDuration(updatedPresent.date_joining, updatedPresent.date_leaving);
         }
 
         updateEmpSection("present", updatedPresent);
@@ -55,10 +49,7 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
 
     const handleArrayChange = (section, index, field, value) => {
         // Strict block for manual future dates
-        if (
-            (field === "date_joining" || field === "date_leaving") &&
-            value > todayStr
-        ) {
+        if ((field === "date_joining" || field === "date_leaving") && value > todayStr) {
             return;
         }
 
@@ -66,18 +57,14 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
         const updatedItem = { ...arr[index], [field]: value };
 
         if (field === "date_joining" || field === "date_leaving") {
-            updatedItem.duration = calculateDuration(
-                updatedItem.date_joining,
-                updatedItem.date_leaving,
-            );
+            updatedItem.duration = calculateDuration(updatedItem.date_joining, updatedItem.date_leaving);
         }
 
         arr[index] = updatedItem;
         updateEmpSection(section, arr);
     };
 
-    const addArrayItem = (section, template) =>
-        updateEmpSection(section, [...(emp[section] || []), template]);
+    const addArrayItem = (section, template) => updateEmpSection(section, [...(emp[section] || []), template]);
 
     const removeArrayItem = (section, index) => {
         const arr = [...(emp[section] || [])];
@@ -100,20 +87,15 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
             <div>
-                <h3 className="text-2xl font-bold text-slate-900">
-                    3. Employment Details
-                </h3>
+                <h3 className="text-2xl font-bold text-slate-900">3. Employment Details</h3>
                 <p className="text-sm text-slate-500 mt-1">
-                    Provide your employment history, separating teaching,
-                    research, and industry experience.
+                    Provide your employment history, separating teaching, research, and industry experience.
                 </p>
             </div>
 
             {/* (A) Present Employment */}
             <div className="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-100">
-                <h4 className="font-bold text-lg text-slate-800">
-                    (A) Present Employment
-                </h4>
+                <h4 className="font-bold text-lg text-slate-800">(A) Present Employment</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                     <TextField
                         id="present-position"
@@ -156,9 +138,7 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
 
             {/* Experience Eligibility */}
             <div className="space-y-4 bg-blue-50 p-5 rounded-xl border border-blue-100">
-                <h4 className="font-bold text-lg text-blue-900">
-                    Experience Eligibility
-                </h4>
+                <h4 className="font-bold text-lg text-blue-900">Experience Eligibility</h4>
                 <div className="max-w-xs">
                     <SelectField
                         id="has_three_years_exp"
@@ -176,9 +156,7 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
             {/* (B) Employment History */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
-                    <h4 className="font-bold text-lg text-slate-800">
-                        (B) Employment History
-                    </h4>
+                    <h4 className="font-bold text-lg text-slate-800">(B) Employment History</h4>
                     <Button
                         type="button"
                         size="sm"
@@ -246,9 +224,7 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
             {/* (C) Teaching Experience */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
-                    <h4 className="font-bold text-lg text-slate-800">
-                        (C) Teaching Experience
-                    </h4>
+                    <h4 className="font-bold text-lg text-slate-800">(C) Teaching Experience</h4>
                     <Button
                         type="button"
                         size="sm"
@@ -338,9 +314,7 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
             {/* (D) Research Experience */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
-                    <h4 className="font-bold text-lg text-slate-800">
-                        (D) Research Experience
-                    </h4>
+                    <h4 className="font-bold text-lg text-slate-800">(D) Research Experience</h4>
                     <Button
                         type="button"
                         size="sm"
@@ -415,9 +389,7 @@ export default function Step4Employment({ data, setData, localErrors = {} }) {
             {/* (E) Industrial Experience */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
-                    <h4 className="font-bold text-lg text-slate-800">
-                        (E) Industrial Experience
-                    </h4>
+                    <h4 className="font-bold text-lg text-slate-800">(E) Industrial Experience</h4>
                     <Button
                         type="button"
                         size="sm"

@@ -14,13 +14,15 @@ return new class extends Migration
             Schema::table('job_applications', function (Blueprint $table) {
                 $table->dropForeign(['job_opening_id']);
             });
-        } catch (\Exception $e) { /* fresh installs never had this FK */ }
+        } catch (Exception $e) { /* fresh installs never had this FK */
+        }
 
         try {
             Schema::table('job_applications', function (Blueprint $table) {
                 $table->dropUnique(['user_id', 'job_opening_id']);
             });
-        } catch (\Exception $e) { /* fresh installs never had this index */ }
+        } catch (Exception $e) { /* fresh installs never had this index */
+        }
 
         Schema::table('job_applications', function (Blueprint $table) {
             $table->dropColumn('job_opening_id');

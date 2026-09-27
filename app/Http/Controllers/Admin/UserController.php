@@ -10,6 +10,7 @@ use App\Mail\AccountAccessNotification;
 use App\Models\Department;
 use App\Models\User;
 use App\Services\Auditing\AdminActionRecorder;
+use App\Services\Reporting\DashboardAggregator;
 use App\Support\ErrorCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -33,21 +34,24 @@ class UserController extends Controller
 
         return Inertia::render('Admin/Users/Index', [
             'users' => $users,
-            'departments' => Department::orderBy('name')->get(),
+            'departments' => Department::allCached(),
         ]);
     }
 
     /**
      * Pre-provision a new Admin or HOD manually
      */
-    public function storeUser(StoreUserRequest $request, AdminActionRecorder $adminActions)
+    public function storeUser(StoreUserRequest $request, AdminActionRecorder $adminActions, DashboardAggregator $dashboard)
     {
+        $isHod = $request->role === 'hod';
+
         // 1. CAPTURE the created user into the $user variable
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
-            'department' => $request->role === 'hod' ? $request->department : null,
+            'department' => $isHod ? $request->department : null,
+            'department_id' => $isHod ? Department::idForName($request->department) : null,
             'password' => Hash::make(Str::random(32)),
         ]);
 
@@ -58,13 +62,15 @@ class UserController extends Controller
 
         $adminActions->record($request, 'user.created', $user, null, $user->only(['id', 'name', 'email', 'role', 'department']));
 
+        $dashboard->forget(null);
+
         return back()->with('success', "New {$request->role} created successfully. Notification email sent.");
     }
 
     /**
      * Update an existing user's role/department
      */
-    public function updateRole(UpdateRoleRequest $request, User $user, AdminActionRecorder $adminActions)
+    public function updateRole(UpdateRoleRequest $request, User $user, AdminActionRecorder $adminActions, DashboardAggregator $dashboard)
     {
         // Prevent the admin from accidentally demoting themselves and locking themselves out
         if ($user->id === $request->user()->id && $request->role !== 'admin') {
@@ -80,11 +86,13 @@ class UserController extends Controller
         }
 
         $before = $user->only(['role', 'department']);
+        $isHod = $request->role === 'hod';
 
         // Update the user
         $user->update([
             'role' => $request->role,
-            'department' => $request->role === 'hod' ? $request->department : null,
+            'department' => $isHod ? $request->department : null,
+            'department_id' => $isHod ? Department::idForName($request->department) : null,
         ]);
 
         // Send Update Email (The $user variable is automatically provided by Laravel's route injection)
@@ -92,13 +100,16 @@ class UserController extends Controller
 
         $adminActions->record($request, 'user.role_updated', $user, $before, $user->only(['role', 'department']));
 
+        $dashboard->forget($before['department']);
+        $dashboard->forget($user->department);
+
         return back()->with('success', 'Role updated to '.strtoupper($request->role)." for {$user->name}. Notification email sent.");
     }
 
     /**
      * Delete a user from the system
      */
-    public function destroyUser(Request $request, User $user, AdminActionRecorder $adminActions)
+    public function destroyUser(Request $request, User $user, AdminActionRecorder $adminActions, DashboardAggregator $dashboard)
     {
         // Prevent self-deletion — same failure mode as the self-demote
         // guard in updateRole, so it reuses the same ErrorCode.
@@ -121,6 +132,8 @@ class UserController extends Controller
         $adminActions->record($request, 'user.deleted', $user, $before, null);
 
         $user->delete();
+
+        $dashboard->forget($before['department']);
 
         return back()->with('success', 'User permanently deleted.');
     }

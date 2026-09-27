@@ -4,33 +4,28 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import TableRowSkeleton from "@/Components/skeletons/TableRowSkeleton";
 
 const statusColors = {
-    submitted:  "bg-blue-100 text-blue-700 border-blue-200",
-    shortlisted:"bg-green-100 text-green-700 border-green-200",
-    rejected:   "bg-red-100 text-red-600 border-red-200",
-    inreview:   "bg-gray-100 text-gray-500 border-gray-200",
+    submitted: "bg-blue-100 text-blue-700 border-blue-200",
+    shortlisted: "bg-green-100 text-green-700 border-green-200",
+    rejected: "bg-red-100 text-red-600 border-red-200",
+    inreview: "bg-gray-100 text-gray-500 border-gray-200",
 };
 
-export default function ApplicationsIndex({
-    applications,
-    advertisements,
-    departments,
-    filters,
-}) {
-    const [advFilter,    setAdvFilter]    = useState(filters.advertisement_id || "");
-    const [deptFilter,   setDeptFilter]   = useState(filters.department || "");
+export default function ApplicationsIndex({ applications, advertisements, departments, filters }) {
+    const [advFilter, setAdvFilter] = useState(filters.advertisement_id || "");
+    const [deptFilter, setDeptFilter] = useState(filters.department || "");
     const [statusFilter, setStatusFilter] = useState(filters.status || "");
 
     // Infinite-scroll state
     // allItems accumulates every row fetched across all pages.
     const [allItems, setAllItems] = useState(applications.data);
-    const [loading,  setLoading]  = useState(false);
+    const [loading, setLoading] = useState(false);
 
     // Whether there is a next page to fetch
-    const hasNextPage  = applications.next_page_url !== null;
+    const hasNextPage = applications.next_page_url !== null;
     // We store the next page number in a ref so the IntersectionObserver
     // callback always reads the latest value without needing to be re-created.
-    const nextPageRef  = useRef(applications.current_page + 1);
-    const sentinelRef  = useRef(null);   // invisible div at list bottom
+    const nextPageRef = useRef(applications.current_page + 1);
+    const sentinelRef = useRef(null); // invisible div at list bottom
 
     // Sync incoming Inertia prop → local accumulated list
     // Fires whenever Inertia delivers new `applications` data (filter change OR
@@ -42,7 +37,7 @@ export default function ApplicationsIndex({
             setAllItems(applications.data);
         } else {
             setAllItems((prev) => {
-                const seen  = new Set(prev.map((a) => a.id));
+                const seen = new Set(prev.map((a) => a.id));
                 const fresh = applications.data.filter((a) => !seen.has(a.id));
                 return [...prev, ...fresh];
             });
@@ -62,14 +57,14 @@ export default function ApplicationsIndex({
             "/admin/applications",
             {
                 advertisement_id: advFilter,
-                department:       deptFilter,
-                status:           statusFilter,
-                page:             nextPageRef.current,
+                department: deptFilter,
+                status: statusFilter,
+                page: nextPageRef.current,
             },
             {
-                preserveState:  true,
+                preserveState: true,
                 preserveScroll: true,
-                only:           ["applications"],
+                only: ["applications"],
             },
         );
     }, [loading, hasNextPage, advFilter, deptFilter, statusFilter]);
@@ -80,8 +75,10 @@ export default function ApplicationsIndex({
         if (!sentinel) return;
 
         const observer = new IntersectionObserver(
-            ([entry]) => { if (entry.isIntersecting) loadNextPage(); },
-            { rootMargin: "200px" },   // start loading 200 px before sentinel enters view
+            ([entry]) => {
+                if (entry.isIntersecting) loadNextPage();
+            },
+            { rootMargin: "200px" }, // start loading 200 px before sentinel enters view
         );
 
         observer.observe(sentinel);
@@ -98,9 +95,9 @@ export default function ApplicationsIndex({
             "/admin/applications",
             {
                 advertisement_id: advFilter,
-                department:       deptFilter,
-                status:           statusFilter,
-                page:             1,
+                department: deptFilter,
+                status: statusFilter,
+                page: 1,
             },
             { preserveState: true, preserveScroll: false, only: ["applications"] },
         );
@@ -199,25 +196,15 @@ export default function ApplicationsIndex({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                            {loading && allItems.length === 0 &&
-                                Array.from({ length: 5 }).map((_, i) => (
-                                    <TableRowSkeleton key={`skeleton-${i}`} />
-                                ))}
+                            {loading &&
+                                allItems.length === 0 &&
+                                Array.from({ length: 5 }).map((_, i) => <TableRowSkeleton key={`skeleton-${i}`} />)}
                             {allItems.map((app, i) => (
-                                <tr
-                                    key={app.id}
-                                    className="hover:bg-slate-50 transition-colors"
-                                >
-                                    <td className="px-5 py-4 text-slate-400 font-medium">
-                                        {i + 1}
-                                    </td>
+                                <tr key={app.id} className="hover:bg-slate-50 transition-colors">
+                                    <td className="px-5 py-4 text-slate-400 font-medium">{i + 1}</td>
                                     <td className="px-5 py-4">
-                                        <p className="font-bold text-slate-900 leading-tight">
-                                            {app.user?.name}
-                                        </p>
-                                        <p className="text-slate-500 text-xs mt-0.5">
-                                            {app.user?.email}
-                                        </p>
+                                        <p className="font-bold text-slate-900 leading-tight">{app.user?.name}</p>
+                                        <p className="text-slate-500 text-xs mt-0.5">{app.user?.email}</p>
                                     </td>
                                     <td className="px-5 py-4">
                                         <p
@@ -230,12 +217,8 @@ export default function ApplicationsIndex({
                                             Ref: {app.advertisement?.reference_number}
                                         </p>
                                     </td>
-                                    <td className="px-5 py-4 text-slate-600 font-medium">
-                                        {app.department}
-                                    </td>
-                                    <td className="px-5 py-4 text-slate-600 font-medium italic">
-                                        {app.grade}
-                                    </td>
+                                    <td className="px-5 py-4 text-slate-600 font-medium">{app.department}</td>
+                                    <td className="px-5 py-4 text-slate-600 font-medium italic">{app.grade}</td>
                                     <td className="px-5 py-4">
                                         <span
                                             className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${statusColors[app.status]}`}
@@ -292,17 +275,8 @@ function LoadingRow() {
                 fill="none"
                 viewBox="0 0 24 24"
             >
-                <circle
-                    className="opacity-25"
-                    cx="12" cy="12" r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                />
-                <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                />
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
             Loading more applications…
         </div>

@@ -18,7 +18,7 @@ export default function SignaturePadField({ id, label, onChange, error, required
     const padRef = useRef(null);
 
     const commit = () => {
-        if (! padRef.current || padRef.current.isEmpty()) {
+        if (!padRef.current || padRef.current.isEmpty()) {
             onChange(null);
             return;
         }
@@ -44,7 +44,7 @@ export default function SignaturePadField({ id, label, onChange, error, required
             </div>
             <div className="flex items-center justify-between text-xs text-gray-500">
                 <span>{hasValue ? "Signature captured." : "Draw your signature above."}</span>
-                {! disabled && (
+                {!disabled && (
                     <button type="button" onClick={clear} className="text-primary underline">
                         Clear
                     </button>

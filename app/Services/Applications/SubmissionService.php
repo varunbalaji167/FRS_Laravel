@@ -6,8 +6,10 @@ use App\Exceptions\DomainException;
 use App\Http\Requests\Applicant\SubmitApplicationRequest;
 use App\Jobs\GenerateApplicationPdfJob;
 use App\Models\Advertisement;
+use App\Models\Department;
 use App\Models\JobApplication;
 use App\Services\Referees\RefereeNotificationDispatcher;
+use App\Services\Reporting\DashboardAggregator;
 use App\Support\ErrorCode;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -29,6 +31,7 @@ class SubmissionService
 
     public function __construct(
         private readonly RefereeNotificationDispatcher $refereeNotifications,
+        private readonly DashboardAggregator $dashboard,
     ) {
         //
     }
@@ -41,13 +44,18 @@ class SubmissionService
 
         $documentPaths = $formData['uploaded_documents'] ?? [];
 
-        foreach (array_keys($request->file('documents', [])) as $key) {
+        // allFiles() is typed array<string, ...> (see InteractsWithInput);
+        // $request->file('documents', []) resolves to the same data but its
+        // `mixed` return type loses the string keys under static analysis.
+        $allFiles = $request->allFiles();
+
+        foreach (array_keys($allFiles['documents'] ?? []) as $key) {
             if (! in_array($key, self::ALLOWED_DOCUMENT_KEYS, true)) {
                 throw new DomainException(ErrorCode::FILE_KEY_NOT_ALLOWED, ['key' => $key]);
             }
         }
 
-        foreach (array_keys($request->file('best_papers', [])) as $key) {
+        foreach (array_keys($allFiles['best_papers'] ?? []) as $key) {
             if (! in_array($key, self::ALLOWED_BEST_PAPER_KEYS, true)) {
                 throw new DomainException(ErrorCode::FILE_KEY_NOT_ALLOWED, ['key' => $key]);
             }
@@ -96,12 +104,15 @@ class SubmissionService
                 ['user_id' => $user->id, 'advertisement_id' => $advertisement->id],
                 [
                     'department' => $validated['department'],
+                    'department_id' => Department::idForName($validated['department']),
                     'grade' => $validated['grade'],
                     'form_data' => $formData,
                     'status' => 'submitted',
                 ]
             );
         });
+
+        $this->dashboard->forget($validated['department']);
 
         Log::info('Application submitted', [
             'application_id' => $application->id,

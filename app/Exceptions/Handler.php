@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
@@ -37,7 +38,7 @@ use Throwable;
  */
 class Handler
 {
-    public function render(Request $request, Throwable $e): JsonResponse|RedirectResponse|Response|null
+    public function render(Request $request, Throwable $e): JsonResponse|RedirectResponse|Response|SymfonyResponse|null
     {
         if ($e instanceof DomainException) {
             return $this->renderDomainException($e, $request);
@@ -96,7 +97,7 @@ class Handler
         return null;
     }
 
-    private function renderDomainException(DomainException $e, Request $request): JsonResponse|RedirectResponse|Response
+    private function renderDomainException(DomainException $e, Request $request): JsonResponse|RedirectResponse|Response|SymfonyResponse
     {
         // Inertia visit → flash the message so ToastListener can surface it
         // and the previous page re-renders in place.
@@ -114,15 +115,18 @@ class Handler
             $status = $e->errorCode->httpStatus();
             $requestId = $request->attributes->get('request_id');
 
-            return Inertia::render('Error', [
+            $response = Inertia::render('Error', [
                 'status' => $status,
                 'code' => $e->errorCode->value,
                 'message' => $e->getMessage(),
                 'requestId' => $requestId,
             ])
                 ->toResponse($request)
-                ->setStatusCode($status)
-                ->header('X-Request-Id', $requestId);
+                ->setStatusCode($status);
+
+            $response->headers->set('X-Request-Id', $requestId);
+
+            return $response;
         }
 
         // Everything else → the stable error contract from docs/errors.md.

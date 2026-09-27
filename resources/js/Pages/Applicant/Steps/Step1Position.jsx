@@ -2,9 +2,7 @@ import SelectField from "@/Components/inputs/SelectField";
 
 export default function Step1Position({ data, setData, localErrors = {}, advertisement }) {
     const availableDepartments = Object.keys(advertisement.departments || {});
-    const availableGrades = data.department
-        ? (advertisement.departments[data.department] || [])
-        : [];
+    const availableGrades = data.department ? advertisement.departments[data.department] || [] : [];
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
@@ -25,7 +23,7 @@ export default function Step1Position({ data, setData, localErrors = {}, adverti
                         setData({
                             ...data,
                             department: value,
-                            grade: "",          // reset grade whenever department changes
+                            grade: "", // reset grade whenever department changes
                         })
                     }
                     options={availableDepartments}

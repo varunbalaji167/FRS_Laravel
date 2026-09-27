@@ -9,11 +9,7 @@ const statusColors = {
     rejected: "bg-red-100 text-red-600 border-red-200",
 };
 
-export default function HodApplicationsIndex({
-    applications,
-    advertisements,
-    filters,
-}) {
+export default function HodApplicationsIndex({ applications, advertisements, filters }) {
     const [advFilter, setAdvFilter] = useState(filters.advertisement_id || "");
     const [statusFilter, setStatusFilter] = useState(filters.status || "");
 
@@ -118,12 +114,8 @@ export default function HodApplicationsIndex({
 
             <div className="p-6 space-y-6 max-w-7xl mx-auto">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">
-                        Review Applications
-                    </h1>
-                    <p className="text-sm text-slate-500 mt-1">
-                        Review and shortlist candidates for your department.
-                    </p>
+                    <h1 className="text-2xl font-bold text-gray-800">Review Applications</h1>
+                    <p className="text-sm text-slate-500 mt-1">Review and shortlist candidates for your department.</p>
                 </div>
 
                 {/* ── Filters ── */}
@@ -150,9 +142,7 @@ export default function HodApplicationsIndex({
                             onChange={(e) => setStatusFilter(e.target.value)}
                         >
                             <option value="">All Statuses</option>
-                            <option value="submitted">
-                                Awaiting Review (Submitted)
-                            </option>
+                            <option value="submitted">Awaiting Review (Submitted)</option>
                             <option value="shortlisted">Shortlisted</option>
                             <option value="rejected">Rejected</option>
                         </select>
@@ -179,56 +169,32 @@ export default function HodApplicationsIndex({
                         <table className="w-full text-sm">
                             <thead className="bg-slate-50 text-slate-600 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200">
                                 <tr>
-                                    <th className="px-5 py-4 text-left">
-                                        Applicant Info
-                                    </th>
-                                    <th className="px-5 py-4 text-left hidden md:table-cell">
-                                        Advertisement
-                                    </th>
-                                    <th className="px-5 py-4 text-left">
-                                        Grade / Post
-                                    </th>
-                                    <th className="px-5 py-4 text-left">
-                                        Status
-                                    </th>
-                                    <th className="px-5 py-4 text-right">
-                                        Actions
-                                    </th>
+                                    <th className="px-5 py-4 text-left">Applicant Info</th>
+                                    <th className="px-5 py-4 text-left hidden md:table-cell">Advertisement</th>
+                                    <th className="px-5 py-4 text-left">Grade / Post</th>
+                                    <th className="px-5 py-4 text-left">Status</th>
+                                    <th className="px-5 py-4 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {loading && allItems.length === 0 &&
-                                    Array.from({ length: 5 }).map((_, i) => (
-                                        <TableRowSkeleton key={`skeleton-${i}`} />
-                                    ))}
+                                {loading &&
+                                    allItems.length === 0 &&
+                                    Array.from({ length: 5 }).map((_, i) => <TableRowSkeleton key={`skeleton-${i}`} />)}
                                 {allItems.map((app) => (
-                                    <tr
-                                        key={app.id}
-                                        className="hover:bg-slate-50/80 transition-colors"
-                                    >
+                                    <tr key={app.id} className="hover:bg-slate-50/80 transition-colors">
                                         <td className="px-5 py-4">
-                                            <p className="font-bold text-slate-900">
-                                                {app.user?.name}
-                                            </p>
-                                            <p className="text-slate-500 text-xs mt-0.5">
-                                                {app.user?.email}
-                                            </p>
+                                            <p className="font-bold text-slate-900">{app.user?.name}</p>
+                                            <p className="text-slate-500 text-xs mt-0.5">{app.user?.email}</p>
                                         </td>
                                         <td className="px-5 py-4 hidden md:table-cell">
                                             <p className="text-slate-800 font-medium truncate max-w-xs">
                                                 {app.advertisement?.title}
                                             </p>
                                             <p className="text-slate-400 text-xs mt-0.5">
-                                                Ref:{" "}
-                                                {
-                                                    app.advertisement
-                                                        ?.reference_number
-                                                }
+                                                Ref: {app.advertisement?.reference_number}
                                             </p>
                                         </td>
-                                        <td className="px-5 py-4 text-slate-700 font-medium">
-                                            {app.grade}
-                                        </td>
+                                        <td className="px-5 py-4 text-slate-700 font-medium">{app.grade}</td>
                                         <td className="px-5 py-4">
                                             <span
                                                 className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${statusColors[app.status]}`}
@@ -249,13 +215,9 @@ export default function HodApplicationsIndex({
 
                                 {allItems.length === 0 && !loading && (
                                     <tr>
-                                        <td
-                                            colSpan={5}
-                                            className="px-6 py-12 text-center"
-                                        >
+                                        <td colSpan={5} className="px-6 py-12 text-center">
                                             <p className="text-slate-400 font-medium">
-                                                No applications found matching
-                                                your criteria.
+                                                No applications found matching your criteria.
                                             </p>
                                         </td>
                                     </tr>
@@ -289,19 +251,8 @@ function LoadingRow() {
                 fill="none"
                 viewBox="0 0 24 24"
             >
-                <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                />
-                <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                />
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
             Loading more applications…
         </div>

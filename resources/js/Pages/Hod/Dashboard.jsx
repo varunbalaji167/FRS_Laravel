@@ -23,15 +23,7 @@ const STATUS_COLORS = {
     draft: "#94a3b8",
 };
 
-const PIE_COLORS = [
-    "#6366f1",
-    "#22c55e",
-    "#ef4444",
-    "#f59e0b",
-    "#3b82f6",
-    "#ec4899",
-    "#14b8a6",
-];
+const PIE_COLORS = ["#6366f1", "#22c55e", "#ef4444", "#f59e0b", "#3b82f6", "#ec4899", "#14b8a6"];
 
 const statusBadge = {
     submitted: "bg-blue-100 text-blue-700",
@@ -40,12 +32,7 @@ const statusBadge = {
     draft: "bg-gray-100 text-gray-500",
 };
 
-export default function HodDashboard({
-    stats,
-    byAdvertisement,
-    overTime,
-    recentApplications,
-}) {
+export default function HodDashboard({ stats, byAdvertisement, overTime, recentApplications }) {
     const statusPieData = [
         {
             name: "Submitted",
@@ -65,9 +52,7 @@ export default function HodDashboard({
     ].filter((d) => d.value > 0);
 
     const advBarData = byAdvertisement.map((d) => ({
-        name: d.advertisement
-            ? d.advertisement.reference_number
-            : d.advertisement_id,
+        name: d.advertisement ? d.advertisement.reference_number : d.advertisement_id,
         title: d.advertisement?.title || "",
         count: d.count,
     }));
@@ -86,45 +71,23 @@ export default function HodDashboard({
 
             <div className="p-6 space-y-8 max-w-7xl mx-auto">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">
-                        Department Overview
-                    </h1>
-                    <p className="text-gray-500 text-sm mt-1">
-                        Track application statuses for your discipline.
-                    </p>
+                    <h1 className="text-2xl font-bold text-gray-800">Department Overview</h1>
+                    <p className="text-gray-500 text-sm mt-1">Track application statuses for your discipline.</p>
                 </div>
 
                 {/* Stat Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <StatCard
-                        label="Total Applications"
-                        value={stats.totalApplications}
-                        color="bg-indigo-500"
-                    />
-                    <StatCard
-                        label="Awaiting Review"
-                        value={stats.submitted}
-                        color="bg-blue-500"
-                    />
-                    <StatCard
-                        label="Shortlisted"
-                        value={stats.shortlisted}
-                        color="bg-green-500"
-                    />
-                    <StatCard
-                        label="Rejected"
-                        value={stats.rejected}
-                        color="bg-red-500"
-                    />
+                    <StatCard label="Total Applications" value={stats.totalApplications} color="bg-indigo-500" />
+                    <StatCard label="Awaiting Review" value={stats.submitted} color="bg-blue-500" />
+                    <StatCard label="Shortlisted" value={stats.shortlisted} color="bg-green-500" />
+                    <StatCard label="Rejected" value={stats.rejected} color="bg-red-500" />
                 </div>
 
                 {/* Row 1: Status Pie + Timeline */}
                 <div className="grid md:grid-cols-2 gap-6">
                     {/* Status Breakdown Pie */}
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-                        <h2 className="font-semibold text-gray-700 mb-4">
-                            Status Breakdown
-                        </h2>
+                        <h2 className="font-semibold text-gray-700 mb-4">Status Breakdown</h2>
                         {statusPieData.length > 0 ? (
                             <ResponsiveContainer width="100%" height={260}>
                                 <PieChart>
@@ -136,9 +99,7 @@ export default function HodDashboard({
                                         outerRadius={100}
                                         paddingAngle={3}
                                         dataKey="value"
-                                        label={({ name, value }) =>
-                                            `${name}: ${value}`
-                                        }
+                                        label={({ name, value }) => `${name}: ${value}`}
                                     >
                                         {statusPieData.map((entry, i) => (
                                             <Cell key={i} fill={entry.color} />
@@ -155,24 +116,13 @@ export default function HodDashboard({
 
                     {/* Applications Over Time */}
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-                        <h2 className="font-semibold text-gray-700 mb-4">
-                            Application Volume (Last 30 Days)
-                        </h2>
+                        <h2 className="font-semibold text-gray-700 mb-4">Application Volume (Last 30 Days)</h2>
                         {timelineData.length > 0 ? (
                             <ResponsiveContainer width="100%" height={260}>
                                 <LineChart data={timelineData}>
-                                    <CartesianGrid
-                                        strokeDasharray="3 3"
-                                        stroke="#f1f5f9"
-                                    />
-                                    <XAxis
-                                        dataKey="date"
-                                        tick={{ fontSize: 11 }}
-                                    />
-                                    <YAxis
-                                        tick={{ fontSize: 11 }}
-                                        allowDecimals={false}
-                                    />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                                    <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
                                     <Tooltip />
                                     <Line
                                         type="monotone"
@@ -193,41 +143,22 @@ export default function HodDashboard({
                 <div className="grid md:grid-cols-2 gap-6">
                     {/* By Advertisement */}
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-                        <h2 className="font-semibold text-gray-700 mb-4">
-                            Applications by Advertisement
-                        </h2>
+                        <h2 className="font-semibold text-gray-700 mb-4">Applications by Advertisement</h2>
                         {advBarData.length > 0 ? (
                             <ResponsiveContainer width="100%" height={260}>
                                 <BarChart data={advBarData}>
-                                    <CartesianGrid
-                                        strokeDasharray="3 3"
-                                        stroke="#f1f5f9"
-                                    />
-                                    <XAxis
-                                        dataKey="name"
-                                        tick={{ fontSize: 11 }}
-                                    />
-                                    <YAxis
-                                        tick={{ fontSize: 11 }}
-                                        allowDecimals={false}
-                                    />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                                    <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
                                     <Tooltip
                                         formatter={(value, name, props) => [
                                             value,
-                                            props.payload.title ||
-                                                props.payload.name,
+                                            props.payload.title || props.payload.name,
                                         ]}
                                     />
                                     <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                                         {advBarData.map((_, i) => (
-                                            <Cell
-                                                key={i}
-                                                fill={
-                                                    PIE_COLORS[
-                                                        i % PIE_COLORS.length
-                                                    ]
-                                                }
-                                            />
+                                            <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                                         ))}
                                     </Bar>
                                 </BarChart>
@@ -240,33 +171,19 @@ export default function HodDashboard({
                     {/* Recent Applications */}
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
                         <div className="flex justify-between items-center mb-4">
-                            <h2 className="font-semibold text-gray-700">
-                                Recent Applications
-                            </h2>
-                            <Link
-                                href="/hod/applications"
-                                className="text-sm text-indigo-600 hover:underline"
-                            >
+                            <h2 className="font-semibold text-gray-700">Recent Applications</h2>
+                            <Link href="/hod/applications" className="text-sm text-indigo-600 hover:underline">
                                 View all →
                             </Link>
                         </div>
                         <ul className="divide-y">
                             {recentApplications.length > 0 ? (
                                 recentApplications.map((app) => (
-                                    <li
-                                        key={app.id}
-                                        className="py-3 flex justify-between items-center"
-                                    >
+                                    <li key={app.id} className="py-3 flex justify-between items-center">
                                         <div>
-                                            <p className="font-medium text-gray-800 text-sm">
-                                                {app.user?.name}
-                                            </p>
-                                            <p className="text-xs text-gray-400">
-                                                {app.advertisement?.title}
-                                            </p>
-                                            <p className="text-xs font-semibold text-slate-500 mt-0.5">
-                                                {app.grade}
-                                            </p>
+                                            <p className="font-medium text-gray-800 text-sm">{app.user?.name}</p>
+                                            <p className="text-xs text-gray-400">{app.advertisement?.title}</p>
+                                            <p className="text-xs font-semibold text-slate-500 mt-0.5">{app.grade}</p>
                                         </div>
                                         <div className="flex flex-col items-end gap-1">
                                             <span
@@ -284,9 +201,7 @@ export default function HodDashboard({
                                     </li>
                                 ))
                             ) : (
-                                <p className="text-gray-400 text-sm py-4 text-center">
-                                    No applications yet.
-                                </p>
+                                <p className="text-gray-400 text-sm py-4 text-center">No applications yet.</p>
                             )}
                         </ul>
                     </div>
@@ -298,21 +213,13 @@ export default function HodDashboard({
 
 function StatCard({ label, value, color }) {
     return (
-        <div
-            className={`${color} text-white rounded-xl p-5 md:p-6 shadow-sm flex flex-col justify-between h-full`}
-        >
-            <p className="text-sm md:text-base opacity-90 font-medium leading-tight mb-2">
-                {label}
-            </p>
+        <div className={`${color} text-white rounded-xl p-5 md:p-6 shadow-sm flex flex-col justify-between h-full`}>
+            <p className="text-sm md:text-base opacity-90 font-medium leading-tight mb-2">{label}</p>
             <p className="text-3xl md:text-4xl font-black">{value}</p>
         </div>
     );
 }
 
 function EmptyChart() {
-    return (
-        <div className="flex items-center justify-center h-64 text-gray-300 text-sm">
-            No data available yet
-        </div>
-    );
+    return <div className="flex items-center justify-center h-64 text-gray-300 text-sm">No data available yet</div>;
 }

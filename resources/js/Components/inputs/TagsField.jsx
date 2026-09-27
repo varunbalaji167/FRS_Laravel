@@ -9,7 +9,7 @@ export default function TagsField({ id, label, value = [], onChange, error, requ
 
     const commit = () => {
         const tag = draft.trim();
-        if (tag && ! value.includes(tag)) {
+        if (tag && !value.includes(tag)) {
             onChange([...value, tag]);
         }
         setDraft("");
@@ -21,12 +21,9 @@ export default function TagsField({ id, label, value = [], onChange, error, requ
         <FormField label={label} htmlFor={id} error={error} required={required}>
             <div className="flex flex-wrap items-center gap-2 rounded-md border border-input p-2">
                 {value.map((tag) => (
-                    <span
-                        key={tag}
-                        className="flex items-center gap-1 rounded-full bg-accent px-2 py-1 text-sm"
-                    >
+                    <span key={tag} className="flex items-center gap-1 rounded-full bg-accent px-2 py-1 text-sm">
                         {tag}
-                        {! disabled && (
+                        {!disabled && (
                             <button
                                 type="button"
                                 onClick={() => remove(tag)}

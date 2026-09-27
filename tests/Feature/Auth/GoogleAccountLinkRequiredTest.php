@@ -16,7 +16,7 @@ class GoogleAccountLinkRequiredTest extends TestCase
 
     private function fakeGoogleUserFor(string $email, string $googleId = 'google-123'): void
     {
-        $socialiteUser = (new SocialiteUser())->map([
+        $socialiteUser = (new SocialiteUser)->map([
             'id' => $googleId,
             'name' => 'Ada Lovelace',
             'email' => $email,

@@ -17,11 +17,7 @@ const REFEREE_TEMPLATE = {
 export default function Step10Referees({ data, setData, localErrors = {} }) {
     const section = data.form_data.referees_section || {};
     // Pre-populate with 3 empty referees since 3 are mandatory
-    const referees = section.referees || [
-        { ...REFEREE_TEMPLATE },
-        { ...REFEREE_TEMPLATE },
-        { ...REFEREE_TEMPLATE },
-    ];
+    const referees = section.referees || [{ ...REFEREE_TEMPLATE }, { ...REFEREE_TEMPLATE }, { ...REFEREE_TEMPLATE }];
 
     const updateReferees = (newReferees) => {
         setData("form_data", {
@@ -51,27 +47,18 @@ export default function Step10Referees({ data, setData, localErrors = {} }) {
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
             <div>
-                <h3 className="text-2xl font-bold text-slate-900">
-                    9. Referees
-                </h3>
+                <h3 className="text-2xl font-bold text-slate-900">9. Referees</h3>
                 <p className="text-sm text-slate-500 mt-1">
-                    Provide details of at least 3 referees who are familiar with
-                    your academic and professional work.
+                    Provide details of at least 3 referees who are familiar with your academic and professional work.
                 </p>
             </div>
 
             <div className="space-y-4 bg-slate-50 p-6 rounded-xl border border-slate-100">
                 <div className="flex justify-between items-center border-b border-slate-200 pb-2">
                     <h4 className="font-bold text-lg text-slate-800">
-                        (A) Details of Referees{" "}
-                        <span className="text-red-500">*</span>
+                        (A) Details of Referees <span className="text-red-500">*</span>
                     </h4>
-                    <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={addReferee}
-                    >
+                    <Button type="button" size="sm" variant="outline" onClick={addReferee}>
                         <PlusCircle className="mr-2 h-4 w-4" /> Add Referee
                     </Button>
                 </div>

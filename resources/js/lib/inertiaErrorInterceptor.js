@@ -11,7 +11,7 @@ import { toast } from "sonner";
 export function registerInertiaErrorInterceptor() {
     router.on("invalid", (event) => {
         const response = event.detail.response;
-        if (! response) return;
+        if (!response) return;
 
         if (response.status === 419) {
             event.preventDefault();

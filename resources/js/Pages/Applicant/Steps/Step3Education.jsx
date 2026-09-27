@@ -26,8 +26,7 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
         edu.school && edu.school.length > 0
             ? edu.school.map((item, index) => ({
                   ...item,
-                  level:
-                      item.level || (index === 0 ? "12th/HSC/Diploma" : "10th"),
+                  level: item.level || (index === 0 ? "12th/HSC/Diploma" : "10th"),
               }))
             : [
                   {
@@ -64,10 +63,7 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
         // Auto-calculate duration for PhD (From Joining -> Award, or Defence if Award is empty)
         if (["date_joining", "date_defence", "date_award"].includes(field)) {
             const endDate = updatedPhd.date_defence || updatedPhd.date_award;
-            updatedPhd.duration = calculateDuration(
-                updatedPhd.date_joining,
-                endDate,
-            );
+            updatedPhd.duration = calculateDuration(updatedPhd.date_joining, endDate);
         }
 
         updateEduSection("phd", updatedPhd);
@@ -83,18 +79,14 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
 
         // Auto-calculate duration for UG/PG if dates change
         if (field === "date_joining" || field === "date_graduation") {
-            updatedItem.duration = calculateDuration(
-                updatedItem.date_joining,
-                updatedItem.date_graduation,
-            );
+            updatedItem.duration = calculateDuration(updatedItem.date_joining, updatedItem.date_graduation);
         }
 
         arr[index] = updatedItem;
         updateEduSection(section, arr);
     };
 
-    const addArrayItem = (section, template) =>
-        updateEduSection(section, [...(edu[section] || []), template]);
+    const addArrayItem = (section, template) => updateEduSection(section, [...(edu[section] || []), template]);
 
     const removeArrayItem = (section, index) => {
         const arr = [...(edu[section] || [])];
@@ -153,9 +145,7 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                         onChange={(v) => handleArrayChange(section, index, "date_graduation", v)}
                     />
                     <div className="space-y-2">
-                        <Label className="whitespace-nowrap">
-                            Duration (YY-MM-DD)
-                        </Label>
+                        <Label className="whitespace-nowrap">Duration (YY-MM-DD)</Label>
                         <Input
                             readOnly
                             value={item.duration || ""}
@@ -184,20 +174,15 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
             <div>
-                <h3 className="text-2xl font-bold text-slate-900">
-                    2. Educational Qualifications
-                </h3>
+                <h3 className="text-2xl font-bold text-slate-900">2. Educational Qualifications</h3>
                 <p className="text-sm text-slate-500 mt-1">
-                    Please provide your complete academic history precisely as
-                    requested.
+                    Please provide your complete academic history precisely as requested.
                 </p>
             </div>
 
             {/* (A) Ph.D. Details */}
             <div className="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-100">
-                <h4 className="font-bold text-lg text-slate-800">
-                    (A) Ph.D. Details
-                </h4>
+                <h4 className="font-bold text-lg text-slate-800">(A) Ph.D. Details</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                     <div className="lg:col-span-2">
                         <TextField
@@ -249,9 +234,7 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                         onChange={(v) => handlePhdChange("date_award", v)}
                     />
                     <div className="space-y-2">
-                        <Label className="whitespace-nowrap">
-                            Duration (YY-MM-DD)
-                        </Label>
+                        <Label className="whitespace-nowrap">Duration (YY-MM-DD)</Label>
                         <Input
                             readOnly
                             value={phd.duration || ""}
@@ -273,9 +256,7 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
             {/* (B) Academic Details - PG */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
-                    <h4 className="font-bold text-lg text-slate-800">
-                        (B) Academic Details - PG
-                    </h4>
+                    <h4 className="font-bold text-lg text-slate-800">(B) Academic Details - PG</h4>
                     <Button
                         type="button"
                         size="sm"
@@ -302,9 +283,7 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
             {/* (C) Academic Details - UG */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
-                    <h4 className="font-bold text-lg text-slate-800">
-                        (C) Academic Details - UG
-                    </h4>
+                    <h4 className="font-bold text-lg text-slate-800">(C) Academic Details - UG</h4>
                     <Button
                         type="button"
                         size="sm"
@@ -330,9 +309,7 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
 
             {/* (D) Academic Details - School */}
             <div className="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-100">
-                <h4 className="font-bold text-lg text-slate-800">
-                    (D) Academic Details - School
-                </h4>
+                <h4 className="font-bold text-lg text-slate-800">(D) Academic Details - School</h4>
                 {school.map((item, index) => (
                     <div
                         key={index}
@@ -341,11 +318,7 @@ export default function Step3Education({ data, setData, localErrors = {} }) {
                     >
                         <div className="space-y-2">
                             <Label>Level</Label>
-                            <Input
-                                value={item.level}
-                                disabled
-                                className="bg-slate-50 font-bold"
-                            />
+                            <Input value={item.level} disabled className="bg-slate-50 font-bold" />
                         </div>
                         <TextField
                             id={`school-${index}-school`}

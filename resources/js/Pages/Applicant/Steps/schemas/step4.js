@@ -10,7 +10,7 @@ export default function step4Schema() {
             date_joining: z
                 .string()
                 .min(1, "Date of joining is required.")
-                .refine((v) => ! Number.isNaN(Date.parse(v)), "Invalid date."),
+                .refine((v) => !Number.isNaN(Date.parse(v)), "Invalid date."),
             date_leaving: z.string().optional(),
         }),
         has_three_years_exp: z.string().min(1, "Please select Yes or No."),

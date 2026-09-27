@@ -4,7 +4,18 @@ import FormField from "@/Components/inputs/FormField";
 // Clamped number input — clamps on blur so a partially-typed value isn't
 // fought while the applicant is still typing.
 export default function NumberField({
-    id, label, value, onChange, error, required, min, max, step = 1, placeholder, disabled, hint,
+    id,
+    label,
+    value,
+    onChange,
+    error,
+    required,
+    min,
+    max,
+    step = 1,
+    placeholder,
+    disabled,
+    hint,
 }) {
     const clamp = (raw) => {
         if (raw === "" || raw === null || raw === undefined) return "";

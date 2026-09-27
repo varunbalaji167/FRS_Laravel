@@ -1,16 +1,6 @@
 import { useState } from "react";
 import { Link, usePage } from "@inertiajs/react";
-import {
-    LayoutDashboard,
-    FilePlus,
-    FileText,
-    Users,
-    Settings,
-    LogOut,
-    Menu,
-    X,
-    Shield,
-} from "lucide-react";
+import { LayoutDashboard, FilePlus, FileText, Users, Settings, LogOut, Menu, X, Shield } from "lucide-react";
 import { Button } from "@/Components/ui/button";
 import ToastListener from "@/Components/ToastListener";
 
@@ -82,9 +72,7 @@ export default function AdminLayout({ children }) {
                     </div>
                     <div>
                         <p className="font-bold text-slate-900">IIT Indore</p>
-                        <p className="text-xs text-indigo-600 uppercase">
-                            Admin
-                        </p>
+                        <p className="text-xs text-indigo-600 uppercase">Admin</p>
                     </div>
                 </div>
 
@@ -113,17 +101,11 @@ export default function AdminLayout({ children }) {
                             {(email?.charAt(0) || "U").toUpperCase()}
                         </div>
                         <div className="overflow-hidden">
-                            <p className="text-sm font-bold truncate">
-                                {email}
-                            </p>
+                            <p className="text-sm font-bold truncate">{email}</p>
                         </div>
                     </div>
 
-                    <Button
-                        variant="outline"
-                        className="w-full text-red-600 border-red-200 hover:bg-red-50"
-                        asChild
-                    >
+                    <Button variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50" asChild>
                         <Link href={route("logout")} method="post" as="button">
                             <LogOut className="h-4 w-4 mr-2" />
                             Logout
@@ -141,9 +123,7 @@ export default function AdminLayout({ children }) {
                         <span className="font-bold">Admin</span>
                     </div>
 
-                    <button
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    >
+                    <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
                         {isMobileMenuOpen ? <X /> : <Menu />}
                     </button>
                 </header>
@@ -158,9 +138,7 @@ export default function AdminLayout({ children }) {
                                 href={item.href}
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={`block p-3 rounded font-semibold ${
-                                    item.active
-                                        ? "bg-indigo-600 text-white"
-                                        : "bg-slate-100 text-slate-700"
+                                    item.active ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-700"
                                 }`}
                             >
                                 {item.name}
@@ -174,9 +152,7 @@ export default function AdminLayout({ children }) {
                                 <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-700">
                                     {(email?.charAt(0) || "U").toUpperCase()}
                                 </div>
-                                <p className="text-sm font-semibold text-slate-700 truncate">
-                                    {email}
-                                </p>
+                                <p className="text-sm font-semibold text-slate-700 truncate">{email}</p>
                             </div>
 
                             {/* Logout */}
@@ -185,11 +161,7 @@ export default function AdminLayout({ children }) {
                                 className="w-full text-red-600 border-red-200 hover:bg-red-50"
                                 asChild
                             >
-                                <Link
-                                    href={route("logout")}
-                                    method="post"
-                                    as="button"
-                                >
+                                <Link href={route("logout")} method="post" as="button">
                                     <LogOut className="h-4 w-4 mr-2" />
                                     Logout
                                 </Link>

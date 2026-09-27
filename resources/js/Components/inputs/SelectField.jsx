@@ -3,7 +3,15 @@ import { cn } from "@/lib/utils";
 
 // Closed-set dropdown. `options` is an array of strings or {value,label}.
 export default function SelectField({
-    id, label, value, onChange, error, required, options = [], placeholder = "Select...", disabled,
+    id,
+    label,
+    value,
+    onChange,
+    error,
+    required,
+    options = [],
+    placeholder = "Select...",
+    disabled,
 }) {
     const normalized = options.map((o) => (typeof o === "string" ? { value: o, label: o } : o));
 
@@ -17,7 +25,7 @@ export default function SelectField({
                 aria-invalid={!!error}
                 aria-describedby={error ? `${id}-error` : undefined}
                 className={cn(
-                    "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                    "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
                 )}
             >
                 <option value="" disabled>

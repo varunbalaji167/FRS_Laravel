@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Logging;
 
+use App\Models\AdminAction;
 use App\Models\Department;
 use App\Models\JobApplication;
 use App\Models\User;
@@ -57,7 +58,7 @@ class AdminActionsAreRecordedTest extends TestCase
             'department' => 'Computer Science',
         ]);
 
-        $action = \App\Models\AdminAction::where('action', 'user.role_updated')
+        $action = AdminAction::where('action', 'user.role_updated')
             ->where('subject_id', $target->id)
             ->firstOrFail();
 

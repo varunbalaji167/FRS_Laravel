@@ -20,9 +20,7 @@ export default function Error({ status, requestId }) {
                 <p className="text-sm text-gray-500">
                     If the problem persists, contact support with the reference below.
                 </p>
-                {requestId && (
-                    <p className="text-xs text-gray-400">Reference: {requestId}</p>
-                )}
+                {requestId && <p className="text-xs text-gray-400">Reference: {requestId}</p>}
             </div>
         </>
     );

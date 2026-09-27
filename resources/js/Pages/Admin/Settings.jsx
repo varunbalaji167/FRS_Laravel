@@ -11,11 +11,7 @@ import PrimaryButton from "@/Components/PrimaryButton";
 import TextInput from "@/Components/TextInput";
 import ConfirmDialog from "@/Components/ConfirmDialog";
 
-export default function Settings({
-    mustVerifyEmail,
-    status,
-    departments = [],
-}) {
+export default function Settings({ departments = [] }) {
     const { auth } = usePage().props;
     const user = auth?.user || {};
 
@@ -63,12 +59,9 @@ export default function Settings({
 
             <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto space-y-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">
-                        Portal Settings
-                    </h1>
+                    <h1 className="text-2xl font-bold text-slate-900">Portal Settings</h1>
                     <p className="text-slate-500 text-sm mt-1">
-                        Manage your account security, profile, and institute
-                        departments.
+                        Manage your account security, profile, and institute departments.
                     </p>
                 </div>
 
@@ -80,40 +73,22 @@ export default function Settings({
                                 <User className="h-5 w-5" />
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold text-slate-800">
-                                    Profile Information
-                                </h2>
-                                <p className="text-sm text-slate-500">
-                                    Update your display name.
-                                </p>
+                                <h2 className="text-lg font-bold text-slate-800">Profile Information</h2>
+                                <p className="text-sm text-slate-500">Update your display name.</p>
                             </div>
                         </header>
 
-                        <form
-                            onSubmit={submitProfile}
-                            className="space-y-6 max-w-xl"
-                        >
+                        <form onSubmit={submitProfile} className="space-y-6 max-w-xl">
                             <div>
-                                <InputLabel
-                                    htmlFor="profile_name"
-                                    value="Full Name"
-                                />
+                                <InputLabel htmlFor="profile_name" value="Full Name" />
                                 <TextInput
                                     id="profile_name"
                                     className="mt-1 block w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5"
                                     value={profileForm.data.name}
-                                    onChange={(e) =>
-                                        profileForm.setData(
-                                            "name",
-                                            e.target.value,
-                                        )
-                                    }
+                                    onChange={(e) => profileForm.setData("name", e.target.value)}
                                     required
                                 />
-                                <InputError
-                                    className="mt-2"
-                                    message={profileForm.errors.name}
-                                />
+                                <InputError className="mt-2" message={profileForm.errors.name} />
                             </div>
 
                             <div>
@@ -142,8 +117,7 @@ export default function Settings({
                                     leaveTo="opacity-0"
                                 >
                                     <p className="text-sm font-semibold text-emerald-600 flex items-center gap-1.5">
-                                        <CheckCircle2 className="h-4 w-4" />{" "}
-                                        Saved.
+                                        <CheckCircle2 className="h-4 w-4" /> Saved.
                                     </p>
                                 </Transition>
                             </div>
@@ -157,13 +131,8 @@ export default function Settings({
                                 <Plus className="h-5 w-5" />
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold text-slate-800">
-                                    Department Management
-                                </h2>
-                                <p className="text-sm text-slate-500">
-                                    Manage departments available for
-                                    recruitment.
-                                </p>
+                                <h2 className="text-lg font-bold text-slate-800">Department Management</h2>
+                                <p className="text-sm text-slate-500">Manage departments available for recruitment.</p>
                             </div>
                         </header>
 
@@ -172,20 +141,12 @@ export default function Settings({
                                 <TextInput
                                     placeholder="New department name..."
                                     value={deptForm.data.name}
-                                    onChange={(e) =>
-                                        deptForm.setData("name", e.target.value)
-                                    }
+                                    onChange={(e) => deptForm.setData("name", e.target.value)}
                                     className="w-full rounded-xl"
                                 />
-                                <InputError
-                                    message={deptForm.errors.name}
-                                    className="mt-1"
-                                />
+                                <InputError message={deptForm.errors.name} className="mt-1" />
                             </div>
-                            <PrimaryButton
-                                disabled={deptForm.processing}
-                                className="rounded-xl px-6"
-                            >
+                            <PrimaryButton disabled={deptForm.processing} className="rounded-xl px-6">
                                 Add
                             </PrimaryButton>
                         </form>
@@ -196,9 +157,7 @@ export default function Settings({
                                     key={dept.id}
                                     className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 group"
                                 >
-                                    <span className="text-sm font-semibold text-slate-700">
-                                        {dept.name}
-                                    </span>
+                                    <span className="text-sm font-semibold text-slate-700">{dept.name}</span>
                                     <button
                                         onClick={() => setDeletingDept(dept)}
                                         className="text-slate-300 hover:text-red-600 transition-colors p-1"
@@ -222,12 +181,8 @@ export default function Settings({
                                 <Lock className="h-5 w-5" />
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold text-slate-800">
-                                    Security & Password
-                                </h2>
-                                <p className="text-sm text-slate-500">
-                                    Update your account security.
-                                </p>
+                                <h2 className="text-lg font-bold text-slate-800">Security & Password</h2>
+                                <p className="text-sm text-slate-500">Update your account security.</p>
                             </div>
                         </header>
 

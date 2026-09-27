@@ -21,14 +21,7 @@ const CATEGORY_OPTIONS = [
 const NATIONALITY_OPTIONS = ["Indian", "OCI", "Foreign National"];
 const ID_PROOF_TYPE_OPTIONS = ["Aadhar", "PAN", "Passport", "Voter ID", "Driving License"];
 
-export default function Step2Personal({
-    data,
-    setData,
-    updateFormData,
-    localErrors = {},
-    profile = {},
-    user = {},
-}) {
+export default function Step2Personal({ data, setData, updateFormData, localErrors = {}, profile = {}, user = {} }) {
     const p = data.form_data?.personal_details || {};
     const [preview, setPreview] = useState(null);
     const [isProfileCopied, setIsProfileCopied] = useState(false);
@@ -40,9 +33,7 @@ export default function Step2Personal({
             setPreview(URL.createObjectURL(p.profile_image));
         } else if (typeof p.profile_image === "string" && p.profile_image) {
             // Check if it's already a full path or needs prefix
-            const path = p.profile_image.startsWith("http")
-                ? p.profile_image
-                : `/storage/${p.profile_image}`;
+            const path = p.profile_image.startsWith("http") ? p.profile_image : `/storage/${p.profile_image}`;
             setPreview(path);
         } else {
             setPreview(null);
@@ -84,18 +75,13 @@ export default function Step2Personal({
             personal_details: {
                 ...p, // keep any fields not in profile
                 profile_image: profile.photo_path || p.profile_image || "",
-                first_name:
-                    (user.name || "").split(" ")[0] || p.first_name || "",
-                last_name:
-                    (user.name || "").split(" ").slice(1).join(" ") ||
-                    p.last_name ||
-                    "",
+                first_name: (user.name || "").split(" ")[0] || p.first_name || "",
+                last_name: (user.name || "").split(" ").slice(1).join(" ") || p.last_name || "",
                 email: user.email || p.email || "",
                 fathers_name: profile.father_name || p.fathers_name || "",
                 dob: profile.date_of_birth || p.dob || "",
                 gender: profile.gender || p.gender || "",
-                marital_status:
-                    profile.marital_status || p.marital_status || "",
+                marital_status: profile.marital_status || p.marital_status || "",
                 category: profile.category || p.category || "",
                 nationality: profile.nationality || p.nationality || "Indian",
                 id_proof_type: parsedIdType || p.id_proof_type || "",
@@ -104,8 +90,7 @@ export default function Step2Personal({
                 phone: profile.phone || p.phone || "",
                 alt_phone: profile.alt_phone || p.alt_phone || "",
                 phone_code: profile.phone_code || p.phone_code || "+91",
-                alt_phone_code:
-                    profile.alt_phone_code || p.alt_phone_code || "+91",
+                alt_phone_code: profile.alt_phone_code || p.alt_phone_code || "+91",
                 corr_address: profile.corr_address || p.corr_address || "",
                 corr_city: profile.corr_city || p.corr_city || "",
                 corr_state: profile.corr_state || p.corr_state || "",
@@ -122,25 +107,20 @@ export default function Step2Personal({
         setTimeout(() => setIsProfileCopied(false), 2000);
     };
 
-    const setField = (field, value) =>
-        updateFormData("personal_details", field, value);
+    const setField = (field, value) => updateFormData("personal_details", field, value);
 
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
             <div>
-                <h3 className="text-2xl font-bold text-slate-900">
-                    1. Personal Details
-                </h3>
+                <h3 className="text-2xl font-bold text-slate-900">1. Personal Details</h3>
                 <p className="text-sm text-slate-500 mt-1">
-                    Please provide your complete demographic and contact
-                    information.
+                    Please provide your complete demographic and contact information.
                 </p>
             </div>
             {/* Profile sync banner */}
             <div className="flex items-center justify-between rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
                 <p className="text-sm text-blue-700">
-                    Updated your profile recently? Sync those changes into this
-                    application.
+                    Updated your profile recently? Sync those changes into this application.
                 </p>
                 <Button
                     type="button"
@@ -168,17 +148,11 @@ export default function Step2Personal({
             </div>
             {/* Application Profile Picture Section */}
             <div className="space-y-4">
-                <h4 className="font-bold text-lg text-slate-800 border-b pb-2">
-                    Application Photo
-                </h4>
+                <h4 className="font-bold text-lg text-slate-800 border-b pb-2">Application Photo</h4>
                 <div className="flex items-center gap-x-6">
                     <div className="h-24 w-24 shrink-0 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden object-cover">
                         {preview ? (
-                            <img
-                                src={preview}
-                                alt="Profile Preview"
-                                className="h-full w-full object-cover"
-                            />
+                            <img src={preview} alt="Profile Preview" className="h-full w-full object-cover" />
                         ) : (
                             <User className="h-12 w-12 text-slate-400" />
                         )}
@@ -197,9 +171,7 @@ export default function Step2Personal({
             </div>
 
             <div className="space-y-4">
-                <h4 className="font-bold text-lg text-slate-800 border-b pb-2">
-                    Name & Family
-                </h4>
+                <h4 className="font-bold text-lg text-slate-800 border-b pb-2">Name & Family</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <TextField
                         id="first_name"
@@ -235,9 +207,7 @@ export default function Step2Personal({
             </div>
 
             <div className="space-y-4">
-                <h4 className="font-bold text-lg text-slate-800 border-b pb-2">
-                    Demographics & Identity
-                </h4>
+                <h4 className="font-bold text-lg text-slate-800 border-b pb-2">Demographics & Identity</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <DatePicker
                         id="dob"
@@ -309,9 +279,7 @@ export default function Step2Personal({
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-100">
-                    <h4 className="font-bold text-lg text-slate-800">
-                        Correspondence Address
-                    </h4>
+                    <h4 className="font-bold text-lg text-slate-800">Correspondence Address</h4>
                     <div className="space-y-4">
                         <TextareaField
                             id="corr_address"
@@ -350,9 +318,7 @@ export default function Step2Personal({
 
                 <div className="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-100 relative">
                     <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-bold text-lg text-slate-800">
-                            Permanent Address
-                        </h4>
+                        <h4 className="font-bold text-lg text-slate-800">Permanent Address</h4>
                         <button
                             type="button"
                             onClick={copyAddress}
@@ -368,8 +334,7 @@ export default function Step2Personal({
                                 </>
                             ) : (
                                 <>
-                                    <Copy className="h-3 w-3 mr-1.5" /> Same as
-                                    Correspondence
+                                    <Copy className="h-3 w-3 mr-1.5" /> Same as Correspondence
                                 </>
                             )}
                         </button>
@@ -412,9 +377,7 @@ export default function Step2Personal({
             </div>
 
             <div className="space-y-4">
-                <h4 className="font-bold text-lg text-slate-800 border-b pb-2">
-                    Contact Details
-                </h4>
+                <h4 className="font-bold text-lg text-slate-800 border-b pb-2">Contact Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <EmailField
                         id="email"

@@ -8,7 +8,16 @@ import { cn } from "@/lib/utils";
 // bar (0-100, driven by the caller's Inertia `onProgress`), and a remove
 // button.
 export default function FileField({
-    id, label, value, onChange, error, required, accept, maxSizeBytes, progress, disabled,
+    id,
+    label,
+    value,
+    onChange,
+    error,
+    required,
+    accept,
+    maxSizeBytes,
+    progress,
+    disabled,
 }) {
     const [dragOver, setDragOver] = useState(false);
     const [localError, setLocalError] = useState(null);
@@ -39,7 +48,7 @@ export default function FileField({
                 <div className="flex items-center gap-2 rounded-md border border-input px-3 py-2 text-sm">
                     <FileText className="h-4 w-4 shrink-0 text-gray-500" />
                     <span className="flex-1 truncate">{fileName}</span>
-                    {! disabled && (
+                    {!disabled && (
                         <button
                             type="button"
                             onClick={() => {
@@ -65,12 +74,12 @@ export default function FileField({
                     onDrop={(e) => {
                         e.preventDefault();
                         setDragOver(false);
-                        if (! disabled) accept1(e.dataTransfer.files?.[0]);
+                        if (!disabled) accept1(e.dataTransfer.files?.[0]);
                     }}
                     className={cn(
                         "flex cursor-pointer flex-col items-center gap-1 rounded-md border-2 border-dashed border-input px-3 py-4 text-sm text-gray-500 hover:border-gray-400",
                         dragOver && "border-primary bg-accent",
-                        disabled && "cursor-not-allowed opacity-50"
+                        disabled && "cursor-not-allowed opacity-50",
                     )}
                 >
                     <UploadCloud className="h-5 w-5" />

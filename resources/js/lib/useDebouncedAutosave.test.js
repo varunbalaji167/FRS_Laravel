@@ -22,10 +22,9 @@ describe("useDebouncedAutosave", () => {
 
     it("saves the latest value 2s after the last change, resetting on each change", () => {
         const onSave = vi.fn();
-        const { rerender } = renderHook(
-            ({ value }) => useDebouncedAutosave(value, onSave, { delay: 2000 }),
-            { initialProps: { value: "a" } },
-        );
+        const { rerender } = renderHook(({ value }) => useDebouncedAutosave(value, onSave, { delay: 2000 }), {
+            initialProps: { value: "a" },
+        });
 
         rerender({ value: "b" });
         vi.advanceTimersByTime(1000);
@@ -43,10 +42,9 @@ describe("useDebouncedAutosave", () => {
 
     it("flush() fires an already-pending save immediately and cancels the timer", () => {
         const onSave = vi.fn();
-        const { result, rerender } = renderHook(
-            ({ value }) => useDebouncedAutosave(value, onSave, { delay: 2000 }),
-            { initialProps: { value: "a" } },
-        );
+        const { result, rerender } = renderHook(({ value }) => useDebouncedAutosave(value, onSave, { delay: 2000 }), {
+            initialProps: { value: "a" },
+        });
 
         rerender({ value: "b" });
         result.current.flush();
@@ -60,10 +58,9 @@ describe("useDebouncedAutosave", () => {
 
     it("flushes a pending save on unmount instead of dropping it", () => {
         const onSave = vi.fn();
-        const { unmount, rerender } = renderHook(
-            ({ value }) => useDebouncedAutosave(value, onSave, { delay: 2000 }),
-            { initialProps: { value: "a" } },
-        );
+        const { unmount, rerender } = renderHook(({ value }) => useDebouncedAutosave(value, onSave, { delay: 2000 }), {
+            initialProps: { value: "a" },
+        });
 
         rerender({ value: "b" });
         unmount();

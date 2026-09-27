@@ -29,12 +29,7 @@ export default function ConfirmDialog({
                     {description && <DialogDescription>{description}</DialogDescription>}
                 </DialogHeader>
                 <DialogFooter>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => onOpenChange(false)}
-                        disabled={processing}
-                    >
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={processing}>
                         {cancelLabel}
                     </Button>
                     <Button

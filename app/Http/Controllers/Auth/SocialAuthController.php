@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\AbstractProvider;
 use Laravel\Socialite\Two\InvalidStateException;
 use Throwable;
 
@@ -34,7 +35,7 @@ class SocialAuthController extends Controller
         // Restricts Google's account chooser to the institute's Workspace —
         // convenience, not a real security boundary; the `hd` claim on the
         // returned user is what's actually re-checked in callback().
-        if (in_array($intendedRole, self::STAFF_ROLES, true)) {
+        if (in_array($intendedRole, self::STAFF_ROLES, true) && $driver instanceof AbstractProvider) {
             $driver = $driver->with(['hd' => 'iiti.ac.in']);
         }
 

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { useState } from "react";
+import { Head, Link, useForm } from "@inertiajs/react";
 import { GraduationCap, Lock, Mail, Eye, EyeOff, Loader2, UserPlus, ArrowLeft, User } from "lucide-react";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
@@ -10,18 +10,18 @@ export default function Register() {
     const [showPassword, setShowPassword] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
-        name: '',
-        email: '',
-        password: '',
-        password_confirmation: '',
+        name: "",
+        email: "",
+        password: "",
+        password_confirmation: "",
     });
 
     const submit = (e) => {
         e.preventDefault();
-        
-        post(route('register'), {
+
+        post(route("register"), {
             preserveScroll: true,
-            onFinish: () => reset('password', 'password_confirmation'),
+            onFinish: () => reset("password", "password_confirmation"),
         });
     };
 
@@ -55,13 +55,15 @@ export default function Register() {
                             Start your journey with IIT Indore
                         </h1>
                         <p className="mt-4 text-base text-slate-200 font-medium leading-relaxed">
-                            Create an applicant account to submit your documents, browse open positions, and track your recruitment status in real-time.
+                            Create an applicant account to submit your documents, browse open positions, and track your
+                            recruitment status in real-time.
                         </p>
                     </div>
 
                     <div className="border-t border-white/10 pt-6">
                         <p className="text-sm text-slate-300 italic leading-relaxed">
-                            &ldquo;The function of education is to teach one to think intensively and to think critically.&rdquo;
+                            &ldquo;The function of education is to teach one to think intensively and to think
+                            critically.&rdquo;
                         </p>
                         <p className="mt-2 text-xs font-medium text-indigo-300">- Martin Luther King Jr.</p>
                     </div>
@@ -83,20 +85,24 @@ export default function Register() {
 
                     <div className="mb-8">
                         <h2 className="font-serif text-2xl font-bold text-slate-900">Create your account</h2>
-                        <p className="mt-2 text-sm font-medium text-slate-500">Register as an applicant to begin your process.</p>
+                        <p className="mt-2 text-sm font-medium text-slate-500">
+                            Register as an applicant to begin your process.
+                        </p>
                     </div>
 
                     <form onSubmit={submit} className="flex flex-col gap-5">
                         <div className="space-y-2">
-                            <Label htmlFor="name" className="text-sm font-semibold text-slate-900">Full Name</Label>
+                            <Label htmlFor="name" className="text-sm font-semibold text-slate-900">
+                                Full Name
+                            </Label>
                             <div className="relative">
                                 <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                                 <Input
                                     id="name"
                                     value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
+                                    onChange={(e) => setData("name", e.target.value)}
                                     placeholder="Dr. John Doe"
-                                    className={`pl-10 h-11 bg-slate-50/50 border-slate-200 focus:bg-white transition-colors ${errors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                    className={`pl-10 h-11 bg-slate-50/50 border-slate-200 focus:bg-white transition-colors ${errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                                     disabled={processing}
                                 />
                             </div>
@@ -104,16 +110,18 @@ export default function Register() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="email" className="text-sm font-semibold text-slate-900">Email Address</Label>
+                            <Label htmlFor="email" className="text-sm font-semibold text-slate-900">
+                                Email Address
+                            </Label>
                             <div className="relative">
                                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                                 <Input
                                     id="email"
                                     type="email"
                                     value={data.email}
-                                    onChange={(e) => setData('email', e.target.value)}
+                                    onChange={(e) => setData("email", e.target.value)}
                                     placeholder="your.email@example.com"
-                                    className={`pl-10 h-11 bg-slate-50/50 border-slate-200 focus:bg-white transition-colors ${errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                    className={`pl-10 h-11 bg-slate-50/50 border-slate-200 focus:bg-white transition-colors ${errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                                     disabled={processing}
                                 />
                             </div>
@@ -121,16 +129,18 @@ export default function Register() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="password" className="text-sm font-semibold text-slate-900">Password</Label>
+                            <Label htmlFor="password" className="text-sm font-semibold text-slate-900">
+                                Password
+                            </Label>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                                 <Input
                                     id="password"
                                     type={showPassword ? "text" : "password"}
                                     value={data.password}
-                                    onChange={(e) => setData('password', e.target.value)}
+                                    onChange={(e) => setData("password", e.target.value)}
                                     placeholder="Create a strong password"
-                                    className={`pl-10 pr-10 h-11 bg-slate-50/50 border-slate-200 focus:bg-white transition-colors ${errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                    className={`pl-10 pr-10 h-11 bg-slate-50/50 border-slate-200 focus:bg-white transition-colors ${errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                                     disabled={processing}
                                 />
                                 <button
@@ -145,14 +155,16 @@ export default function Register() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="password_confirmation" className="text-sm font-semibold text-slate-900">Confirm Password</Label>
+                            <Label htmlFor="password_confirmation" className="text-sm font-semibold text-slate-900">
+                                Confirm Password
+                            </Label>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                                 <Input
                                     id="password_confirmation"
                                     type={showPassword ? "text" : "password"}
                                     value={data.password_confirmation}
-                                    onChange={(e) => setData('password_confirmation', e.target.value)}
+                                    onChange={(e) => setData("password_confirmation", e.target.value)}
                                     placeholder="Confirm your password"
                                     className="pl-10 pr-10 h-11 bg-slate-50/50 border-slate-200 focus:bg-white transition-colors"
                                     disabled={processing}
@@ -160,11 +172,19 @@ export default function Register() {
                             </div>
                         </div>
 
-                        <Button type="submit" className="h-11 font-bold mt-2 bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg transition-all duration-200" disabled={processing}>
+                        <Button
+                            type="submit"
+                            className="h-11 font-bold mt-2 bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg transition-all duration-200"
+                            disabled={processing}
+                        >
                             {processing ? (
-                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account...</>
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account...
+                                </>
                             ) : (
-                                <><UserPlus className="mr-2 h-4 w-4" /> Register as Applicant</>
+                                <>
+                                    <UserPlus className="mr-2 h-4 w-4" /> Register as Applicant
+                                </>
                             )}
                         </Button>
                     </form>
@@ -172,14 +192,20 @@ export default function Register() {
                     <div className="mt-8 text-center border-t border-slate-100 pt-6">
                         <p className="text-sm font-medium text-slate-500">
                             Already have an account?{" "}
-                            <Link href={route('login')} className="font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
+                            <Link
+                                href={route("login")}
+                                className="font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+                            >
                                 Sign in
                             </Link>
                         </p>
                     </div>
 
                     <div className="mt-6 text-center">
-                        <Link href="/" className="inline-flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-slate-900 transition-colors">
+                        <Link
+                            href="/"
+                            className="inline-flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-slate-900 transition-colors"
+                        >
                             <ArrowLeft className="h-3 w-3" /> Back to Home
                         </Link>
                     </div>

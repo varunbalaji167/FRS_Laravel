@@ -1,14 +1,7 @@
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, useForm, router, usePage } from "@inertiajs/react";
 import { useState } from "react";
-import {
-    Plus,
-    Edit2,
-    Trash2,
-    Shield,
-    User as UserIcon,
-    BookOpen,
-} from "lucide-react";
+import { Plus, Edit2, Trash2, Shield, User as UserIcon, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import ConfirmDialog from "@/Components/ConfirmDialog";
 
@@ -44,10 +37,7 @@ export default function UsersIndex({ users, departments }) {
         .map((user) => user.department);
     const getAvailableDepartments = (currentEditingUserDept = null) => {
         return departments.filter((dept) => {
-            return (
-                !takenDepartments.includes(dept.name) ||
-                dept.name === currentEditingUserDept
-            );
+            return !takenDepartments.includes(dept.name) || dept.name === currentEditingUserDept;
         });
     };
 
@@ -62,17 +52,9 @@ export default function UsersIndex({ users, departments }) {
     function submitEdit(e) {
         e.preventDefault();
 
-        if (
-            ["admin", "hod"].includes(editForm.data.role) &&
-            !editingUser.email.endsWith("@iiti.ac.in")
-        ) {
-            editForm.setError(
-                "role",
-                "System Admin and HOD roles are strictly restricted to @iiti.ac.in emails.",
-            );
-            toast.error(
-                "Only @iiti.ac.in domains are permitted for Admin or HOD roles.",
-            );
+        if (["admin", "hod"].includes(editForm.data.role) && !editingUser.email.endsWith("@iiti.ac.in")) {
+            editForm.setError("role", "System Admin and HOD roles are strictly restricted to @iiti.ac.in emails.");
+            toast.error("Only @iiti.ac.in domains are permitted for Admin or HOD roles.");
             return;
         }
 
@@ -87,17 +69,9 @@ export default function UsersIndex({ users, departments }) {
     function submitCreate(e) {
         e.preventDefault();
 
-        if (
-            ["admin", "hod"].includes(createForm.data.role) &&
-            !createForm.data.email.endsWith("@iiti.ac.in")
-        ) {
-            createForm.setError(
-                "email",
-                "System Admin and HOD roles are strictly restricted to @iiti.ac.in emails.",
-            );
-            toast.error(
-                "Only @iiti.ac.in domains are permitted for Admin or HOD roles.",
-            );
+        if (["admin", "hod"].includes(createForm.data.role) && !createForm.data.email.endsWith("@iiti.ac.in")) {
+            createForm.setError("email", "System Admin and HOD roles are strictly restricted to @iiti.ac.in emails.");
+            toast.error("Only @iiti.ac.in domains are permitted for Admin or HOD roles.");
             return;
         }
 
@@ -124,12 +98,9 @@ export default function UsersIndex({ users, departments }) {
             <div className="p-6 space-y-6 max-w-7xl mx-auto">
                 <div className="flex justify-between items-end">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800">
-                            Directory Management
-                        </h1>
+                        <h1 className="text-2xl font-bold text-gray-800">Directory Management</h1>
                         <p className="text-gray-500 text-sm mt-1">
-                            Manage system access, assign HODs, and provision
-                            administrative accounts.
+                            Manage system access, assign HODs, and provision administrative accounts.
                         </p>
                     </div>
                     <button
@@ -146,25 +117,17 @@ export default function UsersIndex({ users, departments }) {
                             <tr>
                                 <th className="px-6 py-4">Name & Email</th>
                                 <th className="px-6 py-4">System Role</th>
-                                <th className="px-6 py-4">
-                                    Assigned Department
-                                </th>
-                                <th className="px-6 py-4 text-right">
-                                    Actions
-                                </th>
+                                <th className="px-6 py-4">Assigned Department</th>
+                                <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {users.data.map((user) => {
-                                const RoleIcon =
-                                    roleStyles[user.role]?.icon || UserIcon;
+                                const RoleIcon = roleStyles[user.role]?.icon || UserIcon;
                                 const isSelf = user.id === auth.user.id;
 
                                 return (
-                                    <tr
-                                        key={user.id}
-                                        className="hover:bg-slate-50/50 transition-colors"
-                                    >
+                                    <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="font-bold text-slate-800">
                                                 {user.name}{" "}
@@ -174,9 +137,7 @@ export default function UsersIndex({ users, departments }) {
                                                     </span>
                                                 )}
                                             </div>
-                                            <div className="text-slate-500 text-xs mt-0.5">
-                                                {user.email}
-                                            </div>
+                                            <div className="text-slate-500 text-xs mt-0.5">{user.email}</div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span
@@ -187,17 +148,11 @@ export default function UsersIndex({ users, departments }) {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-slate-600 font-medium">
-                                            {user.department || (
-                                                <span className="text-slate-300">
-                                                    -
-                                                </span>
-                                            )}
+                                            {user.department || <span className="text-slate-300">-</span>}
                                         </td>
                                         <td className="px-6 py-4 text-right space-x-3">
                                             <button
-                                                onClick={() =>
-                                                    openEditModal(user)
-                                                }
+                                                onClick={() => openEditModal(user)}
                                                 className="text-indigo-600 hover:text-indigo-900 transition"
                                                 title="Edit Role"
                                             >
@@ -205,9 +160,7 @@ export default function UsersIndex({ users, departments }) {
                                             </button>
                                             {!isSelf && (
                                                 <button
-                                                    onClick={() =>
-                                                        setDeletingUser(user)
-                                                    }
+                                                    onClick={() => setDeletingUser(user)}
                                                     className="text-red-500 hover:text-red-700 transition"
                                                     title="Delete User"
                                                 >
@@ -220,10 +173,7 @@ export default function UsersIndex({ users, departments }) {
                             })}
                             {users.data.length === 0 && (
                                 <tr>
-                                    <td
-                                        colSpan={4}
-                                        className="px-6 py-12 text-center text-slate-400"
-                                    >
+                                    <td colSpan={4} className="px-6 py-12 text-center text-slate-400">
                                         No users found in the system.
                                     </td>
                                 </tr>
@@ -250,41 +200,27 @@ export default function UsersIndex({ users, departments }) {
             {editingUser && (
                 <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-xl border border-slate-100">
-                        <h2 className="text-xl font-bold mb-1 text-slate-900">
-                            Modify Access
-                        </h2>
+                        <h2 className="text-xl font-bold mb-1 text-slate-900">Modify Access</h2>
                         <p className="text-sm text-slate-500 mb-6">
                             Updating permissions for{" "}
-                            <span className="font-semibold text-slate-700">
-                                {editingUser.name}
-                            </span>
+                            <span className="font-semibold text-slate-700">{editingUser.name}</span>
                         </p>
 
                         <form onSubmit={submitEdit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1.5">
-                                    System Role
-                                </label>
+                                <label className="block text-sm font-bold text-slate-700 mb-1.5">System Role</label>
                                 <select
                                     className="w-full border-slate-200 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                                     value={editForm.data.role}
                                     onChange={(e) => {
-                                        editForm.setData(
-                                            "role",
-                                            e.target.value,
-                                        );
-                                        if (e.target.value !== "hod")
-                                            editForm.setData("department", "");
+                                        editForm.setData("role", e.target.value);
+                                        if (e.target.value !== "hod") editForm.setData("department", "");
                                         editForm.clearErrors("role");
                                     }}
                                 >
                                     <option value="applicant">Applicant</option>
-                                    <option value="hod">
-                                        Head of Department (HOD)
-                                    </option>
-                                    <option value="admin">
-                                        System Administrator
-                                    </option>
+                                    <option value="hod">Head of Department (HOD)</option>
+                                    <option value="admin">System Administrator</option>
                                 </select>
                                 {editForm.errors.role && (
                                     <span className="text-red-500 text-xs mt-1 block font-medium">
@@ -301,24 +237,12 @@ export default function UsersIndex({ users, departments }) {
                                     <select
                                         className="w-full border-slate-200 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                                         value={editForm.data.department}
-                                        onChange={(e) =>
-                                            editForm.setData(
-                                                "department",
-                                                e.target.value,
-                                            )
-                                        }
+                                        onChange={(e) => editForm.setData("department", e.target.value)}
                                         required={editForm.data.role === "hod"}
                                     >
-                                        <option value="">
-                                            -- Select Department --
-                                        </option>
-                                        {getAvailableDepartments(
-                                            editingUser.department,
-                                        ).map((dept) => (
-                                            <option
-                                                key={dept.id}
-                                                value={dept.name}
-                                            >
+                                        <option value="">-- Select Department --</option>
+                                        {getAvailableDepartments(editingUser.department).map((dept) => (
+                                            <option key={dept.id} value={dept.name}>
                                                 {dept.name}
                                             </option>
                                         ))}
@@ -348,9 +272,7 @@ export default function UsersIndex({ users, departments }) {
                                     className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition shadow-sm"
                                     disabled={editForm.processing}
                                 >
-                                    {editForm.processing
-                                        ? "Saving..."
-                                        : "Confirm Changes"}
+                                    {editForm.processing ? "Saving..." : "Confirm Changes"}
                                 </button>
                             </div>
                         </form>
@@ -362,34 +284,21 @@ export default function UsersIndex({ users, departments }) {
             {isCreating && (
                 <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-xl border border-slate-100">
-                        <h2 className="text-xl font-bold mb-1 text-slate-900">
-                            Provision Staff Account
-                        </h2>
-                        <p className="text-sm text-slate-500 mb-6">
-                            Manually create an Admin or HOD profile.
-                        </p>
+                        <h2 className="text-xl font-bold mb-1 text-slate-900">Provision Staff Account</h2>
+                        <p className="text-sm text-slate-500 mb-6">Manually create an Admin or HOD profile.</p>
 
                         <form onSubmit={submitCreate} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1.5">
-                                    Full Name
-                                </label>
+                                <label className="block text-sm font-bold text-slate-700 mb-1.5">Full Name</label>
                                 <input
                                     type="text"
                                     className="w-full border-slate-200 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                                     value={createForm.data.name}
-                                    onChange={(e) =>
-                                        createForm.setData(
-                                            "name",
-                                            e.target.value,
-                                        )
-                                    }
+                                    onChange={(e) => createForm.setData("name", e.target.value)}
                                     required
                                 />
                                 {createForm.errors.name && (
-                                    <span className="text-red-500 text-xs mt-1 block">
-                                        {createForm.errors.name}
-                                    </span>
+                                    <span className="text-red-500 text-xs mt-1 block">{createForm.errors.name}</span>
                                 )}
                             </div>
 
@@ -402,10 +311,7 @@ export default function UsersIndex({ users, departments }) {
                                     className={`w-full border-slate-200 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm ${createForm.errors.email ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""}`}
                                     value={createForm.data.email}
                                     onChange={(e) => {
-                                        createForm.setData(
-                                            "email",
-                                            e.target.value,
-                                        );
+                                        createForm.setData("email", e.target.value);
                                         createForm.clearErrors("email");
                                     }}
                                     required
@@ -418,30 +324,17 @@ export default function UsersIndex({ users, departments }) {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1.5">
-                                    System Role
-                                </label>
+                                <label className="block text-sm font-bold text-slate-700 mb-1.5">System Role</label>
                                 <select
                                     className="w-full border-slate-200 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                                     value={createForm.data.role}
                                     onChange={(e) => {
-                                        createForm.setData(
-                                            "role",
-                                            e.target.value,
-                                        );
-                                        if (e.target.value !== "hod")
-                                            createForm.setData(
-                                                "department",
-                                                "",
-                                            );
+                                        createForm.setData("role", e.target.value);
+                                        if (e.target.value !== "hod") createForm.setData("department", "");
                                     }}
                                 >
-                                    <option value="hod">
-                                        Head of Department (HOD)
-                                    </option>
-                                    <option value="admin">
-                                        System Administrator
-                                    </option>
+                                    <option value="hod">Head of Department (HOD)</option>
+                                    <option value="admin">System Administrator</option>
                                 </select>
                             </div>
 
@@ -453,29 +346,15 @@ export default function UsersIndex({ users, departments }) {
                                     <select
                                         className="w-full border-slate-200 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                                         value={createForm.data.department}
-                                        onChange={(e) =>
-                                            createForm.setData(
-                                                "department",
-                                                e.target.value,
-                                            )
-                                        }
-                                        required={
-                                            createForm.data.role === "hod"
-                                        }
+                                        onChange={(e) => createForm.setData("department", e.target.value)}
+                                        required={createForm.data.role === "hod"}
                                     >
-                                        <option value="">
-                                            -- Select Department --
-                                        </option>
-                                        {getAvailableDepartments().map(
-                                            (dept) => (
-                                                <option
-                                                    key={dept.id}
-                                                    value={dept.name}
-                                                >
-                                                    {dept.name}
-                                                </option>
-                                            ),
-                                        )}
+                                        <option value="">-- Select Department --</option>
+                                        {getAvailableDepartments().map((dept) => (
+                                            <option key={dept.id} value={dept.name}>
+                                                {dept.name}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                             )}
@@ -497,9 +376,7 @@ export default function UsersIndex({ users, departments }) {
                                     className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition shadow-sm"
                                     disabled={createForm.processing}
                                 >
-                                    {createForm.processing
-                                        ? "Creating..."
-                                        : "Provision Account"}
+                                    {createForm.processing ? "Creating..." : "Provision Account"}
                                 </button>
                             </div>
                         </form>

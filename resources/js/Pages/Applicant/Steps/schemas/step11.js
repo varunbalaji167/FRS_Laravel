@@ -1,7 +1,6 @@
 import { z } from "zod";
 
-const requiredFile = (msg) =>
-    z.any().refine((v) => v instanceof File || (typeof v === "string" && v.length > 0), msg);
+const requiredFile = (msg) => z.any().refine((v) => v instanceof File || (typeof v === "string" && v.length > 0), msg);
 const optionalFile = z.any().optional();
 
 // Mirrors app/Http/Requests/Applicant/Rules/StepDocumentsRules.php — keep the

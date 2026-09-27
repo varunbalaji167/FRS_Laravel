@@ -11,10 +11,7 @@ export default function RadioField({ id, label, value, onChange, error, required
                 {normalized.map((opt) => (
                     <label
                         key={opt.value}
-                        className={cn(
-                            "flex items-center gap-2 text-sm text-gray-700",
-                            disabled && "opacity-50"
-                        )}
+                        className={cn("flex items-center gap-2 text-sm text-gray-700", disabled && "opacity-50")}
                     >
                         <input
                             type="radio"

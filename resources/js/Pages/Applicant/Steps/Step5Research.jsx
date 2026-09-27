@@ -61,8 +61,7 @@ export default function Step5Research({ data, setData, localErrors = {} }) {
             ...specialization,
             [field]: value,
         });
-    const handleSummaryChange = (field, value) =>
-        updateResSection("summary", { ...summary, [field]: value });
+    const handleSummaryChange = (field, value) => updateResSection("summary", { ...summary, [field]: value });
     const handleArrayChange = (section, index, field, value) => {
         const currentArray = [...(res[section] || [])];
         currentArray[index] = { ...currentArray[index], [field]: value };
@@ -84,12 +83,9 @@ export default function Step5Research({ data, setData, localErrors = {} }) {
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
             <div>
-                <h3 className="text-2xl font-bold text-slate-900">
-                    4. Research & Publications
-                </h3>
+                <h3 className="text-2xl font-bold text-slate-900">4. Research & Publications</h3>
                 <p className="text-sm text-slate-500 mt-1">
-                    Provide your areas of expertise, a summary of your output,
-                    and your top publications.
+                    Provide your areas of expertise, a summary of your output, and your top publications.
                 </p>
             </div>
 
@@ -124,9 +120,7 @@ export default function Step5Research({ data, setData, localErrors = {} }) {
 
             {/* --- (B) Summary of Publications --- */}
             <div className="space-y-4">
-                <h4 className="font-bold text-lg text-slate-800 border-b pb-2">
-                    Summary of Publications
-                </h4>
+                <h4 className="font-bold text-lg text-slate-800 border-b pb-2">Summary of Publications</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
                     {SUMMARY_FIELDS.map(({ key, label, className }) => (
                         <div key={key} className={className}>
@@ -146,9 +140,7 @@ export default function Step5Research({ data, setData, localErrors = {} }) {
             {/* --- (C) Best Publications List --- */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
-                    <h4 className="font-bold text-lg text-slate-800">
-                        List of Best Research Publications (Max 10)
-                    </h4>
+                    <h4 className="font-bold text-lg text-slate-800">List of Best Research Publications (Max 10)</h4>
                     <Button
                         type="button"
                         size="sm"

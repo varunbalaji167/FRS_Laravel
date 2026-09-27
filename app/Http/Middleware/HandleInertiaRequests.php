@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
@@ -26,7 +27,7 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'status' => fn () => $request->session()->get('status'),
                 'error' => fn () => $request->session()->get('error'),
-                'success' => fn () => $request->session()->get('success'), 
+                'success' => fn () => $request->session()->get('success'),
             ],
         ];
     }

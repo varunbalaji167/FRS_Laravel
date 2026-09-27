@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class JobApplication extends Model
 {
@@ -13,12 +14,13 @@ class JobApplication extends Model
         'user_id',
         'advertisement_id',
         'department',
+        'department_id',
         'grade',
-        'form_data', 
+        'form_data',
         'sop',
         'research_interest',
         'status',
-        'submitted_at', 
+        'submitted_at',
     ];
 
     protected $casts = [
@@ -28,17 +30,32 @@ class JobApplication extends Model
 
     /**
      * Get the user that owns the application.
+     *
+     * @return BelongsTo<User, $this>
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
     /**
      * Get the advertisement that this application is for.
+     *
+     * @return BelongsTo<Advertisement, $this>
      */
-    public function advertisement()
+    public function advertisement(): BelongsTo
     {
         return $this->belongsTo(Advertisement::class);
+    }
+
+    /**
+     * See User::departmentModel() — same Phase 8 FK cutover, same naming
+     * rationale (avoids colliding with the legacy `department` string).
+     *
+     * @return BelongsTo<Department, $this>
+     */
+    public function departmentModel(): BelongsTo
+    {
+        return $this->belongsTo(Department::class, 'department_id');
     }
 }

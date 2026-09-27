@@ -1,29 +1,10 @@
 import { Head, Link } from "@inertiajs/react";
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-    CardFooter,
-} from "@/Components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/Components/ui/card";
 import { Button } from "@/Components/ui/button";
-import {
-    CalendarDays,
-    Building2,
-    ArrowRight,
-    Inbox,
-    CheckCircle2,
-    Download,
-    FileText,
-    Clock,
-} from "lucide-react";
+import { CalendarDays, Building2, ArrowRight, Inbox, CheckCircle2, Download, FileText, Clock } from "lucide-react";
 import ApplicantLayout from "@/Layouts/ApplicantLayout";
 
-export default function Dashboard({
-    advertisements = [],
-    submittedAdvtIds = [],
-    draftAdvtIds = [],
-}) {
+export default function Dashboard({ advertisements = [], submittedAdvtIds = [], draftAdvtIds = [] }) {
     return (
         <ApplicantLayout>
             <Head title="Applicant Dashboard" />
@@ -35,9 +16,8 @@ export default function Dashboard({
                         Active Recruitment Drives
                     </h1>
                     <p className="mt-3 text-slate-300 font-medium max-w-2xl text-lg">
-                        Browse the latest IIT Indore faculty recruitment
-                        advertisements. Review the official documents and begin
-                        your formal application process.
+                        Browse the latest IIT Indore faculty recruitment advertisements. Review the official documents
+                        and begin your formal application process.
                     </p>
                 </div>
             </div>
@@ -67,9 +47,7 @@ export default function Dashboard({
                                 className={`flex flex-col shadow-sm hover:shadow-lg transition-all duration-300 group ${bgColor} border-none ring-1 ${ringColor}`}
                             >
                                 {/* Top Color Bar */}
-                                <div
-                                    className={`h-1.5 w-full rounded-t-xl ${topBarColor}`}
-                                ></div>
+                                <div className={`h-1.5 w-full rounded-t-xl ${topBarColor}`}></div>
 
                                 <CardHeader className="pb-4">
                                     <div className="flex justify-between items-start mb-2">
@@ -80,14 +58,12 @@ export default function Dashboard({
                                         {/* Status Badges */}
                                         {hasSubmitted && (
                                             <span className="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-bold text-emerald-600">
-                                                <CheckCircle2 className="h-3 w-3 mr-1" />{" "}
-                                                Applied
+                                                <CheckCircle2 className="h-3 w-3 mr-1" /> Applied
                                             </span>
                                         )}
                                         {hasDraft && (
                                             <span className="inline-flex items-center rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-xs font-bold text-amber-700">
-                                                <Clock className="h-3 w-3 mr-1" />{" "}
-                                                Draft Saved
+                                                <Clock className="h-3 w-3 mr-1" /> Draft Saved
                                             </span>
                                         )}
                                     </div>
@@ -109,16 +85,11 @@ export default function Dashboard({
                                                 Application Deadline
                                             </p>
                                             <p className="text-sm font-semibold">
-                                                {new Date(
-                                                    advt.deadline,
-                                                ).toLocaleDateString(
-                                                    undefined,
-                                                    {
-                                                        year: "numeric",
-                                                        month: "long",
-                                                        day: "numeric",
-                                                    },
-                                                )}
+                                                {new Date(advt.deadline).toLocaleDateString(undefined, {
+                                                    year: "numeric",
+                                                    month: "long",
+                                                    day: "numeric",
+                                                })}
                                             </p>
                                         </div>
                                     </div>
@@ -126,15 +97,10 @@ export default function Dashboard({
                                     <div>
                                         <div className="flex items-center gap-2 mb-2 text-slate-800">
                                             <Building2 className="h-4 w-4 text-slate-400" />
-                                            <h3 className="text-sm font-bold">
-                                                Applicable Departments /
-                                                Schools:
-                                            </h3>
+                                            <h3 className="text-sm font-bold">Applicable Departments / Schools:</h3>
                                         </div>
                                         <div className="flex flex-wrap gap-2 mt-2">
-                                            {Object.keys(
-                                                advt.departments || {},
-                                            ).map((dept, index) => (
+                                            {Object.keys(advt.departments || {}).map((dept, index) => (
                                                 <span
                                                     key={index}
                                                     className="inline-flex items-center rounded-md bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 ring-1 ring-inset ring-slate-200 shadow-sm"
@@ -157,8 +123,7 @@ export default function Dashboard({
                                             variant="outline"
                                             className="w-full bg-white border-slate-300 text-slate-700 hover:bg-slate-50 font-bold shadow-sm"
                                         >
-                                            <Download className="mr-2 h-4 w-4" />{" "}
-                                            View PDF
+                                            <Download className="mr-2 h-4 w-4" /> View PDF
                                         </Button>
                                     </a>
 
@@ -168,33 +133,18 @@ export default function Dashboard({
                                             disabled
                                             className="w-full sm:w-1/2 bg-slate-200 text-slate-500 font-bold cursor-not-allowed"
                                         >
-                                            <CheckCircle2 className="mr-2 h-4 w-4" />{" "}
-                                            Application Locked
+                                            <CheckCircle2 className="mr-2 h-4 w-4" /> Application Locked
                                         </Button>
                                     ) : hasDraft ? (
-                                        <Link
-                                            href={route(
-                                                "applicant.apply",
-                                                advt.id,
-                                            )}
-                                            className="w-full sm:w-1/2"
-                                        >
+                                        <Link href={route("applicant.apply", advt.id)} className="w-full sm:w-1/2">
                                             <Button className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold shadow-md hover:shadow-lg transition-all">
-                                                Resume Draft{" "}
-                                                <ArrowRight className="ml-2 h-4 w-4" />
+                                                Resume Draft <ArrowRight className="ml-2 h-4 w-4" />
                                             </Button>
                                         </Link>
                                     ) : (
-                                        <Link
-                                            href={route(
-                                                "applicant.apply",
-                                                advt.id,
-                                            )}
-                                            className="w-full sm:w-1/2"
-                                        >
+                                        <Link href={route("applicant.apply", advt.id)} className="w-full sm:w-1/2">
                                             <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md hover:shadow-lg transition-all">
-                                                Apply Now{" "}
-                                                <ArrowRight className="ml-2 h-4 w-4" />
+                                                Apply Now <ArrowRight className="ml-2 h-4 w-4" />
                                             </Button>
                                         </Link>
                                     )}
@@ -207,12 +157,9 @@ export default function Dashboard({
                 {advertisements.length === 0 && (
                     <div className="flex flex-col items-center justify-center text-center py-24 px-6 bg-white rounded-2xl border-2 border-dashed border-slate-200 shadow-sm">
                         <Inbox className="h-16 w-16 text-slate-300 mb-4" />
-                        <h3 className="text-xl font-bold text-slate-900">
-                            No Recruitment Drives Available
-                        </h3>
+                        <h3 className="text-xl font-bold text-slate-900">No Recruitment Drives Available</h3>
                         <p className="text-slate-500 mt-2 max-w-md">
-                            There are currently no active faculty recruitment
-                            advertisements. Please check back later.
+                            There are currently no active faculty recruitment advertisements. Please check back later.
                         </p>
                     </div>
                 )}

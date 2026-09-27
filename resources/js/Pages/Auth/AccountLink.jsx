@@ -27,25 +27,16 @@ export default function AccountLink({ email }) {
                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 shadow-sm">
                         <ShieldCheck className="h-6 w-6 text-white" />
                     </div>
-                    <h2 className="font-serif text-2xl font-bold text-slate-900">
-                        Confirm it&rsquo;s you
-                    </h2>
+                    <h2 className="font-serif text-2xl font-bold text-slate-900">Confirm it&rsquo;s you</h2>
                     <p className="mt-2 text-sm font-medium text-slate-500">
-                        An account already exists for{" "}
-                        <span className="font-bold text-slate-700">
-                            {email}
-                        </span>
-                        . Enter its password to link your Google sign-in to
-                        it.
+                        An account already exists for <span className="font-bold text-slate-700">{email}</span>. Enter
+                        its password to link your Google sign-in to it.
                     </p>
                 </div>
 
                 <form onSubmit={submit} className="flex flex-col gap-5">
                     <div className="space-y-2">
-                        <Label
-                            htmlFor="password"
-                            className="text-sm font-semibold text-slate-900"
-                        >
+                        <Label htmlFor="password" className="text-sm font-semibold text-slate-900">
                             Password
                         </Label>
                         <div className="relative">
@@ -54,9 +45,7 @@ export default function AccountLink({ email }) {
                                 id="password"
                                 type={showPassword ? "text" : "password"}
                                 value={data.password}
-                                onChange={(e) =>
-                                    setData("password", e.target.value)
-                                }
+                                onChange={(e) => setData("password", e.target.value)}
                                 placeholder="Enter your password"
                                 autoFocus
                                 className={`pl-10 pr-10 h-11 bg-slate-50/50 border-slate-200 focus:bg-white transition-colors ${errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}`}
@@ -67,18 +56,10 @@ export default function AccountLink({ email }) {
                                 onClick={() => setShowPassword(!showPassword)}
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors"
                             >
-                                {showPassword ? (
-                                    <EyeOff className="h-4 w-4" />
-                                ) : (
-                                    <Eye className="h-4 w-4" />
-                                )}
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </button>
                         </div>
-                        {errors.password && (
-                            <p className="text-xs font-medium text-red-500">
-                                {errors.password}
-                            </p>
-                        )}
+                        {errors.password && <p className="text-xs font-medium text-red-500">{errors.password}</p>}
                     </div>
 
                     <Button
@@ -88,8 +69,7 @@ export default function AccountLink({ email }) {
                     >
                         {processing ? (
                             <>
-                                <Loader2 className="h-4 w-4 animate-spin mr-2" />{" "}
-                                Linking...
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" /> Linking...
                             </>
                         ) : (
                             "Confirm and link account"

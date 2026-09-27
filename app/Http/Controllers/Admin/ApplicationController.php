@@ -11,6 +11,7 @@ use App\Models\Department;
 use App\Models\JobApplication;
 use App\Services\Applications\DossierExporter;
 use App\Services\Auditing\AdminActionRecorder;
+use App\Services\Reporting\DashboardAggregator;
 use App\Support\ErrorCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,11 @@ class ApplicationController extends Controller
     /**
      * Enforce departmental security boundaries.
      * Admins see all applications. HODs only see applications for their assigned department.
+     *
+     * Scopes by department_id when FEATURE_DEPARTMENT_FK is on (see
+     * config/features.php) so a department rename can't silently widen or
+     * break an HOD's scope — the string `department` column is only a
+     * display label at that point, no longer the security boundary.
      */
     private function getScopedQuery(Request $request)
     {
@@ -33,7 +39,11 @@ class ApplicationController extends Controller
             ->whereIn('status', ['submitted', 'shortlisted', 'rejected']);
 
         if ($request->user()->role === 'hod') {
-            $query->where('department', $request->user()->department);
+            if (config('features.department_fk')) {
+                $query->where('department_id', $request->user()->department_id);
+            } else {
+                $query->where('department', $request->user()->department);
+            }
         }
 
         return $query;
@@ -52,7 +62,12 @@ class ApplicationController extends Controller
             ->whereIn('status', ['submitted', 'shortlisted', 'rejected'])
             ->findOrFail($id);
 
-        if ($request->user()->role === 'hod' && $application->department !== $request->user()->department) {
+        $user = $request->user();
+        $outOfScope = config('features.department_fk')
+            ? $application->department_id !== $user->department_id
+            : $application->department !== $user->department;
+
+        if ($user->role === 'hod' && $outOfScope) {
             throw new DomainException(ErrorCode::HOD_DEPT_SCOPE_VIOLATION);
         }
 
@@ -106,7 +121,7 @@ class ApplicationController extends Controller
             // On the initial full page load all props are requested, so all three
             // closures run and their data reaches the frontend as normal.
             'advertisements' => fn () => Advertisement::select('id', 'title', 'reference_number')->get(),
-            'departments' => fn () => Department::orderBy('name')->get(),
+            'departments' => fn () => Department::allCached(),
             'filters' => fn () => $request->only(['advertisement_id', 'department', 'status']),
         ]);
     }
@@ -123,7 +138,7 @@ class ApplicationController extends Controller
         ]);
     }
 
-    public function updateStatus(UpdateStatusRequest $request, $id, AdminActionRecorder $adminActions)
+    public function updateStatus(UpdateStatusRequest $request, $id, AdminActionRecorder $adminActions, DashboardAggregator $dashboard)
     {
         $application = $this->findVisibleOrFail($request, $id);
         $from = $application->status;
@@ -141,6 +156,8 @@ class ApplicationController extends Controller
         });
 
         $adminActions->record($request, 'application.status_updated', $application, ['status' => $from], ['status' => $request->status]);
+
+        $dashboard->forget($application->department);
 
         return back()->with('success', "Application status updated to {$request->status}.");
     }

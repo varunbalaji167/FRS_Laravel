@@ -25,11 +25,7 @@ const PROJECT_FIELDS = [
     { key: "status", label: "Status", className: "md:col-span-2", placeholder: "Ongoing / Completed" },
 ];
 
-export default function Step7AwardsProjects({
-    data,
-    setData,
-    localErrors = {},
-}) {
+export default function Step7AwardsProjects({ data, setData }) {
     const ap = data.form_data.awards_projects || {};
     const awards = ap.awards || [];
     const phd_supervision = ap.phd_supervision || [];
@@ -152,21 +148,16 @@ export default function Step7AwardsProjects({
         <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
             <div>
                 {/* Main Header with correct sequential numbering */}
-                <h3 className="text-2xl font-bold text-slate-900">
-                    6. Awards, Supervision & Projects
-                </h3>
+                <h3 className="text-2xl font-bold text-slate-900">6. Awards, Supervision & Projects</h3>
                 <p className="text-sm text-slate-500 mt-1">
-                    Provide details of recognitions, student guidance, and
-                    funded research.
+                    Provide details of recognitions, student guidance, and funded research.
                 </p>
             </div>
 
             {/* (A) Awards and Recognitions */}
             <div className="space-y-4 bg-amber-50 p-5 rounded-xl border border-amber-100">
                 <div className="flex justify-between items-center border-b border-amber-200 pb-2">
-                    <h4 className="font-bold text-lg text-amber-900">
-                        (A) Award(s) and Recognition(s)
-                    </h4>
+                    <h4 className="font-bold text-lg text-amber-900">(A) Award(s) and Recognition(s)</h4>
                     <Button
                         type="button"
                         size="sm"
@@ -223,16 +214,12 @@ export default function Step7AwardsProjects({
 
             {/* (B) Research Supervision */}
             <div className="space-y-6">
-                <h4 className="font-bold text-xl text-slate-800 border-b pb-2">
-                    (B) Research Supervision
-                </h4>
+                <h4 className="font-bold text-xl text-slate-800 border-b pb-2">(B) Research Supervision</h4>
 
                 {/* (i) PhD */}
                 <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                        <h5 className="font-semibold text-slate-700">
-                            (i) PhD Thesis Supervision
-                        </h5>
+                        <h5 className="font-semibold text-slate-700">(i) PhD Thesis Supervision</h5>
                         <Button
                             type="button"
                             size="sm"
@@ -250,16 +237,14 @@ export default function Step7AwardsProjects({
                             <PlusCircle className="mr-2 h-4 w-4" /> Add PhD
                         </Button>
                     </div>
-                    {phd_supervision.map((item, idx) =>
-                        renderSupervisionRow("phd_supervision", item, idx),
-                    )}
+                    {phd_supervision.map((item, idx) => renderSupervisionRow("phd_supervision", item, idx))}
                 </div>
 
                 {/* (ii) Masters */}
                 <div className="space-y-2 pt-4 border-t border-slate-100">
                     <div className="flex justify-between items-center">
                         <h5 className="font-semibold text-slate-700">
-                            (ii) M.Tech/M.E./Master's Thesis Supervision
+                            (ii) M.Tech/M.E./Master&apos;s Thesis Supervision
                         </h5>
                         <Button
                             type="button"
@@ -275,19 +260,17 @@ export default function Step7AwardsProjects({
                                 })
                             }
                         >
-                            <PlusCircle className="mr-2 h-4 w-4" /> Add Master's
+                            <PlusCircle className="mr-2 h-4 w-4" /> Add Master&apos;s
                         </Button>
                     </div>
-                    {pg_supervision.map((item, idx) =>
-                        renderSupervisionRow("pg_supervision", item, idx),
-                    )}
+                    {pg_supervision.map((item, idx) => renderSupervisionRow("pg_supervision", item, idx))}
                 </div>
 
                 {/* (iii) Bachelors */}
                 <div className="space-y-2 pt-4 border-t border-slate-100">
                     <div className="flex justify-between items-center">
                         <h5 className="font-semibold text-slate-700">
-                            (iii) B.Tech/B.E./Bachelor's Project Supervision
+                            (iii) B.Tech/B.E./Bachelor&apos;s Project Supervision
                         </h5>
                         <Button
                             type="button"
@@ -303,13 +286,10 @@ export default function Step7AwardsProjects({
                                 })
                             }
                         >
-                            <PlusCircle className="mr-2 h-4 w-4" /> Add
-                            Bachelor's
+                            <PlusCircle className="mr-2 h-4 w-4" /> Add Bachelor&apos;s
                         </Button>
                     </div>
-                    {ug_supervision.map((item, idx) =>
-                        renderSupervisionRow("ug_supervision", item, idx),
-                    )}
+                    {ug_supervision.map((item, idx) => renderSupervisionRow("ug_supervision", item, idx))}
                 </div>
             </div>
 
@@ -322,9 +302,7 @@ export default function Step7AwardsProjects({
                 {/* (i) Sponsored Projects */}
                 <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                        <h5 className="font-semibold text-slate-700">
-                            (i) Sponsored Projects
-                        </h5>
+                        <h5 className="font-semibold text-slate-700">(i) Sponsored Projects</h5>
                         <Button
                             type="button"
                             size="sm"
@@ -343,17 +321,13 @@ export default function Step7AwardsProjects({
                             <PlusCircle className="mr-2 h-4 w-4" /> Add Project
                         </Button>
                     </div>
-                    {sponsored_projects.map((item, idx) =>
-                        renderProjectRow("sponsored_projects", item, idx),
-                    )}
+                    {sponsored_projects.map((item, idx) => renderProjectRow("sponsored_projects", item, idx))}
                 </div>
 
                 {/* (ii) Consultancy Projects */}
                 <div className="space-y-2 pt-4 border-t border-slate-200">
                     <div className="flex justify-between items-center">
-                        <h5 className="font-semibold text-slate-700">
-                            (ii) Consultancy Projects
-                        </h5>
+                        <h5 className="font-semibold text-slate-700">(ii) Consultancy Projects</h5>
                         <Button
                             type="button"
                             size="sm"
@@ -369,13 +343,10 @@ export default function Step7AwardsProjects({
                                 })
                             }
                         >
-                            <PlusCircle className="mr-2 h-4 w-4" /> Add
-                            Consultancy
+                            <PlusCircle className="mr-2 h-4 w-4" /> Add Consultancy
                         </Button>
                     </div>
-                    {consultancy_projects.map((item, idx) =>
-                        renderProjectRow("consultancy_projects", item, idx),
-                    )}
+                    {consultancy_projects.map((item, idx) => renderProjectRow("consultancy_projects", item, idx))}
                 </div>
             </div>
         </div>

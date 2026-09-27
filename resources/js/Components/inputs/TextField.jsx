@@ -2,7 +2,17 @@ import { Input } from "@/Components/ui/input";
 import FormField from "@/Components/inputs/FormField";
 
 export default function TextField({
-    id, label, value, onChange, error, required, placeholder, maxLength, disabled, hint, className,
+    id,
+    label,
+    value,
+    onChange,
+    error,
+    required,
+    placeholder,
+    maxLength,
+    disabled,
+    hint,
+    className,
 }) {
     return (
         <FormField label={label} htmlFor={id} error={error} required={required} hint={hint}>

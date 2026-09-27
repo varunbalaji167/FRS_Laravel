@@ -23,7 +23,9 @@ class RefereeNotification extends Mailable implements ShouldQueue
     public $timeout = 60;
 
     public JobApplication $application;
+
     public string $applicantName;
+
     public array $referee;
 
     public function __construct(JobApplication $application, string $applicantName, array $referee)

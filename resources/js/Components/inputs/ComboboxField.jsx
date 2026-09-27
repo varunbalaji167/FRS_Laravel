@@ -7,16 +7,21 @@ import { cn } from "@/lib/utils";
 // departments). Falls back to the typed value ("Other") with a mild warning
 // when it doesn't match anything in `options`.
 export default function ComboboxField({
-    id, label, value, onChange, error, required, options = [], placeholder, disabled,
+    id,
+    label,
+    value,
+    onChange,
+    error,
+    required,
+    options = [],
+    placeholder,
+    disabled,
 }) {
     const [query, setQuery] = useState("");
 
-    const filtered =
-        query === ""
-            ? options
-            : options.filter((opt) => opt.toLowerCase().includes(query.toLowerCase()));
+    const filtered = query === "" ? options : options.filter((opt) => opt.toLowerCase().includes(query.toLowerCase()));
 
-    const isOther = value && ! options.includes(value);
+    const isOther = value && !options.includes(value);
 
     return (
         <FormField
@@ -31,7 +36,7 @@ export default function ComboboxField({
                     <ComboboxInput
                         id={id}
                         className={cn(
-                            "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                            "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
                         )}
                         displayValue={(v) => v ?? ""}
                         placeholder={placeholder}
@@ -49,12 +54,12 @@ export default function ComboboxField({
                                 {opt}
                             </ComboboxOption>
                         ))}
-                        {query !== "" && ! options.includes(query) && (
+                        {query !== "" && !options.includes(query) && (
                             <ComboboxOption
                                 value={query}
                                 className="cursor-pointer border-t border-input px-3 py-2 text-sm italic text-gray-600 data-[focus]:bg-accent"
                             >
-                                Use "{query}" (Other)
+                                Use &quot;{query}&quot; (Other)
                             </ComboboxOption>
                         )}
                     </ComboboxOptions>

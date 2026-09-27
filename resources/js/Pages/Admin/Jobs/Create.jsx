@@ -3,46 +3,18 @@ import { Head, useForm } from "@inertiajs/react";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-    CardFooter,
-} from "@/Components/ui/card";
-import {
-    Calendar,
-    Send,
-    Loader2,
-    FileText,
-    Hash,
-    UploadCloud,
-} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/Components/ui/card";
+import { Calendar, Send, Loader2, FileText, Hash, UploadCloud } from "lucide-react";
 import AdminLayout from "@/Layouts/AdminLayout";
 
 // Grades remain hardcoded as they are fixed academic levels
-const GRADES = [
-    "Assistant Professor Grade II",
-    "Assistant Professor Grade I",
-    "Associate Professor",
-    "Professor",
-];
+const GRADES = ["Assistant Professor Grade II", "Assistant Professor Grade I", "Associate Professor", "Professor"];
 
 export default function CreateJob({ departments }) {
     // 1. Receive departments as prop
     const fileInputRef = useRef(null);
 
-    const {
-        data,
-        setData,
-        post,
-        processing,
-        errors,
-        reset,
-        setError,
-        clearErrors,
-    } = useForm({
+    const { data, setData, post, processing, errors, reset, setError, clearErrors } = useForm({
         reference_number: "",
         title: "",
         deadline: "",
@@ -83,10 +55,7 @@ export default function CreateJob({ departments }) {
 
         for (const deptName of selectedDepts) {
             if (data.departments[deptName].length === 0) {
-                setError(
-                    "departments",
-                    `You checked "${deptName}" but didn't select any grades for it!`,
-                );
+                setError("departments", `You checked "${deptName}" but didn't select any grades for it!`);
                 return;
             }
         }
@@ -115,8 +84,8 @@ export default function CreateJob({ departments }) {
                             Post Recruitment Advertisement
                         </CardTitle>
                         <CardDescription className="text-base font-medium text-slate-500 mt-2">
-                            Upload a consolidated recruitment PDF and select the
-                            exact roles available for each department.
+                            Upload a consolidated recruitment PDF and select the exact roles available for each
+                            department.
                         </CardDescription>
                     </CardHeader>
 
@@ -125,10 +94,7 @@ export default function CreateJob({ departments }) {
                             {/* Advt Number & Title */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <Label
-                                        htmlFor="reference_number"
-                                        className="font-bold text-slate-800"
-                                    >
+                                    <Label htmlFor="reference_number" className="font-bold text-slate-800">
                                         Advertisement Number
                                     </Label>
                                     <div className="relative">
@@ -136,28 +102,18 @@ export default function CreateJob({ departments }) {
                                         <Input
                                             id="reference_number"
                                             value={data.reference_number}
-                                            onChange={(e) =>
-                                                setData(
-                                                    "reference_number",
-                                                    e.target.value,
-                                                )
-                                            }
+                                            onChange={(e) => setData("reference_number", e.target.value)}
                                             placeholder="e.g. IITI/FACREC/2025/DEC/08"
                                             className={`pl-10 bg-white border-slate-200 shadow-sm transition-colors ${errors.reference_number ? "border-red-500 focus-visible:ring-red-500" : "focus-visible:ring-indigo-600"}`}
                                         />
                                     </div>
                                     {errors.reference_number && (
-                                        <p className="text-sm font-medium text-red-500">
-                                            {errors.reference_number}
-                                        </p>
+                                        <p className="text-sm font-medium text-red-500">{errors.reference_number}</p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label
-                                        htmlFor="title"
-                                        className="font-bold text-slate-800"
-                                    >
+                                    <Label htmlFor="title" className="font-bold text-slate-800">
                                         Display Title
                                     </Label>
                                     <div className="relative">
@@ -165,28 +121,19 @@ export default function CreateJob({ departments }) {
                                         <Input
                                             id="title"
                                             value={data.title}
-                                            onChange={(e) =>
-                                                setData("title", e.target.value)
-                                            }
+                                            onChange={(e) => setData("title", e.target.value)}
                                             placeholder="e.g. Special Recruitment Drive for SC/ST"
                                             className={`pl-10 bg-white border-slate-200 shadow-sm transition-colors ${errors.title ? "border-red-500 focus-visible:ring-red-500" : "focus-visible:ring-indigo-600"}`}
                                         />
                                     </div>
-                                    {errors.title && (
-                                        <p className="text-sm font-medium text-red-500">
-                                            {errors.title}
-                                        </p>
-                                    )}
+                                    {errors.title && <p className="text-sm font-medium text-red-500">{errors.title}</p>}
                                 </div>
                             </div>
 
                             {/* Deadline & File */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <Label
-                                        htmlFor="deadline"
-                                        className="font-bold text-slate-800"
-                                    >
+                                    <Label htmlFor="deadline" className="font-bold text-slate-800">
                                         Application Deadline
                                     </Label>
                                     <div className="relative">
@@ -195,27 +142,17 @@ export default function CreateJob({ departments }) {
                                             id="deadline"
                                             type="date"
                                             value={data.deadline}
-                                            onChange={(e) =>
-                                                setData(
-                                                    "deadline",
-                                                    e.target.value,
-                                                )
-                                            }
+                                            onChange={(e) => setData("deadline", e.target.value)}
                                             className={`pl-10 bg-white border-slate-200 shadow-sm transition-colors ${errors.deadline ? "border-red-500 focus-visible:ring-red-500" : "focus-visible:ring-indigo-600"}`}
                                         />
                                     </div>
                                     {errors.deadline && (
-                                        <p className="text-sm font-medium text-red-500">
-                                            {errors.deadline}
-                                        </p>
+                                        <p className="text-sm font-medium text-red-500">{errors.deadline}</p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label
-                                        htmlFor="document"
-                                        className="font-bold text-slate-800"
-                                    >
+                                    <Label htmlFor="document" className="font-bold text-slate-800">
                                         Upload PDF Advertisement
                                     </Label>
                                     <div className="relative flex items-center">
@@ -225,19 +162,12 @@ export default function CreateJob({ departments }) {
                                             type="file"
                                             accept="application/pdf"
                                             ref={fileInputRef}
-                                            onChange={(e) =>
-                                                setData(
-                                                    "document",
-                                                    e.target.files[0],
-                                                )
-                                            }
+                                            onChange={(e) => setData("document", e.target.files[0])}
                                             className={`pl-10 bg-white border-slate-200 shadow-sm cursor-pointer file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 ${errors.document ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                                         />
                                     </div>
                                     {errors.document && (
-                                        <p className="text-sm font-medium text-red-500">
-                                            {errors.document}
-                                        </p>
+                                        <p className="text-sm font-medium text-red-500">{errors.document}</p>
                                     )}
                                 </div>
                             </div>
@@ -248,17 +178,13 @@ export default function CreateJob({ departments }) {
                                     Applicable Departments & Roles
                                 </Label>
                                 <p className="text-sm text-slate-500">
-                                    Select a department, then select the
-                                    specific grades available for it.
+                                    Select a department, then select the specific grades available for it.
                                 </p>
 
                                 <div className="grid grid-cols-1 gap-4">
                                     {/* 2. Map through the dynamic departments prop */}
                                     {departments.map((dept) => {
-                                        const isSelected =
-                                            data.departments.hasOwnProperty(
-                                                dept.name,
-                                            );
+                                        const isSelected = Object.hasOwn(data.departments, dept.name);
                                         return (
                                             <div
                                                 key={dept.id}
@@ -270,11 +196,7 @@ export default function CreateJob({ departments }) {
                                                         type="checkbox"
                                                         className="h-5 w-5 rounded border-2 border-slate-300 checked:bg-indigo-600 transition-all"
                                                         checked={isSelected}
-                                                        onChange={() =>
-                                                            handleDepartmentToggle(
-                                                                dept.name,
-                                                            )
-                                                        }
+                                                        onChange={() => handleDepartmentToggle(dept.name)}
                                                     />
                                                     <span
                                                         className={`font-bold ${isSelected ? "text-indigo-900" : "text-slate-700"}`}
@@ -294,22 +216,12 @@ export default function CreateJob({ departments }) {
                                                                 <input
                                                                     type="checkbox"
                                                                     className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
-                                                                    checked={data.departments[
-                                                                        dept
-                                                                            .name
-                                                                    ].includes(
+                                                                    checked={data.departments[dept.name].includes(
                                                                         grade,
                                                                     )}
-                                                                    onChange={() =>
-                                                                        handleGradeToggle(
-                                                                            dept.name,
-                                                                            grade,
-                                                                        )
-                                                                    }
+                                                                    onChange={() => handleGradeToggle(dept.name, grade)}
                                                                 />
-                                                                <span className="text-sm text-slate-600">
-                                                                    {grade}
-                                                                </span>
+                                                                <span className="text-sm text-slate-600">{grade}</span>
                                                             </label>
                                                         ))}
                                                     </div>
@@ -320,8 +232,7 @@ export default function CreateJob({ departments }) {
                                 </div>
                                 {errors.departments && (
                                     <p className="text-sm font-medium text-red-500 mt-2">
-                                        You must select at least one department
-                                        and assign at least one grade.
+                                        You must select at least one department and assign at least one grade.
                                     </p>
                                 )}
                             </div>
@@ -335,13 +246,11 @@ export default function CreateJob({ departments }) {
                             >
                                 {processing ? (
                                     <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-                                        Publishing...
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Publishing...
                                     </>
                                 ) : (
                                     <>
-                                        <Send className="mr-2 h-4 w-4" />{" "}
-                                        Publish Advertisement
+                                        <Send className="mr-2 h-4 w-4" /> Publish Advertisement
                                     </>
                                 )}
                             </Button>

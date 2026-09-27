@@ -11,7 +11,7 @@ export default function step6Schema() {
         google_scholar: z
             .string()
             .optional()
-            .refine((v) => ! v || /^https?:\/\//.test(v), "Enter a valid URL."),
+            .refine((v) => !v || /^https?:\/\//.test(v), "Enter a valid URL."),
         societies: z.array(z.any()).optional(),
         training: z.array(z.any()).optional(),
     });

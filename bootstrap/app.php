@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\Handler;
 use App\Http\Middleware\AttachRequestId;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -35,7 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Single render pipeline — see docs/errors.md and Handler::render().
-        $exceptions->render(fn (Throwable $e, Request $request) => (new \App\Exceptions\Handler)->render($request, $e));
+        $exceptions->render(fn (Throwable $e, Request $request) => (new Handler)->render($request, $e));
 
         // Any unhandled exception that reaches a 500 in production is shown
         // as an Inertia page (Pages/Error.jsx) instead of Laravel's default

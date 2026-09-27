@@ -9,13 +9,7 @@ import { useState } from "react";
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Kept in sync with Step2Personal's dropdown options
-const ID_PROOF_TYPES = [
-    "Aadhar",
-    "PAN",
-    "Passport",
-    "Voter ID",
-    "Driving License",
-];
+const ID_PROOF_TYPES = ["Aadhar", "PAN", "Passport", "Voter ID", "Driving License"];
 
 export default function BasicProfileForm({ user, className = "" }) {
     const profile = user.applicant_profile || {};
@@ -103,10 +97,7 @@ export default function BasicProfileForm({ user, className = "" }) {
 
     // Sync combined id_proof whenever type or number changes
     const handleIdChange = (newType, newNum) => {
-        const combined =
-            newType && newNum
-                ? `${newType}: ${newNum}`
-                : newType || newNum || "";
+        const combined = newType && newNum ? `${newType}: ${newNum}` : newType || newNum || "";
         setData("id_proof", combined);
     };
 
@@ -140,10 +131,7 @@ export default function BasicProfileForm({ user, className = "" }) {
     const validate = () => {
         const errs = {};
 
-        if (
-            data.alt_email?.trim() &&
-            !EMAIL_REGEX.test(data.alt_email.trim())
-        ) {
+        if (data.alt_email?.trim() && !EMAIL_REGEX.test(data.alt_email.trim())) {
             errs.alt_email = "Invalid email format";
         }
 
@@ -160,16 +148,12 @@ export default function BasicProfileForm({ user, className = "" }) {
         if (data.phone_code && !/^\+\d{1,4}$/.test(data.phone_code.trim())) {
             errs.phone_code = "Format: +91";
         }
-        if (
-            data.alt_phone_code &&
-            !/^\+\d{1,4}$/.test(data.alt_phone_code.trim())
-        ) {
+        if (data.alt_phone_code && !/^\+\d{1,4}$/.test(data.alt_phone_code.trim())) {
             errs.alt_phone_code = "Format: +91";
         }
 
         // Type and number must both be present or both absent
-        if (idType && !idNum.trim())
-            errs.id_proof = "Please enter the ID number";
+        if (idType && !idNum.trim()) errs.id_proof = "Please enter the ID number";
         if (idNum.trim() && !idType) errs.id_proof = "Please select an ID type";
 
         setFrontendErrors(errs);
@@ -188,19 +172,15 @@ export default function BasicProfileForm({ user, className = "" }) {
     const inputClass =
         "mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm";
 
-    const isSaveDisabled =
-        processing || (!isDirty && !data.profile_image) || !!imageError;
+    const isSaveDisabled = processing || (!isDirty && !data.profile_image) || !!imageError;
 
     return (
         <section className={className}>
             <header className="mb-6">
-                <h2 className="text-xl font-bold text-slate-900">
-                    Master Profile
-                </h2>
+                <h2 className="text-xl font-bold text-slate-900">Master Profile</h2>
                 <p className="mt-1 text-sm text-slate-600">
-                    Keep this core information up to date. It will be used to
-                    automatically pre-fill your future IIT Indore job
-                    applications.
+                    Keep this core information up to date. It will be used to automatically pre-fill your future IIT
+                    Indore job applications.
                 </p>
             </header>
 
@@ -211,17 +191,11 @@ export default function BasicProfileForm({ user, className = "" }) {
             >
                 {/* ── 0. Profile Picture ─────────────────────────────────────────── */}
                 <div>
-                    <h3 className="text-base font-semibold leading-7 text-slate-900 border-b pb-2">
-                        Profile Picture
-                    </h3>
+                    <h3 className="text-base font-semibold leading-7 text-slate-900 border-b pb-2">Profile Picture</h3>
                     <div className="mt-4 flex items-center gap-x-6">
                         <div className="h-24 w-24 shrink-0 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden">
                             {preview ? (
-                                <img
-                                    src={preview}
-                                    alt="Profile Preview"
-                                    className="h-full w-full object-cover"
-                                />
+                                <img src={preview} alt="Profile Preview" className="h-full w-full object-cover" />
                             ) : (
                                 <User className="h-12 w-12 text-slate-400" />
                             )}
@@ -244,13 +218,9 @@ export default function BasicProfileForm({ user, className = "" }) {
                                     onChange={handleImageChange}
                                 />
                             </label>
-                            <p className="mt-2 text-xs text-slate-500">
-                                JPG, PNG up to 2MB.
-                            </p>
+                            <p className="mt-2 text-xs text-slate-500">JPG, PNG up to 2MB.</p>
                             {(imageError || allErrors.profile_image) && (
-                                <p className="mt-1 text-sm text-red-600">
-                                    {imageError || allErrors.profile_image}
-                                </p>
+                                <p className="mt-1 text-sm text-red-600">{imageError || allErrors.profile_image}</p>
                             )}
                         </div>
                     </div>
@@ -268,45 +238,30 @@ export default function BasicProfileForm({ user, className = "" }) {
                                 id="name"
                                 className={inputClass}
                                 value={data.name}
-                                onChange={(e) =>
-                                    setData("name", e.target.value)
-                                }
+                                onChange={(e) => setData("name", e.target.value)}
                                 required
                             />
-                            <InputError
-                                message={allErrors.name}
-                                className="mt-2"
-                            />
+                            <InputError message={allErrors.name} className="mt-2" />
                         </div>
 
                         <div>
-                            <InputLabel
-                                htmlFor="father_name"
-                                value="Father's Name"
-                            />
+                            <InputLabel htmlFor="father_name" value="Father's Name" />
                             <TextInput
                                 id="father_name"
                                 className={inputClass}
                                 value={data.father_name}
-                                onChange={(e) =>
-                                    setData("father_name", e.target.value)
-                                }
+                                onChange={(e) => setData("father_name", e.target.value)}
                             />
                         </div>
 
                         <div>
-                            <InputLabel
-                                htmlFor="date_of_birth"
-                                value="Date of Birth"
-                            />
+                            <InputLabel htmlFor="date_of_birth" value="Date of Birth" />
                             <TextInput
                                 id="date_of_birth"
                                 type="date"
                                 className={inputClass}
                                 value={data.date_of_birth}
-                                onChange={(e) =>
-                                    setData("date_of_birth", e.target.value)
-                                }
+                                onChange={(e) => setData("date_of_birth", e.target.value)}
                             />
                         </div>
 
@@ -316,9 +271,7 @@ export default function BasicProfileForm({ user, className = "" }) {
                                 id="gender"
                                 className={inputClass}
                                 value={data.gender}
-                                onChange={(e) =>
-                                    setData("gender", e.target.value)
-                                }
+                                onChange={(e) => setData("gender", e.target.value)}
                             >
                                 <option value="">Select Gender</option>
                                 <option value="Male">Male</option>
@@ -328,17 +281,12 @@ export default function BasicProfileForm({ user, className = "" }) {
                         </div>
 
                         <div>
-                            <InputLabel
-                                htmlFor="marital_status"
-                                value="Marital Status"
-                            />
+                            <InputLabel htmlFor="marital_status" value="Marital Status" />
                             <select
                                 id="marital_status"
                                 className={inputClass}
                                 value={data.marital_status}
-                                onChange={(e) =>
-                                    setData("marital_status", e.target.value)
-                                }
+                                onChange={(e) => setData("marital_status", e.target.value)}
                             >
                                 <option value="">Select</option>
                                 <option value="Married">Married</option>
@@ -352,9 +300,7 @@ export default function BasicProfileForm({ user, className = "" }) {
                                 id="category"
                                 className={inputClass}
                                 value={data.category}
-                                onChange={(e) =>
-                                    setData("category", e.target.value)
-                                }
+                                onChange={(e) => setData("category", e.target.value)}
                             >
                                 <option value="">Select Category</option>
                                 <option value="General">General</option>
@@ -366,17 +312,12 @@ export default function BasicProfileForm({ user, className = "" }) {
                         </div>
 
                         <div>
-                            <InputLabel
-                                htmlFor="nationality"
-                                value="Nationality"
-                            />
+                            <InputLabel htmlFor="nationality" value="Nationality" />
                             <TextInput
                                 id="nationality"
                                 className={inputClass}
                                 value={data.nationality}
-                                onChange={(e) =>
-                                    setData("nationality", e.target.value)
-                                }
+                                onChange={(e) => setData("nationality", e.target.value)}
                             />
                         </div>
 
@@ -413,11 +354,7 @@ export default function BasicProfileForm({ user, className = "" }) {
                                     }}
                                 />
                             </div>
-                            {allErrors.id_proof && (
-                                <p className="mt-1 text-sm text-red-600">
-                                    {allErrors.id_proof}
-                                </p>
-                            )}
+                            {allErrors.id_proof && <p className="mt-1 text-sm text-red-600">{allErrors.id_proof}</p>}
                         </div>
                     </div>
                 </div>
@@ -439,17 +376,13 @@ export default function BasicProfileForm({ user, className = "" }) {
                                 disabled
                             />
                             <p className="mt-1 text-xs text-slate-400">
-                                This is your login email. Change it under
-                                Account Settings.
+                                This is your login email. Change it under Account Settings.
                             </p>
                         </div>
 
                         {/* Alternate Email */}
                         <div>
-                            <InputLabel
-                                htmlFor="alt_email"
-                                value="Alternate Email"
-                            />
+                            <InputLabel htmlFor="alt_email" value="Alternate Email" />
                             <TextInput
                                 id="alt_email"
                                 type="email"
@@ -461,18 +394,12 @@ export default function BasicProfileForm({ user, className = "" }) {
                                     clearErr("alt_email");
                                 }}
                             />
-                            <InputError
-                                message={allErrors.alt_email}
-                                className="mt-1"
-                            />
+                            <InputError message={allErrors.alt_email} className="mt-1" />
                         </div>
 
                         {/* Primary Mobile — code + number */}
                         <div>
-                            <InputLabel
-                                htmlFor="phone"
-                                value="Primary Mobile"
-                            />
+                            <InputLabel htmlFor="phone" value="Primary Mobile" />
                             <div className="flex gap-2 mt-1">
                                 <TextInput
                                     type="text"
@@ -481,13 +408,7 @@ export default function BasicProfileForm({ user, className = "" }) {
                                     maxLength={5}
                                     placeholder="+91"
                                     onChange={(e) => {
-                                        setData(
-                                            "phone_code",
-                                            e.target.value.replace(
-                                                /[^\d+]/g,
-                                                "",
-                                            ),
-                                        );
+                                        setData("phone_code", e.target.value.replace(/[^\d+]/g, ""));
                                         clearErr("phone_code");
                                     }}
                                 />
@@ -499,27 +420,19 @@ export default function BasicProfileForm({ user, className = "" }) {
                                     maxLength={10}
                                     placeholder="10-digit number"
                                     onChange={(e) => {
-                                        setData(
-                                            "phone",
-                                            e.target.value.replace(/\D/g, ""),
-                                        );
+                                        setData("phone", e.target.value.replace(/\D/g, ""));
                                         clearErr("phone");
                                     }}
                                 />
                             </div>
                             {(allErrors.phone_code || allErrors.phone) && (
-                                <p className="mt-1 text-sm text-red-600">
-                                    {allErrors.phone_code || allErrors.phone}
-                                </p>
+                                <p className="mt-1 text-sm text-red-600">{allErrors.phone_code || allErrors.phone}</p>
                             )}
                         </div>
 
                         {/* Alternate Mobile — code + number */}
                         <div>
-                            <InputLabel
-                                htmlFor="alt_phone"
-                                value="Alternate Mobile"
-                            />
+                            <InputLabel htmlFor="alt_phone" value="Alternate Mobile" />
                             <div className="flex gap-2 mt-1">
                                 <TextInput
                                     type="text"
@@ -528,13 +441,7 @@ export default function BasicProfileForm({ user, className = "" }) {
                                     maxLength={5}
                                     placeholder="+91"
                                     onChange={(e) => {
-                                        setData(
-                                            "alt_phone_code",
-                                            e.target.value.replace(
-                                                /[^\d+]/g,
-                                                "",
-                                            ),
-                                        );
+                                        setData("alt_phone_code", e.target.value.replace(/[^\d+]/g, ""));
                                         clearErr("alt_phone_code");
                                     }}
                                 />
@@ -546,19 +453,14 @@ export default function BasicProfileForm({ user, className = "" }) {
                                     maxLength={10}
                                     placeholder="optional"
                                     onChange={(e) => {
-                                        setData(
-                                            "alt_phone",
-                                            e.target.value.replace(/\D/g, ""),
-                                        );
+                                        setData("alt_phone", e.target.value.replace(/\D/g, ""));
                                         clearErr("alt_phone");
                                     }}
                                 />
                             </div>
-                            {(allErrors.alt_phone_code ||
-                                allErrors.alt_phone) && (
+                            {(allErrors.alt_phone_code || allErrors.alt_phone) && (
                                 <p className="mt-1 text-sm text-red-600">
-                                    {allErrors.alt_phone_code ||
-                                        allErrors.alt_phone}
+                                    {allErrors.alt_phone_code || allErrors.alt_phone}
                                 </p>
                             )}
                         </div>
@@ -567,93 +469,55 @@ export default function BasicProfileForm({ user, className = "" }) {
 
                 {/* ── 3. Addresses ───────────────────────────────────────────────── */}
                 <div>
-                    <h3 className="text-base font-semibold leading-7 text-slate-900 border-b pb-2">
-                        3. Addresses
-                    </h3>
+                    <h3 className="text-base font-semibold leading-7 text-slate-900 border-b pb-2">3. Addresses</h3>
                     <div className="mt-4 grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
                         {/* Correspondence */}
                         <div className="space-y-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
-                            <h4 className="font-semibold text-slate-800">
-                                Correspondence Address
-                            </h4>
+                            <h4 className="font-semibold text-slate-800">Correspondence Address</h4>
                             <div>
-                                <InputLabel
-                                    htmlFor="corr_address"
-                                    value="Street Address"
-                                />
+                                <InputLabel htmlFor="corr_address" value="Street Address" />
                                 <TextInput
                                     id="corr_address"
                                     className={inputClass}
                                     value={data.corr_address}
-                                    onChange={(e) =>
-                                        setData("corr_address", e.target.value)
-                                    }
+                                    onChange={(e) => setData("corr_address", e.target.value)}
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <InputLabel
-                                        htmlFor="corr_city"
-                                        value="City"
-                                    />
+                                    <InputLabel htmlFor="corr_city" value="City" />
                                     <TextInput
                                         id="corr_city"
                                         className={inputClass}
                                         value={data.corr_city}
-                                        onChange={(e) =>
-                                            setData("corr_city", e.target.value)
-                                        }
+                                        onChange={(e) => setData("corr_city", e.target.value)}
                                     />
                                 </div>
                                 <div>
-                                    <InputLabel
-                                        htmlFor="corr_state"
-                                        value="State"
-                                    />
+                                    <InputLabel htmlFor="corr_state" value="State" />
                                     <TextInput
                                         id="corr_state"
                                         className={inputClass}
                                         value={data.corr_state}
-                                        onChange={(e) =>
-                                            setData(
-                                                "corr_state",
-                                                e.target.value,
-                                            )
-                                        }
+                                        onChange={(e) => setData("corr_state", e.target.value)}
                                     />
                                 </div>
                                 <div>
-                                    <InputLabel
-                                        htmlFor="corr_pincode"
-                                        value="Pincode"
-                                    />
+                                    <InputLabel htmlFor="corr_pincode" value="Pincode" />
                                     <TextInput
                                         id="corr_pincode"
                                         className={inputClass}
                                         value={data.corr_pincode}
-                                        onChange={(e) =>
-                                            setData(
-                                                "corr_pincode",
-                                                e.target.value,
-                                            )
-                                        }
+                                        onChange={(e) => setData("corr_pincode", e.target.value)}
                                     />
                                 </div>
                                 <div>
-                                    <InputLabel
-                                        htmlFor="corr_country"
-                                        value="Country"
-                                    />
+                                    <InputLabel htmlFor="corr_country" value="Country" />
                                     <TextInput
                                         id="corr_country"
                                         className={inputClass}
                                         value={data.corr_country}
-                                        onChange={(e) =>
-                                            setData(
-                                                "corr_country",
-                                                e.target.value,
-                                            )
-                                        }
+                                        onChange={(e) => setData("corr_country", e.target.value)}
                                     />
                                 </div>
                             </div>
@@ -662,9 +526,7 @@ export default function BasicProfileForm({ user, className = "" }) {
                         {/* Permanent */}
                         <div className="space-y-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
                             <div className="flex justify-between items-center">
-                                <h4 className="font-semibold text-slate-800">
-                                    Permanent Address
-                                </h4>
+                                <h4 className="font-semibold text-slate-800">Permanent Address</h4>
                                 <button
                                     type="button"
                                     onClick={copyAddress}
@@ -676,95 +538,59 @@ export default function BasicProfileForm({ user, className = "" }) {
                                 >
                                     {isAddressCopied ? (
                                         <>
-                                            <Check className="h-3 w-3 mr-1.5" />{" "}
-                                            Copied!
+                                            <Check className="h-3 w-3 mr-1.5" /> Copied!
                                         </>
                                     ) : (
                                         <>
-                                            <Copy className="h-3 w-3 mr-1.5" />{" "}
-                                            Same as Correspondence
+                                            <Copy className="h-3 w-3 mr-1.5" /> Same as Correspondence
                                         </>
                                     )}
                                 </button>
                             </div>
                             <div>
-                                <InputLabel
-                                    htmlFor="perm_address"
-                                    value="Street Address"
-                                />
+                                <InputLabel htmlFor="perm_address" value="Street Address" />
                                 <TextInput
                                     id="perm_address"
                                     className={inputClass}
                                     value={data.perm_address}
-                                    onChange={(e) =>
-                                        setData("perm_address", e.target.value)
-                                    }
+                                    onChange={(e) => setData("perm_address", e.target.value)}
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <InputLabel
-                                        htmlFor="perm_city"
-                                        value="City"
-                                    />
+                                    <InputLabel htmlFor="perm_city" value="City" />
                                     <TextInput
                                         id="perm_city"
                                         className={inputClass}
                                         value={data.perm_city}
-                                        onChange={(e) =>
-                                            setData("perm_city", e.target.value)
-                                        }
+                                        onChange={(e) => setData("perm_city", e.target.value)}
                                     />
                                 </div>
                                 <div>
-                                    <InputLabel
-                                        htmlFor="perm_state"
-                                        value="State"
-                                    />
+                                    <InputLabel htmlFor="perm_state" value="State" />
                                     <TextInput
                                         id="perm_state"
                                         className={inputClass}
                                         value={data.perm_state}
-                                        onChange={(e) =>
-                                            setData(
-                                                "perm_state",
-                                                e.target.value,
-                                            )
-                                        }
+                                        onChange={(e) => setData("perm_state", e.target.value)}
                                     />
                                 </div>
                                 <div>
-                                    <InputLabel
-                                        htmlFor="perm_pincode"
-                                        value="Pincode"
-                                    />
+                                    <InputLabel htmlFor="perm_pincode" value="Pincode" />
                                     <TextInput
                                         id="perm_pincode"
                                         className={inputClass}
                                         value={data.perm_pincode}
-                                        onChange={(e) =>
-                                            setData(
-                                                "perm_pincode",
-                                                e.target.value,
-                                            )
-                                        }
+                                        onChange={(e) => setData("perm_pincode", e.target.value)}
                                     />
                                 </div>
                                 <div>
-                                    <InputLabel
-                                        htmlFor="perm_country"
-                                        value="Country"
-                                    />
+                                    <InputLabel htmlFor="perm_country" value="Country" />
                                     <TextInput
                                         id="perm_country"
                                         className={inputClass}
                                         value={data.perm_country}
-                                        onChange={(e) =>
-                                            setData(
-                                                "perm_country",
-                                                e.target.value,
-                                            )
-                                        }
+                                        onChange={(e) => setData("perm_country", e.target.value)}
                                     />
                                 </div>
                             </div>
@@ -779,21 +605,13 @@ export default function BasicProfileForm({ user, className = "" }) {
                     </h3>
                     <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
                         <div>
-                            <InputLabel
-                                htmlFor="google_scholar_url"
-                                value="Google Scholar URL"
-                            />
+                            <InputLabel htmlFor="google_scholar_url" value="Google Scholar URL" />
                             <TextInput
                                 id="google_scholar_url"
                                 type="url"
                                 className={inputClass}
                                 value={data.google_scholar_url}
-                                onChange={(e) =>
-                                    setData(
-                                        "google_scholar_url",
-                                        e.target.value,
-                                    )
-                                }
+                                onChange={(e) => setData("google_scholar_url", e.target.value)}
                                 placeholder="https://scholar.google.com/..."
                             />
                         </div>
@@ -804,25 +622,18 @@ export default function BasicProfileForm({ user, className = "" }) {
                                 type="url"
                                 className={inputClass}
                                 value={data.orcid_url}
-                                onChange={(e) =>
-                                    setData("orcid_url", e.target.value)
-                                }
+                                onChange={(e) => setData("orcid_url", e.target.value)}
                                 placeholder="https://orcid.org/..."
                             />
                         </div>
                         <div>
-                            <InputLabel
-                                htmlFor="linkedin_url"
-                                value="LinkedIn URL"
-                            />
+                            <InputLabel htmlFor="linkedin_url" value="LinkedIn URL" />
                             <TextInput
                                 id="linkedin_url"
                                 type="url"
                                 className={inputClass}
                                 value={data.linkedin_url}
-                                onChange={(e) =>
-                                    setData("linkedin_url", e.target.value)
-                                }
+                                onChange={(e) => setData("linkedin_url", e.target.value)}
                                 placeholder="https://linkedin.com/in/..."
                             />
                         </div>
@@ -846,9 +657,7 @@ export default function BasicProfileForm({ user, className = "" }) {
                     </PrimaryButton>
 
                     {!isDirty && !data.profile_image && (
-                        <p className="text-xs text-slate-400 italic">
-                            No unsaved changes
-                        </p>
+                        <p className="text-xs text-slate-400 italic">No unsaved changes</p>
                     )}
                 </div>
             </form>

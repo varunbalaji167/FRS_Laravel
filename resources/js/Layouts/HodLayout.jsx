@@ -1,14 +1,6 @@
 import { useState } from "react";
 import { Link, usePage } from "@inertiajs/react";
-import {
-    LayoutDashboard,
-    Users,
-    LogOut,
-    Menu,
-    X,
-    Building2,
-    Settings,
-} from "lucide-react";
+import { LayoutDashboard, Users, LogOut, Menu, X, Building2, Settings } from "lucide-react";
 import { Button } from "@/Components/ui/button";
 import ToastListener from "@/Components/ToastListener";
 
@@ -55,10 +47,7 @@ export default function HodLayout({ children }) {
                     </div>
                     <div className="min-w-0 flex-1">
                         {/* Using title attribute for tooltip on hover since it truncates */}
-                        <p
-                            className="font-bold text-white truncate text-sm"
-                            title={department}
-                        >
+                        <p className="font-bold text-white truncate text-sm" title={department}>
                             {department}
                         </p>
                         <p className="text-[10px] text-purple-400 uppercase tracking-wider font-semibold mt-0.5">
@@ -92,10 +81,7 @@ export default function HodLayout({ children }) {
                             {(email?.charAt(0) || "U").toUpperCase()}
                         </div>
                         <div className="overflow-hidden min-w-0 flex-1">
-                            <p
-                                className="text-sm font-bold text-slate-300 truncate"
-                                title={email}
-                            >
+                            <p className="text-sm font-bold text-slate-300 truncate" title={email}>
                                 {email}
                             </p>
                         </div>
@@ -128,10 +114,7 @@ export default function HodLayout({ children }) {
                             <Building2 className="h-4 w-4" />
                         </div>
                         <div className="min-w-0">
-                            <span
-                                className="block font-bold text-white text-sm truncate"
-                                title={department}
-                            >
+                            <span className="block font-bold text-white text-sm truncate" title={department}>
                                 {department}
                             </span>
                             <span className="block text-[10px] text-purple-400 uppercase tracking-wider font-semibold">
@@ -144,11 +127,7 @@ export default function HodLayout({ children }) {
                         className="text-slate-300 hover:text-white p-2 rounded-md hover:bg-slate-800 transition-colors shrink-0"
                         aria-label="Toggle Menu"
                     >
-                        {isMobileMenuOpen ? (
-                            <X className="h-6 w-6" />
-                        ) : (
-                            <Menu className="h-6 w-6" />
-                        )}
+                        {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                     </button>
                 </header>
 
@@ -168,9 +147,7 @@ export default function HodLayout({ children }) {
                                     }`}
                                 >
                                     <item.icon className="h-6 w-6 shrink-0" />
-                                    <span className="text-base">
-                                        {item.name}
-                                    </span>
+                                    <span className="text-base">{item.name}</span>
                                 </Link>
                             ))}
                         </nav>
@@ -181,9 +158,7 @@ export default function HodLayout({ children }) {
                                     {(email?.charAt(0) || "U").toUpperCase()}
                                 </div>
                                 <div className="overflow-hidden min-w-0 flex-1">
-                                    <p className="text-base font-bold text-slate-300 truncate">
-                                        {email}
-                                    </p>
+                                    <p className="text-base font-bold text-slate-300 truncate">{email}</p>
                                 </div>
                             </div>
 
@@ -207,9 +182,7 @@ export default function HodLayout({ children }) {
                 )}
 
                 {/* PAGE CONTENT */}
-                <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-x-hidden">
-                    {children}
-                </main>
+                <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-x-hidden">{children}</main>
             </div>
         </div>
     );

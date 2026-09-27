@@ -20,7 +20,7 @@ class AdvertisementController extends Controller
     public function create()
     {
         return Inertia::render('Admin/Jobs/Create', [
-            'departments' => Department::orderBy('name')->get(),
+            'departments' => Department::allCached(),
         ]);
     }
 
@@ -30,13 +30,22 @@ class AdvertisementController extends Controller
 
         $filePath = $request->file('document')->store('advertisements', 'public');
 
-        Advertisement::create([
+        $advertisement = Advertisement::create([
             'reference_number' => $validated['reference_number'],
             'title' => $validated['title'],
             'deadline' => $validated['deadline'],
             'departments' => $validated['departments'],
             'document_path' => $filePath,
         ]);
+
+        // Keep the Phase 8 FK pivot in sync with the legacy JSON department
+        // map (`{ "Dept Name": ["Grade 1", ...] }` — see
+        // StoreAdvertisementRequest).
+        $ids = collect(array_keys($validated['departments']))
+            ->map(fn ($name) => Department::idForName($name))
+            ->filter()
+            ->all();
+        $advertisement->departmentModels()->sync($ids);
 
         return redirect()->route('admin.jobs.create')
             ->with('success', 'Advertisement published successfully!');

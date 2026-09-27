@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { useState } from "react";
+import { Head, useForm } from "@inertiajs/react";
 import { GraduationCap, Lock, Mail, Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
@@ -12,15 +12,15 @@ export default function ResetPassword({ token, email }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         token: token,
         email: email,
-        password: '',
-        password_confirmation: '',
+        password: "",
+        password_confirmation: "",
     });
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('password.store'), {
+        post(route("password.store"), {
             preserveScroll: true,
-            onFinish: () => reset('password', 'password_confirmation'),
+            onFinish: () => reset("password", "password_confirmation"),
         });
     };
 
@@ -60,7 +60,8 @@ export default function ResetPassword({ token, email }) {
 
                     <div className="border-t border-white/10 pt-6">
                         <p className="text-sm text-slate-300 italic leading-relaxed">
-                            &ldquo;The function of education is to teach one to think intensively and to think critically.&rdquo;
+                            &ldquo;The function of education is to teach one to think intensively and to think
+                            critically.&rdquo;
                         </p>
                         <p className="mt-2 text-xs font-medium text-indigo-300">- Martin Luther King Jr.</p>
                     </div>
@@ -85,37 +86,43 @@ export default function ResetPassword({ token, email }) {
                             <ShieldCheck className="h-6 w-6" />
                         </div>
                         <h2 className="font-serif text-2xl font-bold text-slate-900">Set new password</h2>
-                        <p className="mt-2 text-sm font-medium text-slate-500">Almost there! Enter your new password below.</p>
+                        <p className="mt-2 text-sm font-medium text-slate-500">
+                            Almost there! Enter your new password below.
+                        </p>
                     </div>
 
                     <form onSubmit={submit} className="flex flex-col gap-5">
                         <div className="space-y-2">
-                            <Label htmlFor="email" className="text-sm font-semibold text-slate-900">Email Address</Label>
+                            <Label htmlFor="email" className="text-sm font-semibold text-slate-900">
+                                Email Address
+                            </Label>
                             <div className="relative">
                                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                                 <Input
                                     id="email"
                                     type="email"
                                     value={data.email}
-                                    onChange={(e) => setData('email', e.target.value)}
-                                    className={`pl-10 h-11 bg-slate-50 border-slate-200 text-slate-500 ${errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
-                                    disabled={true} 
+                                    onChange={(e) => setData("email", e.target.value)}
+                                    className={`pl-10 h-11 bg-slate-50 border-slate-200 text-slate-500 ${errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                                    disabled={true}
                                 />
                             </div>
                             {errors.email && <p className="text-xs font-medium text-red-500">{errors.email}</p>}
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="password" className="text-sm font-semibold text-slate-900">New Password</Label>
+                            <Label htmlFor="password" className="text-sm font-semibold text-slate-900">
+                                New Password
+                            </Label>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                                 <Input
                                     id="password"
                                     type={showPassword ? "text" : "password"}
                                     value={data.password}
-                                    onChange={(e) => setData('password', e.target.value)}
+                                    onChange={(e) => setData("password", e.target.value)}
                                     placeholder="Enter new password"
-                                    className={`pl-10 pr-10 h-11 bg-slate-50/50 border-slate-200 focus:bg-white transition-colors ${errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                    className={`pl-10 pr-10 h-11 bg-slate-50/50 border-slate-200 focus:bg-white transition-colors ${errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                                     disabled={processing}
                                     autoFocus
                                 />
@@ -131,14 +138,16 @@ export default function ResetPassword({ token, email }) {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="password_confirmation" className="text-sm font-semibold text-slate-900">Confirm New Password</Label>
+                            <Label htmlFor="password_confirmation" className="text-sm font-semibold text-slate-900">
+                                Confirm New Password
+                            </Label>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                                 <Input
                                     id="password_confirmation"
                                     type={showPassword ? "text" : "password"}
                                     value={data.password_confirmation}
-                                    onChange={(e) => setData('password_confirmation', e.target.value)}
+                                    onChange={(e) => setData("password_confirmation", e.target.value)}
                                     placeholder="Confirm new password"
                                     className="pl-10 pr-10 h-11 bg-slate-50/50 border-slate-200 focus:bg-white transition-colors"
                                     disabled={processing}
@@ -146,11 +155,17 @@ export default function ResetPassword({ token, email }) {
                             </div>
                         </div>
 
-                        <Button type="submit" className="h-11 font-bold mt-2 bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg transition-all duration-200" disabled={processing}>
+                        <Button
+                            type="submit"
+                            className="h-11 font-bold mt-2 bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg transition-all duration-200"
+                            disabled={processing}
+                        >
                             {processing ? (
-                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Resetting...</>
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Resetting...
+                                </>
                             ) : (
-                                'Reset Password'
+                                "Reset Password"
                             )}
                         </Button>
                     </form>

@@ -9,12 +9,12 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-public function up(): void
+    public function up(): void
     {
         Schema::create('applicant_profiles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete(); // 1-to-1 Link
-            
+
             // Core Identity
             $table->string('photo_path')->nullable();
             $table->string('father_name')->nullable();

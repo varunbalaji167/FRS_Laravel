@@ -10,11 +10,11 @@ return new class extends Migration
     {
         Schema::create('advertisements', function (Blueprint $table) {
             $table->id();
-            $table->string('reference_number')->unique(); 
+            $table->string('reference_number')->unique();
             $table->string('title');
-            $table->string('document_path'); 
+            $table->string('document_path');
             $table->date('deadline');
-            $table->json('departments'); 
+            $table->json('departments');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

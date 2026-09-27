@@ -26,11 +26,7 @@ const TRAINING_FIELDS = [
     { key: "duration", label: "Duration (Years/Months/Days)", widget: "text" },
 ];
 
-export default function Step6AdditionalInfo({
-    data,
-    setData,
-    localErrors = {},
-}) {
+export default function Step6AdditionalInfo({ data, setData }) {
     // Grouping all these lists under a new 'additional_info' object in our JSON
     const info = data.form_data.additional_info || {};
     const patents = info.patents || [];
@@ -46,8 +42,7 @@ export default function Step6AdditionalInfo({
         });
     };
 
-    const handleScholarChange = (value) =>
-        updateInfoSection("google_scholar", value);
+    const handleScholarChange = (value) => updateInfoSection("google_scholar", value);
 
     const handleArrayChange = (section, index, field, value) => {
         const currentArray = [...(info[section] || [])];
@@ -118,21 +113,16 @@ export default function Step6AdditionalInfo({
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
             <div>
-                <h3 className="text-2xl font-bold text-slate-900">
-                    5. Additional Information
-                </h3>
+                <h3 className="text-2xl font-bold text-slate-900">5. Additional Information</h3>
                 <p className="text-sm text-slate-500 mt-1">
-                    Provide details of your patents, books, professional
-                    memberships, and training.
+                    Provide details of your patents, books, professional memberships, and training.
                 </p>
             </div>
 
             {/* (A) Patents */}
             <div className="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-100">
                 <div className="flex justify-between items-center border-b pb-2">
-                    <h4 className="font-bold text-lg text-slate-800">
-                        (A) Patent(s)
-                    </h4>
+                    <h4 className="font-bold text-lg text-slate-800">(A) Patent(s)</h4>
                     <Button
                         type="button"
                         size="sm"
@@ -192,9 +182,7 @@ export default function Step6AdditionalInfo({
             {/* (B) Books */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
-                    <h4 className="font-bold text-lg text-slate-800">
-                        (B) Book(s)
-                    </h4>
+                    <h4 className="font-bold text-lg text-slate-800">(B) Book(s)</h4>
                     <Button
                         type="button"
                         size="sm"
@@ -217,9 +205,7 @@ export default function Step6AdditionalInfo({
             {/* (C) Book Chapters */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
-                    <h4 className="font-bold text-lg text-slate-800">
-                        (C) Book Chapter(s)
-                    </h4>
+                    <h4 className="font-bold text-lg text-slate-800">(C) Book Chapter(s)</h4>
                     <Button
                         type="button"
                         size="sm"
@@ -236,16 +222,12 @@ export default function Step6AdditionalInfo({
                         <PlusCircle className="mr-2 h-4 w-4" /> Add Chapter
                     </Button>
                 </div>
-                {book_chapters.map((item, idx) =>
-                    renderBookRow("book_chapters", item, idx),
-                )}
+                {book_chapters.map((item, idx) => renderBookRow("book_chapters", item, idx))}
             </div>
 
             {/* 8. Google Scholar */}
             <div className="space-y-4 bg-blue-50 p-5 rounded-xl border border-blue-100">
-                <h4 className="font-bold text-lg text-blue-900">
-                    Google Scholar Profile
-                </h4>
+                <h4 className="font-bold text-lg text-blue-900">Google Scholar Profile</h4>
                 <TextField
                     id="google_scholar"
                     label="URL"
@@ -258,16 +240,12 @@ export default function Step6AdditionalInfo({
             {/* 9. Professional Societies */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
-                    <h4 className="font-bold text-lg text-slate-800">
-                        Membership of Professional Societies
-                    </h4>
+                    <h4 className="font-bold text-lg text-slate-800">Membership of Professional Societies</h4>
                     <Button
                         type="button"
                         size="sm"
                         variant="outline"
-                        onClick={() =>
-                            addArrayItem("societies", { name: "", status: "" })
-                        }
+                        onClick={() => addArrayItem("societies", { name: "", status: "" })}
                     >
                         <PlusCircle className="mr-2 h-4 w-4" /> Add Membership
                     </Button>
@@ -303,9 +281,7 @@ export default function Step6AdditionalInfo({
             {/* 10. Professional Training */}
             <div className="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-100">
                 <div className="flex justify-between items-center border-b pb-2">
-                    <h4 className="font-bold text-lg text-slate-800">
-                        Professional Training
-                    </h4>
+                    <h4 className="font-bold text-lg text-slate-800">Professional Training</h4>
                     <Button
                         type="button"
                         size="sm"

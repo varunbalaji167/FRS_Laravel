@@ -57,12 +57,10 @@ export default function Step11Documents({ data, setData, localErrors = {}, uploa
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
             <div>
-                <h3 className="text-2xl font-bold text-slate-900">
-                    10. Documents & Submit
-                </h3>
+                <h3 className="text-2xl font-bold text-slate-900">10. Documents & Submit</h3>
                 <p className="text-sm text-slate-500 mt-1">
-                    Upload your best papers, supporting certificates, and agree
-                    to the final declaration. Max file size: 10 MB per PDF.
+                    Upload your best papers, supporting certificates, and agree to the final declaration. Max file size:
+                    10 MB per PDF.
                 </p>
             </div>
 
@@ -95,9 +93,7 @@ export default function Step11Documents({ data, setData, localErrors = {}, uploa
             <div className="space-y-4 bg-slate-50 p-6 rounded-xl border border-slate-100">
                 <div className="flex items-center gap-2 border-b pb-2">
                     <UploadCloud className="h-5 w-5 text-blue-600" />
-                    <h4 className="font-bold text-lg text-slate-800">
-                        (B) Check List of the documents attached
-                    </h4>
+                    <h4 className="font-bold text-lg text-slate-800">(B) Check List of the documents attached</h4>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {DOCUMENT_FIELDS.map(({ key, label, required, className }) => (
@@ -122,8 +118,7 @@ export default function Step11Documents({ data, setData, localErrors = {}, uploa
             <div className="space-y-6 bg-emerald-50 p-6 rounded-xl border border-emerald-200">
                 <div>
                     <h4 className="font-bold text-lg text-emerald-900 flex items-center gap-2">
-                        <PenTool className="h-5 w-5" /> 23. Final Declaration &
-                        Digital Signature
+                        <PenTool className="h-5 w-5" /> 23. Final Declaration & Digital Signature
                     </h4>
                 </div>
 
@@ -140,18 +135,14 @@ export default function Step11Documents({ data, setData, localErrors = {}, uploa
                             htmlFor="declaration"
                             className="text-sm font-semibold text-slate-800 leading-relaxed cursor-pointer"
                         >
-                            I hereby declare that I have carefully read and
-                            understood the instructions and particulars
-                            mentioned in the advertisement and this application
-                            form. I further declare that all the entries along
-                            with the attachments uploaded in this form are true
-                            to the best of my knowledge and belief.{" "}
-                            <span className="text-red-500">*</span>
+                            I hereby declare that I have carefully read and understood the instructions and particulars
+                            mentioned in the advertisement and this application form. I further declare that all the
+                            entries along with the attachments uploaded in this form are true to the best of my
+                            knowledge and belief. <span className="text-red-500">*</span>
                         </Label>
                         {localErrors.declaration && (
                             <p className="text-sm font-bold text-red-600 flex items-center mt-2">
-                                <AlertCircle className="h-4 w-4 mr-1" />{" "}
-                                {localErrors.declaration}
+                                <AlertCircle className="h-4 w-4 mr-1" /> {localErrors.declaration}
                             </p>
                         )}
                     </div>

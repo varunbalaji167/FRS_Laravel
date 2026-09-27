@@ -6,7 +6,7 @@
 //   - a plain Laravel ValidationException JSON body: { message, errors }
 //   - Inertia's page.props.errors bag: { field: "message" | ["message"] }
 export function flattenServerErrors(errors) {
-    if (! errors || typeof errors !== "object") return {};
+    if (!errors || typeof errors !== "object") return {};
 
     const bag = errors.details?.fields ?? errors.errors ?? errors;
     const flat = {};

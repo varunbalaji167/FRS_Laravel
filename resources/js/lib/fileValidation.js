@@ -13,7 +13,7 @@ export function formatBytes(bytes) {
  * @returns {string|null} an error message, or null if the file is acceptable
  */
 export function validateFile(file, { accept, maxSizeBytes } = {}) {
-    if (! file) return null;
+    if (!file) return null;
 
     if (maxSizeBytes && file.size > maxSizeBytes) {
         return `File must be smaller than ${formatBytes(maxSizeBytes)}.`;
@@ -30,7 +30,7 @@ export function validateFile(file, { accept, maxSizeBytes } = {}) {
             return type === pattern;
         });
 
-        if (! matches) {
+        if (!matches) {
             return `That file type is not accepted (expected ${accept}).`;
         }
     }

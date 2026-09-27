@@ -10,11 +10,17 @@ const refereeShape = (mandatory) =>
         institute: mandatory ? z.string().trim().min(1, "Institute is required.") : z.string().optional(),
         email: mandatory
             ? z.string().trim().min(1, "Email is required.").regex(EMAIL_REGEX, "Invalid email format.")
-            : z.string().optional().refine((v) => ! v || EMAIL_REGEX.test(v), "Invalid email format."),
+            : z
+                  .string()
+                  .optional()
+                  .refine((v) => !v || EMAIL_REGEX.test(v), "Invalid email format."),
         contact_code: z.string().optional(),
         contact_number: mandatory
             ? z.string().refine((v) => (v ?? "").replace(/\D/g, "").length === 10, "Phone must be exactly 10 digits.")
-            : z.string().optional().refine((v) => ! v || v.replace(/\D/g, "").length === 10, "Phone must be exactly 10 digits."),
+            : z
+                  .string()
+                  .optional()
+                  .refine((v) => !v || v.replace(/\D/g, "").length === 10, "Phone must be exactly 10 digits."),
     });
 
 // Mirrors app/Http/Requests/Applicant/Rules/StepRefereesRules.php — keep the
@@ -30,7 +36,7 @@ export default function step10Schema() {
                 referees.forEach((referee, i) => {
                     const shape = refereeShape(i < 3);
                     const result = shape.safeParse(referee);
-                    if (! result.success) {
+                    if (!result.success) {
                         for (const issue of result.error.issues) {
                             ctx.addIssue({ ...issue, path: [i, ...issue.path] });
                         }

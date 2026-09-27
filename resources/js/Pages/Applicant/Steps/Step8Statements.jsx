@@ -15,21 +15,17 @@ export default function Step8Statements({ data, setData, localErrors = {} }) {
         <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
             <div>
                 {/* Main Header continuously numbered */}
-                <h3 className="text-2xl font-bold text-slate-900">
-                    7. Contributions & Future Plans
-                </h3>
+                <h3 className="text-2xl font-bold text-slate-900">7. Contributions & Future Plans</h3>
                 <p className="text-sm text-slate-500 mt-1">
-                    Provide detailed statements regarding your research,
-                    teaching, and professional service.
+                    Provide detailed statements regarding your research, teaching, and professional service.
                 </p>
             </div>
 
             {/* (A) Research Contribution & Plans */}
             <div className="space-y-4 bg-slate-50 p-6 rounded-xl border border-slate-100">
                 <p className="text-xs text-slate-500">
-                    Outline your core research interests, methodologies, past
-                    achievements, and specific goals for your tenure at IIT
-                    Indore.
+                    Outline your core research interests, methodologies, past achievements, and specific goals for your
+                    tenure at IIT Indore.
                 </p>
                 <TextareaField
                     id="research_plan"
@@ -46,8 +42,7 @@ export default function Step8Statements({ data, setData, localErrors = {} }) {
             {/* (B) Teaching Contribution & Plans */}
             <div className="space-y-4 bg-slate-50 p-6 rounded-xl border border-slate-100">
                 <p className="text-xs text-slate-500">
-                    Detail your teaching philosophy, proposed UG/PG courses,
-                    and pedagogical approach.
+                    Detail your teaching philosophy, proposed UG/PG courses, and pedagogical approach.
                 </p>
                 <TextareaField
                     id="teaching_plan"
@@ -64,8 +59,7 @@ export default function Step8Statements({ data, setData, localErrors = {} }) {
             {/* (C) Professional Service */}
             <div className="space-y-4">
                 <p className="text-xs text-slate-500">
-                    List journals you review for, editorial board
-                    memberships, or conference committees.
+                    List journals you review for, editorial board memberships, or conference committees.
                 </p>
                 <TextareaField
                     id="professional_service"

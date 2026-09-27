@@ -3,9 +3,7 @@ import FormField from "@/Components/inputs/FormField";
 
 // Country-code + national number, digits-only mask on both. `code`/`number`
 // are plain strings; `onCodeChange`/`onChange` each receive the new string.
-export default function PhoneField({
-    id, label, code, onCodeChange, value, onChange, error, required, disabled,
-}) {
+export default function PhoneField({ id, label, code, onCodeChange, value, onChange, error, required, disabled }) {
     const maskDigits = (raw, maxLength) => raw.replace(/\D/g, "").slice(0, maxLength);
     const maskCode = (raw) => raw.replace(/[^\d+]/g, "").slice(0, 5);
 

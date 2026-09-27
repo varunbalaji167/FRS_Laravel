@@ -93,7 +93,14 @@ function toLegacyErrorKey(step, path) {
     if (step === 8 && key === "research_plan") return "statements.research_plan";
     if (step === 8 && key === "teaching_plan") return "statements.teaching_plan";
     if (step === 10 && path[0] === "referees" && typeof path[1] === "number") {
-        const suffix = { name: "name", position: "position", association: "association", institute: "institute", email: "email", contact_number: "contact" }[path[2]];
+        const suffix = {
+            name: "name",
+            position: "position",
+            association: "association",
+            institute: "institute",
+            email: "email",
+            contact_number: "contact",
+        }[path[2]];
         if (suffix) return `referee_${path[1]}_${suffix}`;
     }
     if (step === 11 && path[0] === "documents") return path[1];
@@ -160,8 +167,7 @@ export default function ApplyForm({
             personal_details: {
                 profile_image: profile.photo_path || "",
                 first_name: (user.name || "").split(" ")[0] || "",
-                last_name:
-                    (user.name || "").split(" ").slice(1).join(" ") || "",
+                last_name: (user.name || "").split(" ").slice(1).join(" ") || "",
                 email: user.email || "",
                 fathers_name: profile.father_name || "",
                 dob: profile.date_of_birth || "",
@@ -295,10 +301,7 @@ export default function ApplyForm({
             onSuccess: () => {
                 setData("form_data", payload.form_data);
                 setLastSavedAt(Date.now());
-                if (showToast)
-                    toast.success(
-                        "Draft saved successfully! You can safely leave and return later.",
-                    );
+                if (showToast) toast.success("Draft saved successfully! You can safely leave and return later.");
             },
             onError: () => {
                 toast.error("Failed to save draft. Please check your inputs.");
@@ -365,7 +368,7 @@ export default function ApplyForm({
             );
             return true;
         } catch (err) {
-            if (! err.response) throw err;
+            if (!err.response) throw err;
             setLocalErrors(flattenServerErrors(err.response.data));
             toast.error("Please fix the highlighted fields before proceeding.");
             return false;
@@ -402,9 +405,7 @@ export default function ApplyForm({
                 if (event?.percentage != null) setUploadProgress(event.percentage);
             },
             onError: () => {
-                toast.error(
-                    "Submission failed! Please check the highlighted fields.",
-                );
+                toast.error("Submission failed! Please check the highlighted fields.");
             },
             onFinish: () => setUploadProgress(null),
         });
@@ -436,69 +437,21 @@ export default function ApplyForm({
                     />
                 );
             case 3:
-                return (
-                    <Step3Education
-                        data={data}
-                        setData={setData}
-                        localErrors={combinedErrors}
-                    />
-                );
+                return <Step3Education data={data} setData={setData} localErrors={combinedErrors} />;
             case 4:
-                return (
-                    <Step4Employment
-                        data={data}
-                        setData={setData}
-                        localErrors={combinedErrors}
-                    />
-                );
+                return <Step4Employment data={data} setData={setData} localErrors={combinedErrors} />;
             case 5:
-                return (
-                    <Step5Research
-                        data={data}
-                        setData={setData}
-                        localErrors={combinedErrors}
-                    />
-                );
+                return <Step5Research data={data} setData={setData} localErrors={combinedErrors} />;
             case 6:
-                return (
-                    <Step6AdditionalInfo
-                        data={data}
-                        setData={setData}
-                        localErrors={combinedErrors}
-                    />
-                );
+                return <Step6AdditionalInfo data={data} setData={setData} localErrors={combinedErrors} />;
             case 7:
-                return (
-                    <Step7AwardsProjects
-                        data={data}
-                        setData={setData}
-                        localErrors={combinedErrors}
-                    />
-                );
+                return <Step7AwardsProjects data={data} setData={setData} localErrors={combinedErrors} />;
             case 8:
-                return (
-                    <Step8Statements
-                        data={data}
-                        setData={setData}
-                        localErrors={combinedErrors}
-                    />
-                );
+                return <Step8Statements data={data} setData={setData} localErrors={combinedErrors} />;
             case 9:
-                return (
-                    <Step9DetailedPubs
-                        data={data}
-                        setData={setData}
-                        localErrors={combinedErrors}
-                    />
-                );
+                return <Step9DetailedPubs data={data} setData={setData} localErrors={combinedErrors} />;
             case 10:
-                return (
-                    <Step10Referees
-                        data={data}
-                        setData={setData}
-                        localErrors={combinedErrors}
-                    />
-                );
+                return <Step10Referees data={data} setData={setData} localErrors={combinedErrors} />;
             case 11:
                 return (
                     <Step11Documents
@@ -512,9 +465,7 @@ export default function ApplyForm({
                 return (
                     <div className="flex flex-col items-center justify-center py-12 text-center animate-in fade-in">
                         <FileText className="h-16 w-16 text-slate-200 mb-4" />
-                        <h3 className="text-xl font-bold text-slate-900">
-                            More sections coming soon!
-                        </h3>
+                        <h3 className="text-xl font-bold text-slate-900">More sections coming soon!</h3>
                     </div>
                 );
         }
@@ -529,9 +480,7 @@ export default function ApplyForm({
                     <div className="flex items-center gap-2 text-blue-400 font-bold text-xs uppercase mb-2">
                         Ref: {advertisement.reference_number}
                     </div>
-                    <h1 className="text-2xl font-serif font-bold text-white sm:text-3xl">
-                        Application Wizard
-                    </h1>
+                    <h1 className="text-2xl font-serif font-bold text-white sm:text-3xl">Application Wizard</h1>
                 </div>
             </div>
 
@@ -548,21 +497,12 @@ export default function ApplyForm({
                                         key={step.id}
                                         aria-current={isActive ? "step" : undefined}
                                         onClick={async () => {
-                                            if (
-                                                step.id > currentStep &&
-                                                !(await validateStep(currentStep))
-                                            )
-                                                return;
+                                            if (step.id > currentStep && !(await validateStep(currentStep))) return;
                                             setLocalErrors({});
                                             setCurrentStep(step.id);
                                             saveDraftQuietly(false, step.id);
                                         }}
-                                        disabled={
-                                            isBusy ||
-                                            (!isActive &&
-                                                !isCompleted &&
-                                                step.id > currentStep)
-                                        }
+                                        disabled={isBusy || (!isActive && !isCompleted && step.id > currentStep)}
                                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
                                             isActive
                                                 ? "bg-blue-600 text-white shadow-md"
@@ -579,9 +519,7 @@ export default function ApplyForm({
                                         >
                                             {step.title}
                                         </span>
-                                        {isCompleted && (
-                                            <CheckCircle2 className="h-4 w-4 ml-auto text-green-500" />
-                                        )}
+                                        {isCompleted && <CheckCircle2 className="h-4 w-4 ml-auto text-green-500" />}
                                     </button>
                                 );
                             })}
@@ -599,11 +537,7 @@ export default function ApplyForm({
                                     <span
                                         key={step.id}
                                         className={`h-1.5 flex-1 min-w-[8px] rounded-full ${
-                                            isActive
-                                                ? "bg-blue-600"
-                                                : isCompleted
-                                                  ? "bg-emerald-400"
-                                                  : "bg-slate-200"
+                                            isActive ? "bg-blue-600" : isCompleted ? "bg-emerald-400" : "bg-slate-200"
                                         }`}
                                         title={step.title}
                                     />
@@ -612,36 +546,28 @@ export default function ApplyForm({
                         </div>
 
                         <Card className="shadow-lg border-none ring-1 ring-slate-200">
-                            <CardContent className="p-8 min-h-[400px]">
-                                {renderCurrentStep()}
-                            </CardContent>
+                            <CardContent className="p-8 min-h-[400px]">{renderCurrentStep()}</CardContent>
 
                             <div className="bg-slate-50 p-6 border-t border-slate-100 flex items-center justify-between rounded-b-lg">
                                 <div className="space-y-1.5">
                                     <Button
                                         variant="outline"
-                                        onClick={() =>
-                                            saveDraftQuietly(true, currentStep)
-                                        }
+                                        onClick={() => saveDraftQuietly(true, currentStep)}
                                         disabled={isBusy}
                                         className="font-bold text-slate-600 border-slate-300 hover:bg-slate-100"
                                     >
                                         {isSavingDraft ? (
                                             <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-                                                Saving…
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…
                                             </>
                                         ) : (
                                             <>
-                                                <Save className="mr-2 h-4 w-4" />{" "}
-                                                Save Draft & Exit
+                                                <Save className="mr-2 h-4 w-4" /> Save Draft & Exit
                                             </>
                                         )}
                                     </Button>
                                     <p className="text-xs text-slate-400 pl-1">
-                                        {isSavingDraft
-                                            ? "Auto-saving…"
-                                            : savedAgoLabel || "Not saved yet"}
+                                        {isSavingDraft ? "Auto-saving…" : savedAgoLabel || "Not saved yet"}
                                         {" · "}Step {currentStep} of {STEPS.length}
                                         {" · "}
                                         {Math.round((currentStep / STEPS.length) * 100)}% complete
@@ -655,8 +581,7 @@ export default function ApplyForm({
                                             disabled={isBusy}
                                             className="font-bold"
                                         >
-                                            <ArrowLeft className="mr-2 h-4 w-4" />{" "}
-                                            Previous
+                                            <ArrowLeft className="mr-2 h-4 w-4" /> Previous
                                         </Button>
                                     )}
                                     {currentStep < STEPS.length ? (
@@ -667,13 +592,11 @@ export default function ApplyForm({
                                         >
                                             {isSavingDraft ? (
                                                 <>
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-                                                    Saving…
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…
                                                 </>
                                             ) : (
                                                 <>
-                                                    Save & Continue{" "}
-                                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                                    Save & Continue <ArrowRight className="ml-2 h-4 w-4" />
                                                 </>
                                             )}
                                         </Button>
@@ -685,13 +608,11 @@ export default function ApplyForm({
                                         >
                                             {processing ? (
                                                 <>
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-                                                    Submitting…
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting…
                                                 </>
                                             ) : (
                                                 <>
-                                                    Submit Final Application{" "}
-                                                    <CheckCircle2 className="ml-2 h-4 w-4" />
+                                                    Submit Final Application <CheckCircle2 className="ml-2 h-4 w-4" />
                                                 </>
                                             )}
                                         </Button>

@@ -98,16 +98,14 @@ class ProfileController extends Controller
         }
 
         // --- Admin & HOD Redirections ---
+        // `role` is a MySQL ENUM('admin','applicant','hod') — applicant was
+        // handled and returned above, so this is exhaustive; there is no
+        // "unknown role" fallback to redirect to.
         if ($user->role === 'admin') {
             return Redirect::route('admin.settings')->with('success', 'Profile updated successfully.');
         }
 
-        if ($user->role === 'hod') {
-            return Redirect::route('hod.settings')->with('success', 'Profile updated successfully.');
-        }
-
-        // Fallback for any unknown roles
-        return Redirect::route('dashboard')->with('success', 'Profile updated successfully.');
+        return Redirect::route('hod.settings')->with('success', 'Profile updated successfully.');
     }
 
     public function destroy(Request $request): RedirectResponse

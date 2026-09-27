@@ -1,20 +1,9 @@
 import { useState } from "react";
 import { Head, Link, useForm, usePage } from "@inertiajs/react";
-import {
-    GraduationCap,
-    Lock,
-    Mail,
-    Eye,
-    EyeOff,
-    Loader2,
-    User,
-    Shield,
-    AlertCircle,
-} from "lucide-react";
+import { GraduationCap, Lock, Mail, Eye, EyeOff, Loader2, User, Shield, AlertCircle } from "lucide-react";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
-import { Card, CardContent } from "@/Components/ui/card";
 import ToastListener from "@/Components/ToastListener";
 
 export default function Login() {
@@ -56,12 +45,8 @@ export default function Login() {
                             <GraduationCap className="h-6 w-6 text-white" />
                         </div>
                         <div>
-                            <p className="font-bold text-white text-sm tracking-tight uppercase">
-                                IIT Indore
-                            </p>
-                            <p className="text-xs font-medium text-blue-200">
-                                Faculty Recruitment Portal
-                            </p>
+                            <p className="font-bold text-white text-sm tracking-tight uppercase">IIT Indore</p>
+                            <p className="text-xs font-medium text-blue-200">Faculty Recruitment Portal</p>
                         </div>
                     </div>
 
@@ -70,20 +55,16 @@ export default function Login() {
                             Welcome Back to the Portal
                         </h1>
                         <p className="mt-4 text-base leading-relaxed text-slate-300">
-                            Access your application, track your progress, or
-                            manage the recruitment pipeline from your secure
-                            dashboard.
+                            Access your application, track your progress, or manage the recruitment pipeline from your
+                            secure dashboard.
                         </p>
                     </div>
 
                     <div className="border-t border-white/10 pt-6">
                         <blockquote className="text-sm text-slate-300 italic leading-relaxed">
-                            &ldquo;Research is formalized curiosity. It is
-                            poking and prying with a purpose.&rdquo;
+                            &ldquo;Research is formalized curiosity. It is poking and prying with a purpose.&rdquo;
                         </blockquote>
-                        <p className="mt-2 text-xs font-medium text-blue-300">
-                            - Zora Neale Hurston
-                        </p>
+                        <p className="mt-2 text-xs font-medium text-blue-300">- Zora Neale Hurston</p>
                     </div>
                 </div>
             </div>
@@ -95,19 +76,13 @@ export default function Login() {
                             <GraduationCap className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                            <p className="font-bold text-slate-900 text-sm">
-                                IIT Indore
-                            </p>
-                            <p className="text-xs font-medium text-slate-500">
-                                Faculty Recruitment
-                            </p>
+                            <p className="font-bold text-slate-900 text-sm">IIT Indore</p>
+                            <p className="text-xs font-medium text-slate-500">Faculty Recruitment</p>
                         </div>
                     </div>
 
                     <div className="mb-8">
-                        <h2 className="font-serif text-2xl font-bold text-slate-900">
-                            Sign in to your account
-                        </h2>
+                        <h2 className="font-serif text-2xl font-bold text-slate-900">Sign in to your account</h2>
                         <p className="mt-2 text-sm font-medium text-slate-500">
                             Select your portal and enter your credentials.
                         </p>
@@ -133,9 +108,7 @@ export default function Login() {
                             >
                                 <div
                                     className={`flex h-10 w-10 items-center justify-center rounded-lg shadow-sm ${
-                                        role === "applicant"
-                                            ? "bg-blue-600 text-white"
-                                            : "bg-slate-100 text-slate-500"
+                                        role === "applicant" ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500"
                                     }`}
                                 >
                                     <User className="h-5 w-5" />
@@ -169,9 +142,7 @@ export default function Login() {
                             >
                                 <div
                                     className={`flex h-10 w-10 items-center justify-center rounded-lg shadow-sm ${
-                                        role === "admin"
-                                            ? "bg-blue-600 text-white"
-                                            : "bg-slate-100 text-slate-500"
+                                        role === "admin" ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500"
                                     }`}
                                 >
                                     <Shield className="h-5 w-5" />
@@ -196,14 +167,8 @@ export default function Login() {
                             <div className="mt-3 flex items-start gap-2 rounded-md bg-amber-50 p-3 border border-amber-200">
                                 <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
                                 <p className="text-xs font-medium text-amber-800">
-                                    <strong className="font-bold">
-                                        Security Notice:
-                                    </strong>{" "}
-                                    Institute login is strictly restricted to
-                                    active{" "}
-                                    <span className="font-bold text-amber-900">
-                                        @iiti.ac.in
-                                    </span>{" "}
+                                    <strong className="font-bold">Security Notice:</strong> Institute login is strictly
+                                    restricted to active <span className="font-bold text-amber-900">@iiti.ac.in</span>{" "}
                                     email accounts.
                                 </p>
                             </div>
@@ -216,12 +181,8 @@ export default function Login() {
                         <div className="mb-6 flex items-start gap-3 rounded-lg bg-red-50 p-4 border border-red-200 shadow-sm">
                             <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
                             <div>
-                                <h3 className="text-sm font-bold text-red-900">
-                                    Sign In Failed
-                                </h3>
-                                <p className="text-xs font-medium text-red-700 mt-1">
-                                    {flash.error}
-                                </p>
+                                <h3 className="text-sm font-bold text-red-900">Sign In Failed</h3>
+                                <p className="text-xs font-medium text-red-700 mt-1">{flash.error}</p>
                             </div>
                         </div>
                     )}
@@ -232,11 +193,7 @@ export default function Login() {
                             href={route("google.redirect", { role: role })}
                             className="flex h-11 w-full items-center justify-center gap-3 rounded-md border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-200 focus:ring-offset-2"
                         >
-                            <svg
-                                className="h-5 w-5"
-                                aria-hidden="true"
-                                viewBox="0 0 24 24"
-                            >
+                            <svg className="h-5 w-5" aria-hidden="true" viewBox="0 0 24 24">
                                 <path
                                     d="M12.0003 4.75C13.7703 4.75 15.3553 5.36002 16.6053 6.54998L20.0303 3.125C17.9502 1.19 15.2353 0 12.0003 0C7.31028 0 3.25527 2.69 1.28027 6.60998L5.27028 9.70498C6.21525 6.86002 8.87028 4.75 12.0003 4.75Z"
                                     fill="#EA4335"
@@ -262,19 +219,14 @@ export default function Login() {
                                 <span className="w-full border-t border-slate-200" />
                             </div>
                             <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-white px-2 font-medium text-slate-400">
-                                    Or continue with email
-                                </span>
+                                <span className="bg-white px-2 font-medium text-slate-400">Or continue with email</span>
                             </div>
                         </div>
                     </div>
 
                     <form onSubmit={submit} className="flex flex-col gap-5">
                         <div className="space-y-2">
-                            <Label
-                                htmlFor="email"
-                                className="text-sm font-semibold text-slate-900"
-                            >
+                            <Label htmlFor="email" className="text-sm font-semibold text-slate-900">
                                 Email Address
                             </Label>
                             <div className="relative">
@@ -283,31 +235,18 @@ export default function Login() {
                                     id="email"
                                     type="email"
                                     value={data.email}
-                                    onChange={(e) =>
-                                        setData("email", e.target.value)
-                                    }
-                                    placeholder={
-                                        role === "admin"
-                                            ? "admin@iiti.ac.in"
-                                            : "your.email@example.com"
-                                    }
+                                    onChange={(e) => setData("email", e.target.value)}
+                                    placeholder={role === "admin" ? "admin@iiti.ac.in" : "your.email@example.com"}
                                     className={`pl-10 h-11 bg-slate-50/50 border-slate-200 focus:bg-white transition-colors ${errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                                     disabled={processing}
                                 />
                             </div>
-                            {errors.email && (
-                                <p className="text-xs font-medium text-red-500">
-                                    {errors.email}
-                                </p>
-                            )}
+                            {errors.email && <p className="text-xs font-medium text-red-500">{errors.email}</p>}
                         </div>
 
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                                <Label
-                                    htmlFor="password"
-                                    className="text-sm font-semibold text-slate-900"
-                                >
+                                <Label htmlFor="password" className="text-sm font-semibold text-slate-900">
                                     Password
                                 </Label>
                                 <Link
@@ -323,32 +262,20 @@ export default function Login() {
                                     id="password"
                                     type={showPassword ? "text" : "password"}
                                     value={data.password}
-                                    onChange={(e) =>
-                                        setData("password", e.target.value)
-                                    }
+                                    onChange={(e) => setData("password", e.target.value)}
                                     placeholder="Enter your password"
                                     className={`pl-10 pr-10 h-11 bg-slate-50/50 border-slate-200 focus:bg-white transition-colors ${errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                                     disabled={processing}
                                 />
                                 <button
                                     type="button"
-                                    onClick={() =>
-                                        setShowPassword(!showPassword)
-                                    }
+                                    onClick={() => setShowPassword(!showPassword)}
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors"
                                 >
-                                    {showPassword ? (
-                                        <EyeOff className="h-4 w-4" />
-                                    ) : (
-                                        <Eye className="h-4 w-4" />
-                                    )}
+                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
                             </div>
-                            {errors.password && (
-                                <p className="text-xs font-medium text-red-500">
-                                    {errors.password}
-                                </p>
-                            )}
+                            {errors.password && <p className="text-xs font-medium text-red-500">{errors.password}</p>}
                         </div>
 
                         <Button
@@ -358,13 +285,11 @@ export default function Login() {
                         >
                             {processing ? (
                                 <>
-                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />{" "}
-                                    Signing in...
+                                    <Loader2 className="h-4 w-4 animate-spin mr-2" /> Signing in...
                                 </>
                             ) : (
                                 <>
-                                    <Lock className="h-4 w-4 mr-2" /> Sign In
-                                    securely
+                                    <Lock className="h-4 w-4 mr-2" /> Sign In securely
                                 </>
                             )}
                         </Button>
