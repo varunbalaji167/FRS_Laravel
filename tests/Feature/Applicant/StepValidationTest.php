@@ -71,6 +71,27 @@ class StepValidationTest extends TestCase
         );
     }
 
+    /**
+     * A value the master profile used to offer ("General"/"Other") is a
+     * non-empty string, so it passes the client-side zod check silently —
+     * only the server's Rule::in catches it. Locks in that the field error
+     * key is exactly what resources/js/lib/wizardErrorKeys.js expects.
+     */
+    public function test_step_2_rejects_the_retired_profile_category_value(): void
+    {
+        $applicant = User::factory()->create();
+        $advertisement = Advertisement::factory()->create();
+
+        $this->assertStepInvalid(
+            $this->validate($applicant, $advertisement, 2, ['form_data' => ['personal_details' => [
+                'first_name' => 'Ada', 'last_name' => 'Lovelace', 'dob' => '1990-01-01',
+                'gender' => 'Female', 'category' => 'General', 'nationality' => 'Indian',
+                'email' => 'ada@example.com', 'phone' => '9876543210',
+            ]]]),
+            ['form_data.personal_details.category']
+        );
+    }
+
     public function test_step_3_rejects_a_phd_joining_year_outside_the_allowed_range(): void
     {
         $applicant = User::factory()->create();

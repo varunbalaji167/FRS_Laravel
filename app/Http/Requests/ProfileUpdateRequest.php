@@ -32,9 +32,13 @@ class ProfileUpdateRequest extends FormRequest
 
             'father_name' => ['nullable', 'string', 'max:255'],
             'date_of_birth' => ['nullable', 'date', 'before:today'],
-            'gender' => ['nullable', 'string', Rule::in(['Male', 'Female', 'Other'])],
+            // 'Other' and 'General' are no longer offered by the form but
+            // stay accepted so a profile saved before this change can still
+            // be re-submitted unchanged; the wizard's own Step 2 rules
+            // (StepPersonalRules) require the canonical values only.
+            'gender' => ['nullable', 'string', Rule::in(['Male', 'Female', 'Transgender', 'Prefer not to say', 'Other'])],
             'marital_status' => ['nullable', 'string', Rule::in(['Married', 'Unmarried'])],
-            'category' => ['nullable', 'string', Rule::in(['General', 'UR', 'OBC', 'SC', 'ST', 'EWS'])],
+            'category' => ['nullable', 'string', Rule::in(['UR', 'OBC', 'SC', 'ST', 'EWS', 'General'])],
             'nationality' => ['nullable', 'string', 'max:100'],
             'id_proof' => ['nullable', 'string', 'max:255'],
 

@@ -44,7 +44,23 @@ class SaveDraftRequest extends FormRequest
                 },
             ],
             'form_data.current_step' => ['nullable', 'integer', 'min:1', 'max:11'],
-            'form_data.personal_details.profile_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'form_data.personal_details.profile_image' => [
+                'nullable',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    if ($value === null || is_string($value)) {
+                        return;
+                    }
+                    $probe = validator(
+                        [$attribute => $value],
+                        [$attribute => ['image', 'mimes:jpeg,png,jpg', 'max:2048']]
+                    );
+                    if ($probe->fails()) {
+                        foreach ($probe->errors()->get($attribute) as $message) {
+                            $fail($message);
+                        }
+                    }
+                },
+            ],
         ];
     }
 }

@@ -8,6 +8,7 @@ import SelectField from "@/Components/inputs/SelectField";
 import TextareaField from "@/Components/inputs/TextareaField";
 import PhoneField from "@/Components/inputs/PhoneField";
 import FileField from "@/Components/inputs/FileField";
+import { normalizeProfileGender, normalizeProfileCategory } from "@/lib/profileFieldMapping";
 
 const GENDER_OPTIONS = ["Male", "Female", "Transgender", "Prefer not to say"];
 const MARITAL_STATUS_OPTIONS = ["Unmarried", "Married", "Divorced", "Widowed"];
@@ -27,13 +28,17 @@ export default function Step2Personal({ data, setData, updateFormData, localErro
     const [isProfileCopied, setIsProfileCopied] = useState(false);
     const [isAddressCopied, setIsAddressCopied] = useState(false);
 
-    // Set initial preview based on parent data
+    // A stored path is served off the private disk, which only answers to
+    // FileAccessController's authorized route, not a guessed /storage/ URL —
+    // that disk requires Laravel's own signed URL and 403s otherwise (see
+    // config/filesystems.php's `local` disk and FileAccessController).
     useEffect(() => {
         if (p.profile_image instanceof File) {
             setPreview(URL.createObjectURL(p.profile_image));
         } else if (typeof p.profile_image === "string" && p.profile_image) {
-            // Check if it's already a full path or needs prefix
-            const path = p.profile_image.startsWith("http") ? p.profile_image : `/storage/${p.profile_image}`;
+            const path = p.profile_image.startsWith("http")
+                ? p.profile_image
+                : route("files.show", { path: p.profile_image });
             setPreview(path);
         } else {
             setPreview(null);
@@ -80,9 +85,9 @@ export default function Step2Personal({ data, setData, updateFormData, localErro
                 email: user.email || p.email || "",
                 fathers_name: profile.father_name || p.fathers_name || "",
                 dob: profile.date_of_birth || p.dob || "",
-                gender: profile.gender || p.gender || "",
+                gender: normalizeProfileGender(profile.gender) || p.gender || "",
                 marital_status: profile.marital_status || p.marital_status || "",
-                category: profile.category || p.category || "",
+                category: normalizeProfileCategory(profile.category) || p.category || "",
                 nationality: profile.nationality || p.nationality || "Indian",
                 id_proof_type: parsedIdType || p.id_proof_type || "",
                 id_proof_number: parsedIdNum || p.id_proof_number || "",

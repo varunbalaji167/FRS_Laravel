@@ -4,6 +4,8 @@ import { Head, useForm, router, usePage } from "@inertiajs/react";
 import { Card, CardContent } from "@/Components/ui/card";
 import { Button } from "@/Components/ui/button";
 import { flattenServerErrors } from "@/lib/errors";
+import { normalizeProfileGender, normalizeProfileCategory } from "@/lib/profileFieldMapping";
+import { flattenZodError, remapServerErrorKeys } from "@/lib/wizardErrorKeys";
 import useDebouncedAutosave from "@/lib/useDebouncedAutosave";
 import useBeforeUnloadGuard from "@/lib/useBeforeUnloadGuard";
 import step1Schema from "./Steps/schemas/step1";
@@ -81,43 +83,6 @@ const STEP_SCHEMAS = {
     11: step11Schema,
 };
 
-// Some schema paths don't match the error keys the step components display
-// against, so remap those to keep inline errors on the right widget.
-function toLegacyErrorKey(step, path) {
-    const key = path.join(".");
-
-    if (step === 4 && key === "has_three_years_exp") return "emp.has_three_years_exp";
-    if (step === 5 && key === "specialization.area_of_specialization") return "spec.area";
-    if (step === 5 && key === "specialization.current_area_of_research") return "spec.current";
-    if (step === 8 && key === "research_plan") return "statements.research_plan";
-    if (step === 8 && key === "teaching_plan") return "statements.teaching_plan";
-    if (step === 10 && path[0] === "referees" && typeof path[1] === "number") {
-        const suffix = {
-            name: "name",
-            position: "position",
-            association: "association",
-            institute: "institute",
-            email: "email",
-            contact_number: "contact",
-        }[path[2]];
-        if (suffix) return `referee_${path[1]}_${suffix}`;
-    }
-    if (step === 11 && path[0] === "documents") return path[1];
-
-    return key;
-}
-
-function flattenZodError(step, zodError) {
-    const out = {};
-    for (const issue of zodError.issues) {
-        out[toLegacyErrorKey(step, issue.path)] = issue.message;
-    }
-    if (step === 10 && Object.keys(out).some((k) => k.startsWith("referee_")) && !out.referees) {
-        out.referees = "Please fill all required fields for at least 3 referees.";
-    }
-    return out;
-}
-
 function stripFiles(value) {
     if (value instanceof File) return undefined;
     if (Array.isArray(value)) return value.map(stripFiles);
@@ -167,9 +132,9 @@ export default function ApplyForm({
                 email: user.email || "",
                 fathers_name: profile.father_name || "",
                 dob: profile.date_of_birth || "",
-                gender: profile.gender || "",
+                gender: normalizeProfileGender(profile.gender),
                 marital_status: profile.marital_status || "",
-                category: profile.category || "",
+                category: normalizeProfileCategory(profile.category),
                 nationality: profile.nationality || "Indian",
                 id_proof_type: idParts[0]?.trim() || "",
                 id_proof_number: idParts[1]?.trim() || "",
@@ -198,7 +163,7 @@ export default function ApplyForm({
         },
     });
 
-    const combinedErrors = { ...errors, ...localErrors };
+    const combinedErrors = { ...remapServerErrorKeys(errors), ...localErrors };
 
     // The slice of `data` each step's zod schema validates against — matches
     // each schema's own shape (see Steps/schemas/step{n}.js).
@@ -357,8 +322,13 @@ export default function ApplyForm({
             return true;
         } catch (err) {
             if (!err.response) throw err;
-            setLocalErrors(flattenServerErrors(err.response.data));
-            toast.error("Please fix the highlighted fields before proceeding.");
+            const remapped = remapServerErrorKeys(flattenServerErrors(err.response.data));
+            setLocalErrors(remapped);
+            // Surface the first specific message — some fields (e.g. the profile
+            // image picker) have no visible error slot, so a blanket "highlighted
+            // fields" toast would leave the user with nothing to act on.
+            const firstMessage = Object.values(remapped)[0];
+            toast.error(firstMessage || "Please fix the highlighted fields before proceeding.");
             return false;
         }
     };
@@ -389,8 +359,9 @@ export default function ApplyForm({
             onProgress: (event) => {
                 if (event?.percentage != null) setUploadProgress(event.percentage);
             },
-            onError: () => {
-                toast.error("Submission failed! Please check the highlighted fields.");
+            onError: (serverErrors) => {
+                const firstMessage = Object.values(remapServerErrorKeys(serverErrors ?? {}))[0];
+                toast.error(firstMessage || "Submission failed! Please check the highlighted fields.");
             },
             onFinish: () => setUploadProgress(null),
         });

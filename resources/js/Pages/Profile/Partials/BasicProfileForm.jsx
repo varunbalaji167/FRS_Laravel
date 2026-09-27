@@ -276,7 +276,8 @@ export default function BasicProfileForm({ user, className = "" }) {
                                 <option value="">Select Gender</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
-                                <option value="Other">Other</option>
+                                <option value="Transgender">Transgender</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
                             </select>
                         </div>
 
@@ -303,7 +304,7 @@ export default function BasicProfileForm({ user, className = "" }) {
                                 onChange={(e) => setData("category", e.target.value)}
                             >
                                 <option value="">Select Category</option>
-                                <option value="General">General</option>
+                                <option value="UR">UR (Unreserved)</option>
                                 <option value="OBC">OBC</option>
                                 <option value="SC">SC</option>
                                 <option value="ST">ST</option>

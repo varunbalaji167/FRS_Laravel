@@ -14,7 +14,26 @@ class StepPersonalRules
     public static function rules(int $currentYear): array
     {
         return [
-            'form_data.personal_details.profile_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            // Accepts a fresh upload OR the string path of an already-stored image
+            // (copy-from-profile, or a redrawn draft). File rules apply only to
+            // the upload branch; the path is already validated on original upload.
+            'form_data.personal_details.profile_image' => [
+                'nullable',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    if ($value === null || is_string($value)) {
+                        return;
+                    }
+                    $probe = validator(
+                        [$attribute => $value],
+                        [$attribute => ['image', 'mimes:jpeg,png,jpg', 'max:2048']]
+                    );
+                    if ($probe->fails()) {
+                        foreach ($probe->errors()->get($attribute) as $message) {
+                            $fail($message);
+                        }
+                    }
+                },
+            ],
             'form_data.personal_details.first_name' => ['required', 'string', 'max:255'],
             'form_data.personal_details.middle_name' => ['nullable', 'string', 'max:255'],
             'form_data.personal_details.last_name' => ['required', 'string', 'max:255'],
