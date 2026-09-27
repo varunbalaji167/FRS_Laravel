@@ -64,6 +64,14 @@ class UserController extends Controller
             throw new DomainException(ErrorCode::ADMIN_SELF_DEMOTE_FORBIDDEN);
         }
 
+        // Independent of self-demote: refuse to demote the last remaining
+        // admin, even if a different admin is doing it. Otherwise the
+        // Institute portal can end up with zero admins and no way to
+        // provision new ones.
+        if ($user->role === 'admin' && $request->role !== 'admin' && $this->isLastAdmin($user)) {
+            throw new DomainException(ErrorCode::USER_LAST_ADMIN);
+        }
+
         // Update the user
         $user->update([
             'role' => $request->role,
@@ -81,10 +89,17 @@ class UserController extends Controller
      */
     public function destroyUser(Request $request, User $user)
     {
-        // Prevent self-deletion
+        // Prevent self-deletion — same failure mode as the self-demote
+        // guard in updateRole, so it reuses the same ErrorCode.
         if ($user->id === $request->user()->id) {
-            return back()->with('error', 'You cannot delete your own admin account.');
+            throw new DomainException(ErrorCode::ADMIN_SELF_DEMOTE_FORBIDDEN);
         }
+
+        // Refuse to delete the last remaining admin — see updateRole.
+        if ($user->role === 'admin' && $this->isLastAdmin($user)) {
+            throw new DomainException(ErrorCode::USER_LAST_ADMIN);
+        }
+
         // Capture the email BEFORE we delete the user
         $email = $user->email;
 
@@ -93,5 +108,11 @@ class UserController extends Controller
         $user->delete();
 
         return back()->with('success', 'User permanently deleted.');
+    }
+
+    private function isLastAdmin(User $user): bool
+    {
+        return $user->role === 'admin'
+            && User::where('role', 'admin')->where('id', '!=', $user->id)->doesntExist();
     }
 }

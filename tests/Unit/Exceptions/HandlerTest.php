@@ -43,6 +43,15 @@ class HandlerTest extends TestCase
         return $request;
     }
 
+    private function browserGetRequest(): Request
+    {
+        $request = Request::create('/probe', 'GET');
+        $request->headers->set('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8');
+        $request->attributes->set('request_id', '01TESTREQUESTID');
+
+        return $request;
+    }
+
     public function test_domain_exception_renders_the_contract_for_non_inertia_requests(): void
     {
         $response = (new Handler)->render($this->htmlRequest(), new DomainException(ErrorCode::APP_DRAFT_CONFLICT));
@@ -73,6 +82,26 @@ class HandlerTest extends TestCase
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('This draft can no longer be edited.', $response->getSession()->get('error'));
+    }
+
+    /**
+     * A user typing a role-guarded URL directly (or clicking into one) hits
+     * this branch — CheckRole throws FORBIDDEN and the request is a plain
+     * browser GET, not JSON and not Inertia. The user should see the
+     * Inertia Error page, not a raw JSON body.
+     */
+    public function test_domain_exception_renders_the_inertia_error_page_for_a_plain_browser_get(): void
+    {
+        $response = (new Handler)->render($this->browserGetRequest(), new DomainException(ErrorCode::FORBIDDEN));
+
+        $this->assertNotNull($response);
+        $this->assertSame(403, $response->getStatusCode());
+        $this->assertSame('01TESTREQUESTID', $response->headers->get('X-Request-Id'));
+        // Inertia embeds the page component name + props in the data-page
+        // attribute of the response HTML; asserting on 'FORBIDDEN' proves
+        // the ErrorCode reached the props bag.
+        $this->assertStringContainsString('FORBIDDEN', $response->getContent());
+        $this->assertStringContainsString('Error', $response->getContent());
     }
 
     public function test_validation_exception_is_left_alone_for_non_json_requests(): void

@@ -2,24 +2,52 @@
 
 namespace App\Services\Applications;
 
+use App\Exceptions\DomainException;
+use App\Http\Requests\Applicant\SaveDraftRequest;
 use App\Models\Advertisement;
 use App\Models\JobApplication;
-use Illuminate\Http\Request;
+use App\Support\ErrorCode;
+use Illuminate\Support\Facades\DB;
 
 /**
- * Draft merge + guard against overwriting a non-draft row. Filled in
- * Phase 4 — behaviour still lives in Applicant\WizardController::saveDraft
- * until then.
+ * Draft merge + guard against overwriting a non-draft row. See
+ * docs/architecture.md.
  */
 class DraftService
 {
-    public function __construct()
+    public function save(SaveDraftRequest $request, Advertisement $advertisement): JobApplication
     {
-        //
-    }
+        $validated = $request->validated();
+        $formData = $validated['form_data'] ?? [];
+        $user = $request->user();
 
-    public function save(Request $request, Advertisement $advertisement): JobApplication
-    {
-        throw new \LogicException('Not implemented — filled in Phase 4.');
+        if ($request->hasFile('form_data.personal_details.profile_image')) {
+            $path = $request->file('form_data.personal_details.profile_image')
+                ->store("applications/{$user->id}/{$advertisement->id}/photos", 'local');
+            $formData['personal_details']['profile_image'] = $path;
+        }
+
+        $data = collect($request->only(['department', 'grade']))
+            ->map(fn ($value) => $value ?? '')
+            ->all();
+
+        return DB::transaction(function () use ($user, $advertisement, $data, $formData) {
+            $existing = JobApplication::where('user_id', $user->id)
+                ->where('advertisement_id', $advertisement->id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($existing && $existing->status !== 'draft') {
+                throw new DomainException(ErrorCode::APP_DRAFT_CONFLICT);
+            }
+
+            return JobApplication::updateOrCreate(
+                ['user_id' => $user->id, 'advertisement_id' => $advertisement->id],
+                array_merge($data, [
+                    'form_data' => $formData,
+                    'status' => 'draft',
+                ])
+            );
+        });
     }
 }

@@ -2,48 +2,45 @@
 
 namespace App\Http\Controllers\Applicant;
 
-use App\Http\Controllers\Admin\ApplicationController as AdminApplicationController;
 use App\Http\Controllers\Controller;
 use App\Models\JobApplication;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Http\Request;
+use App\Services\Applications\DossierExporter;
 use Illuminate\Support\Facades\Auth;
 
 class ExportController extends Controller
 {
-    /**
-     * Applicant: Securely export their own PDF.
-     */
-    public function exportPdf($id)
+    public function __construct(private readonly DossierExporter $exporter)
     {
-        $application = JobApplication::with(['user', 'advertisement'])
-            ->where('user_id', Auth::id())
-            ->findOrFail($id);
-
-        $data = $application->form_data;
-        $p = $data['personal_details'] ?? [];
-
-        $pdf = Pdf::loadView('pdf.application_format', [
-            'application' => $application,
-            'advertisement' => $application->advertisement,
-            'data' => $data,
-        ]);
-
-        $safeRef = str_replace(['/', '\\'], '_', $application->advertisement->reference_number ?? 'Ref');
-        $name = str_replace(' ', '_', $p['first_name'] ?? 'Applicant');
-        $fileName = "Application_{$name}_{$safeRef}.pdf";
-
-        return $pdf->stream($fileName);
+        //
     }
 
     /**
-     * Applicant: Securely export their own Excel data.
+     * Applicant: securely export their own PDF. Scoped to `submitted` — a
+     * draft has nothing to export yet, and hiding it as 404 keeps this
+     * consistent with how HOD/admin already hide drafts.
      */
-    public function exportExcel(Request $request, $id)
+    public function exportPdf($id)
     {
-        // Ensure the applicant actually owns this application
-        JobApplication::where('user_id', Auth::id())->findOrFail($id);
+        $application = $this->ownedSubmittedApplication($id);
 
-        return app(AdminApplicationController::class)->exportExcel($request, $id);
+        return $this->exporter->exportPdf($application);
+    }
+
+    /**
+     * Applicant: securely export their own dossier CSV.
+     */
+    public function exportExcel($id)
+    {
+        $application = $this->ownedSubmittedApplication($id);
+
+        return $this->exporter->exportExcel($application);
+    }
+
+    private function ownedSubmittedApplication($id): JobApplication
+    {
+        return JobApplication::with(['user', 'advertisement'])
+            ->where('user_id', Auth::id())
+            ->where('status', 'submitted')
+            ->findOrFail($id);
     }
 }

@@ -50,7 +50,7 @@ class ValidateStepRequest extends FormRequest
         $step = (int) $this->route('n');
 
         if (! array_key_exists($step, self::STEP_RULES)) {
-            abort(404);
+            throw new DomainException(ErrorCode::NOT_FOUND);
         }
 
         return self::STEP_RULES[$step]::rules((int) date('Y'));

@@ -125,6 +125,11 @@ class StepValidationTest extends TestCase
         $applicant = User::factory()->create();
         $advertisement = Advertisement::factory()->create();
 
-        $this->validate($applicant, $advertisement, 12, [])->assertNotFound();
+        // Contract-shaped 404 (Phase 3 error framework), not Laravel's
+        // default {message: 'Not Found'} — a `abort(404)` in the FormRequest
+        // would slip past Handler's DomainException branch on Inertia.
+        $this->validate($applicant, $advertisement, 12, [])
+            ->assertNotFound()
+            ->assertJson(['code' => 'NOT_FOUND']);
     }
 }

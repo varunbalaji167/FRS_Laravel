@@ -10,7 +10,9 @@ use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
@@ -35,7 +37,7 @@ use Throwable;
  */
 class Handler
 {
-    public function render(Request $request, Throwable $e): JsonResponse|RedirectResponse|null
+    public function render(Request $request, Throwable $e): JsonResponse|RedirectResponse|Response|null
     {
         if ($e instanceof DomainException) {
             return $this->renderDomainException($e, $request);
@@ -94,12 +96,36 @@ class Handler
         return null;
     }
 
-    private function renderDomainException(DomainException $e, Request $request): JsonResponse|RedirectResponse
+    private function renderDomainException(DomainException $e, Request $request): JsonResponse|RedirectResponse|Response
     {
+        // Inertia visit → flash the message so ToastListener can surface it
+        // and the previous page re-renders in place.
         if ($request->header('X-Inertia')) {
             return redirect()->back()->with('error', $e->getMessage());
         }
 
+        // Real browser navigation (typed URL hitting a role-guarded route,
+        // link-click into an unauthorised page) → render the Inertia Error
+        // page so the user isn't dumped onto a raw JSON body. GET + HTML
+        // Accept + not asking for JSON is the least ambiguous signal; any
+        // machine consumer (axios, curl, tests using ->postJson etc.) sets
+        // Accept: application/json and stays on the JSON contract below.
+        if ($request->isMethod('GET') && $request->acceptsHtml() && ! $request->expectsJson()) {
+            $status = $e->errorCode->httpStatus();
+            $requestId = $request->attributes->get('request_id');
+
+            return Inertia::render('Error', [
+                'status' => $status,
+                'code' => $e->errorCode->value,
+                'message' => $e->getMessage(),
+                'requestId' => $requestId,
+            ])
+                ->toResponse($request)
+                ->setStatusCode($status)
+                ->header('X-Request-Id', $requestId);
+        }
+
+        // Everything else → the stable error contract from docs/errors.md.
         return $this->toJson($e->errorCode, $e->getMessage(), $e->details, $request);
     }
 

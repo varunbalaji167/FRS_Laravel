@@ -29,6 +29,10 @@ Route::middleware('guest')->group(function () {
     Route::get('auth/google/callback', [SocialAuthController::class, 'callback'])
         ->middleware('throttle:10,1')
         ->name('google.callback');
+    Route::get('auth/google/link', [SocialAuthController::class, 'showLinkAccount'])->name('google.link');
+    Route::post('auth/google/link', [SocialAuthController::class, 'confirmLinkAccount'])
+        ->middleware('throttle:6,1')
+        ->name('google.link.confirm');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');

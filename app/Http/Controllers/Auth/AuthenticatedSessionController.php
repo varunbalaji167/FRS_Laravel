@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Exceptions\DomainException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Support\ErrorCode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -35,46 +36,26 @@ class AuthenticatedSessionController extends Controller
         $attemptedRole = $request->input('role');
 
         if ($attemptedRole === 'admin' && ! str_ends_with($user->email, '@iiti.ac.in')) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+            $this->logoutAndInvalidate($request);
 
-            throw ValidationException::withMessages([
-                'email' => 'Unauthorized access. Institute login strictly requires an @iiti.ac.in email address.',
-            ]);
+            throw new DomainException(ErrorCode::AUTH_DOMAIN_NOT_ALLOWED);
         }
 
         $allowedRoles = $attemptedRole === 'admin' ? ['admin', 'hod'] : ['applicant'];
-        if (! in_array($user->role, $allowedRoles)) {
+        if (! in_array($user->role, $allowedRoles, true)) {
+            $this->logoutAndInvalidate($request);
 
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            $portalName = $attemptedRole === 'admin' ? 'Institute' : 'Applicant';
-
-            throw ValidationException::withMessages([
-                'email' => 'Unauthorized access. You cannot log in to the '.$portalName.' portal with these credentials.',
-            ]);
+            throw new DomainException(ErrorCode::AUTH_ROLE_MISMATCH);
         }
 
         // Regenerate session after login
         $request->session()->regenerate();
 
-        /**
-         * Redirect user based on role
-         */
-        switch ($user->role) {
-            case 'admin':
-                return redirect()->route('admin.dashboard')->with('success', 'Login successful! Welcome to the Admin portal.');
-
-            case 'hod':
-                return redirect()->route('hod.dashboard')->with('success', 'Login successful! Welcome to the Department portal.');
-
-            case 'applicant':
-            default:
-                return redirect()->route('dashboard')->with('success', 'Login successful! Welcome to your dashboard.');
-        }
+        return match ($user->role) {
+            'admin' => redirect()->route('admin.dashboard')->with('success', 'Login successful! Welcome to the Admin portal.'),
+            'hod' => redirect()->route('hod.dashboard')->with('success', 'Login successful! Welcome to the Department portal.'),
+            default => redirect()->route('dashboard')->with('success', 'Login successful! Welcome to your dashboard.'),
+        };
     }
 
     /**
@@ -89,5 +70,12 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    private function logoutAndInvalidate(Request $request): void
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
     }
 }
