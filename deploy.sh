@@ -3,6 +3,7 @@
 # IIT Indore FRS — deploy script.
 #
 # Usage:
+#   ./deploy.sh              deploy the latest commit on origin/main
 #   ./deploy.sh v1.2.3       deploy that tag
 #   ./deploy.sh --rollback   restore the previous release's symlinks + commit
 #
@@ -62,14 +63,9 @@ if [ "${1:-}" = "--rollback" ]; then
     exit 0
 fi
 
-TAG="${1:?Usage: ./deploy.sh <tag> | ./deploy.sh --rollback}"
-
-# ── Build assets BEFORE any maintenance window ──────────────────────────
-# The site stays fully up through npm ci/build; the maintenance window
-# below is just the migration + symlink swap.
-echo "Building assets for ${TAG} into ${BUILD_LINK}.next ..."
-npm ci
-npm run build -- --outDir "${BUILD_LINK}.next" --emptyOutDir
+# No arg → deploy the latest commit on origin/main. Any other arg is
+# treated as a tag to check out.
+TARGET="${1:-main}"
 
 PREV_TAG="$(current_tag)"
 PREV_BUILD=""
@@ -78,11 +74,28 @@ if [ -L "$BUILD_LINK" ]; then
 fi
 save_state "$PREV_TAG" "$PREV_BUILD"
 
-# ── Fetch the tag, don't pull main — a deploy is always a reviewed ref ──
-git fetch --tags
-git checkout "tags/${TAG}"
+# ── Fetch first so we know what we're building ──────────────────────────
+git fetch --tags --prune origin
 
-composer install --optimize-autoloader --no-dev
+if [ "$TARGET" = "main" ]; then
+    echo "Deploying latest origin/main ..."
+    git checkout main
+    git reset --hard origin/main
+    DEPLOY_REF="main@$(git rev-parse --short HEAD)"
+else
+    echo "Deploying tag ${TARGET} ..."
+    git checkout "tags/${TARGET}"
+    DEPLOY_REF="$TARGET"
+fi
+
+# ── Build assets BEFORE any maintenance window ──────────────────────────
+# The site stays fully up through composer/npm install + build; the
+# maintenance window below is just the migration + symlink swap.
+composer install --optimize-autoloader --no-dev --no-interaction
+
+echo "Building assets for ${DEPLOY_REF} into ${BUILD_LINK}.next ..."
+npm ci
+npm run build -- --outDir "${BUILD_LINK}.next" --emptyOutDir
 
 echo "Entering maintenance mode..."
 php artisan down
@@ -104,7 +117,7 @@ php artisan up
 # ── Post-deploy health check, automatic rollback on failure ─────────────
 echo "Health-checking ${HEALTH_URL} ..."
 if curl -fsS --max-time 10 "$HEALTH_URL" > /dev/null; then
-    echo "Deployment of ${TAG} finished successfully."
+    echo "Deployment of ${DEPLOY_REF} finished successfully."
 else
     echo "Health check FAILED — rolling back to ${PREV_TAG}." >&2
     rollback
