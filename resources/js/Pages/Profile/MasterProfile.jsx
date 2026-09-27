@@ -1,13 +1,12 @@
 import ApplicantLayout from '@/Layouts/ApplicantLayout';
-import { Head, usePage } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { BadgeCheck, MapPin, Mail, Phone, Sparkles, ShieldCheck, Trash2, UserRound } from 'lucide-react';
 import DeleteUserForm from './Partials/DeleteUserForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import BasicProfileForm from './Partials/BasicProfileForm'; 
 
-export default function MasterProfile({ mustVerifyEmail, status }) {
-    const { auth } = usePage().props;
-    const user = auth?.user || {};
+export default function MasterProfile({ user: userProp, mustVerifyEmail, status }) {
+    const user = userProp || {};
     const profile = user.applicant_profile || {}; // Reads the new 1-to-1 table data
     
     const initials = (user.name || 'U')
@@ -105,7 +104,7 @@ export default function MasterProfile({ mustVerifyEmail, status }) {
                             </div>
                             <div className="px-6 py-6 sm:px-8 bg-slate-50">
                                 {/* Load the streamlined form we built previously */}
-                                <BasicProfileForm mustVerifyEmail={mustVerifyEmail} status={status} className="max-w-none" />
+                                <BasicProfileForm user={user} mustVerifyEmail={mustVerifyEmail} status={status} className="max-w-none" />
                             </div>
                         </div>
                     </div>

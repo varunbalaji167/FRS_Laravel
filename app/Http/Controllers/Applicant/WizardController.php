@@ -42,6 +42,9 @@ class WizardController extends Controller
             'existingDraft' => $application ? $application->form_data : null,
             'existingDepartment' => $application ? $application->department : '',
             'existingGrade' => $application ? $application->grade : '',
+            // No longer on the global Inertia share (see HandleInertiaRequests) —
+            // fetched explicitly to pre-fill a fresh wizard from the master profile.
+            'applicantProfile' => Auth::user()->applicantProfile,
         ]);
     }
 

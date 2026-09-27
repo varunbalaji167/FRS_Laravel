@@ -14,8 +14,15 @@ class ProfileController extends Controller
 {
     public function edit(Request $request): Response
     {
-        // This is specifically the Applicant's master profile view
+        $user = $request->user();
+
+        // This is specifically the Applicant's master profile view. The
+        // applicantProfile relation and email_verified_at are no longer on
+        // the global Inertia share (see HandleInertiaRequests), so this page
+        // fetches them explicitly.
         return Inertia::render('Profile/MasterProfile', [
+            'user' => $user->only(['id', 'name', 'email', 'email_verified_at'])
+                + ['applicant_profile' => $user->applicantProfile],
             'status' => session('status'),
         ]);
     }

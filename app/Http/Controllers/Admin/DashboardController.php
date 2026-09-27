@@ -57,7 +57,7 @@ class DashboardController extends Controller
             ->orderBy('date')
             ->get();
 
-        $viewFolder = $user->role === 'admin' ? 'Admin' : 'Hod';
+        $viewFolder = $this->adminOrHodViewFolder($user);
 
         return Inertia::render("{$viewFolder}/Dashboard", [
             'stats' => [
@@ -88,7 +88,7 @@ class DashboardController extends Controller
     public function settings(Request $request)
     {
         $user = $request->user();
-        $viewFolder = $user->role === 'admin' ? 'Admin' : 'Hod';
+        $viewFolder = $this->adminOrHodViewFolder($user);
 
         return Inertia::render("{$viewFolder}/Settings", [
             'departments' => Department::orderBy('name')->get(),

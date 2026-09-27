@@ -57,17 +57,24 @@ app/
 │  │  └─ DossierFileStore.php             # private-disk read/write + signed URL helpers
 │  ├─ Reporting/
 │  │  └─ DashboardAggregator.php          # aggregate counts, cached (Phase 8)
-│  └─ Referees/
-│     └─ RefereeNotificationDispatcher.php # dedup + queue (Phase 4)
+│  ├─ Referees/
+│  │  └─ RefereeNotificationDispatcher.php # dedup + queue (Phase 4)
+│  └─ Auditing/
+│     └─ AdminActionRecorder.php          # writes admin_actions rows (Phase 6)
 ├─ Support/
 │  └─ ErrorCode.php                       # backed string enum — canonical error codes
 ├─ Exceptions/
 │  ├─ DomainException.php                 # carries ErrorCode, details, message
 │  ├─ Handler.php                         # single render pipeline (wired into bootstrap/app.php in Phase 3)
-│  └─ Reporter.php                        # structured log emission (wired in Phase 3)
+│  └─ Reporter.php                        # structured log emission; also logs to the `slack`
+│                                          # channel when LOG_SLACK_WEBHOOK_URL is set (Phase 6)
 ├─ Jobs/
 │  └─ GenerateApplicationPdfJob.php       # queued PDF gen (Phase 4)
-├─ Models/                   # unchanged
+├─ Console/
+│  └─ Commands/
+│     └─ LogRetentionCommand.php          # prunes failed_jobs + rotated logs, scheduled
+│                                          # nightly from routes/console.php (Phase 6)
+├─ Models/                   # unchanged, plus AdminAction.php (Phase 6)
 └─ Mail/                     # unchanged
 
 resources/js/

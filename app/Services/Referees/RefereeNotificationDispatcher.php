@@ -5,6 +5,7 @@ namespace App\Services\Referees;
 use App\Mail\RefereeNotification;
 use App\Models\JobApplication;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -21,6 +22,11 @@ class RefereeNotificationDispatcher
             $email = $referee['email'] ?? null;
 
             if (! $email || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                Log::warning('Referee notification skipped: invalid email', [
+                    'application_id' => $application->id,
+                    'referee_email' => $email,
+                ]);
+
                 continue;
             }
 

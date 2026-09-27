@@ -5,15 +5,19 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Users\StoreDepartmentRequest;
 use App\Models\Department;
+use App\Services\Auditing\AdminActionRecorder;
+use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
 {
     /**
      * Store a new department (Admin only)
      */
-    public function storeDepartment(StoreDepartmentRequest $request)
+    public function storeDepartment(StoreDepartmentRequest $request, AdminActionRecorder $adminActions)
     {
-        Department::create($request->validated());
+        $department = Department::create($request->validated());
+
+        $adminActions->record($request, 'department.created', $department, null, $department->only(['id', 'name']));
 
         return back()->with('success', 'Department added successfully.');
     }
@@ -21,9 +25,13 @@ class DepartmentController extends Controller
     /**
      * Delete a department (Admin only)
      */
-    public function destroyDepartment(Department $department)
+    public function destroyDepartment(Request $request, Department $department, AdminActionRecorder $adminActions)
     {
+        $before = $department->only(['id', 'name']);
+
         $department->delete();
+
+        $adminActions->record($request, 'department.deleted', $department, $before, null);
 
         return back()->with('success', 'Department deleted successfully.');
     }

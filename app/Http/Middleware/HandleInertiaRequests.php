@@ -18,8 +18,10 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                // Automatically attach the applicant profile so React has it instantly
-                'user' => $request->user() ? $request->user()->load('applicantProfile') : null,
+                // Whitelisted subset only — no google_id, email_verified_at, or the
+                // applicantProfile relation. Pages that need the profile fetch it
+                // explicitly (see ProfileController@edit).
+                'user' => $request->user()?->only(['id', 'name', 'email', 'role', 'department']),
             ],
             'flash' => [
                 'status' => fn () => $request->session()->get('status'),

@@ -13,9 +13,17 @@ class Reporter
 {
     public function report(Throwable $e, array $context = []): void
     {
-        Log::error($e->getMessage(), array_merge($context, [
+        $payload = array_merge($context, [
             'exception' => get_class($e),
             'trace' => $e->getTraceAsString(),
-        ]));
+        ]);
+
+        Log::error($e->getMessage(), $payload);
+
+        // Blank LOG_SLACK_WEBHOOK_URL ⇒ no external call at all — the
+        // handler is only reached when a webhook is actually configured.
+        if (config('logging.channels.slack.url')) {
+            Log::channel('slack')->critical($e->getMessage(), $payload);
+        }
     }
 }

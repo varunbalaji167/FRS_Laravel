@@ -131,10 +131,11 @@ export default function ApplyForm({
     existingDraft,
     existingDepartment,
     existingGrade,
+    applicantProfile,
 }) {
     const { auth } = usePage().props;
     const user = auth?.user || {};
-    const profile = user.applicant_profile || {};
+    const profile = applicantProfile || {};
 
     const [currentStep, setCurrentStep] = useState(
         existingDraft?.current_step ? Number(existingDraft.current_step) : 1,

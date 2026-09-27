@@ -10,6 +10,7 @@ use App\Models\JobApplication;
 use App\Services\Referees\RefereeNotificationDispatcher;
 use App\Support\ErrorCode;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Transaction, lock, state transition, and idempotent mail dispatch for the
@@ -101,6 +102,13 @@ class SubmissionService
                 ]
             );
         });
+
+        Log::info('Application submitted', [
+            'application_id' => $application->id,
+            'user_id' => $user->id,
+            'advertisement_id' => $advertisement->id,
+            'is_new_submission' => $isNewSubmission,
+        ]);
 
         // Only the null|draft → submitted transition generates the PDF and
         // fires mail — a duplicate submit on an already-submitted row must

@@ -2,7 +2,7 @@ import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
 import PrimaryButton from "@/Components/PrimaryButton";
 import TextInput from "@/Components/TextInput";
-import { useForm, usePage } from "@inertiajs/react";
+import { useForm } from "@inertiajs/react";
 import { Copy, Loader2, Upload, User, Check } from "lucide-react";
 import { useState } from "react";
 
@@ -17,8 +17,7 @@ const ID_PROOF_TYPES = [
     "Driving License",
 ];
 
-export default function BasicProfileForm({ className = "" }) {
-    const user = usePage().props.auth.user;
+export default function BasicProfileForm({ user, className = "" }) {
     const profile = user.applicant_profile || {};
     const [isAddressCopied, setIsAddressCopied] = useState(false);
     // ── Parse the stored "TYPE: NUMBER" string back into two display parts ──

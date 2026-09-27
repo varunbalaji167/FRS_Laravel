@@ -10,6 +10,7 @@ use App\Models\ApplicationStatusEvent;
 use App\Models\Department;
 use App\Models\JobApplication;
 use App\Services\Applications\DossierExporter;
+use App\Services\Auditing\AdminActionRecorder;
 use App\Support\ErrorCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -84,7 +85,7 @@ class ApplicationController extends Controller
         // original line 51. It fetched from DB and was immediately thrown away
         // because the identical query was repeated inside the return block.
 
-        $viewFolder = $request->user()->role === 'admin' ? 'Admin' : 'Hod';
+        $viewFolder = $this->adminOrHodViewFolder($request->user());
 
         return Inertia::render("{$viewFolder}/Applications/Index", [
             // Always a plain value — evaluated and sent on every request.
@@ -115,14 +116,14 @@ class ApplicationController extends Controller
         $application = $this->findVisibleOrFail($request, $id);
 
         // Dynamically choose view folder
-        $viewFolder = $request->user()->role === 'admin' ? 'Admin' : 'Hod';
+        $viewFolder = $this->adminOrHodViewFolder($request->user());
 
         return Inertia::render("{$viewFolder}/Applications/Show", [
             'application' => $application,
         ]);
     }
 
-    public function updateStatus(UpdateStatusRequest $request, $id)
+    public function updateStatus(UpdateStatusRequest $request, $id, AdminActionRecorder $adminActions)
     {
         $application = $this->findVisibleOrFail($request, $id);
         $from = $application->status;
@@ -138,6 +139,8 @@ class ApplicationController extends Controller
                 'at' => now(),
             ]);
         });
+
+        $adminActions->record($request, 'application.status_updated', $application, ['status' => $from], ['status' => $request->status]);
 
         return back()->with('success', "Application status updated to {$request->status}.");
     }
