@@ -39,8 +39,7 @@ class Department extends Model
     }
 
     /**
-     * All departments, ordered by name, cached forever. Invalidated by
-     * flushCache() on department create/delete. See PLAN.md Phase 8.
+     * Cached forever; invalidated by flushCache() on department CRUD.
      *
      * @return Collection<int, self>
      */
@@ -50,9 +49,7 @@ class Department extends Model
     }
 
     /**
-     * Resolve a department's id from its free-text name, via the cached
-     * list — used to keep the new department_id FK columns in sync with
-     * the legacy string columns during the Phase 8 cutover.
+     * Keeps the department_id FK columns in sync with the legacy names.
      */
     public static function idForName(?string $name): ?int
     {

@@ -2,14 +2,13 @@
 
 namespace App\Http\Requests\Applicant\Rules;
 
-// Composed by both ValidateStepRequest (single step) and
-// SubmitApplicationRequest (all steps). See docs/validation.md.
-//
-// Unlike the other steps, these keys are NOT under `form_data.*` — documents
-// and best_papers are top-level multipart fields, mirroring the payload
-// ApplyForm.jsx actually sends (see Steps/Step11Documents.jsx).
+// Unlike the other steps these keys sit outside `form_data.*`: documents and
+// best_papers are top-level multipart fields (see Step11Documents.jsx).
 class StepDocumentsRules
 {
+    /**
+     * @return array<string, mixed>
+     */
     public static function rules(int $currentYear): array
     {
         return [

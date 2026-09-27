@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\AdvertisementFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Advertisement extends Model
 {
+    /** @use HasFactory<AdvertisementFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -27,8 +29,7 @@ class Advertisement extends Model
     ];
 
     /**
-     * FK counterpart of the legacy `departments` JSON name list, populated
-     * by the Phase 8 backfill migration. See config/features.php.
+     * FK counterpart of the legacy `departments` JSON name list.
      */
     /**
      * @return BelongsToMany<Department, $this>

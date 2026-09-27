@@ -6,11 +6,13 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Structured log emission for unhandled/reported exceptions.
- * Wired into Handler.php's report pipeline in Phase 3.
+ * Structured log emission for unhandled exceptions.
  */
 class Reporter
 {
+    /**
+     * @param  array<string, mixed>  $context
+     */
     public function report(Throwable $e, array $context = []): void
     {
         $payload = array_merge($context, [

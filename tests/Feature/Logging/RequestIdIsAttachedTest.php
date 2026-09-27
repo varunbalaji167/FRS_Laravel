@@ -5,9 +5,8 @@ namespace Tests\Feature\Logging;
 use Tests\TestCase;
 
 /**
- * AttachRequestId (Phase 3) must stamp every response, not just the ones
- * that hit the DomainException/error contract path exercised in
- * Feature\Errors\ErrorContractTest.
+ * AttachRequestId must stamp every response, not just the ones that reach
+ * the error contract.
  */
 class RequestIdIsAttachedTest extends TestCase
 {

@@ -14,14 +14,14 @@ use App\Http\Requests\Applicant\Rules\StepPositionRules;
 use App\Http\Requests\Applicant\Rules\StepRefereesRules;
 use App\Http\Requests\Applicant\Rules\StepResearchRules;
 use App\Http\Requests\Applicant\Rules\StepStatementsRules;
+use App\Models\JobApplication;
 use App\Support\ErrorCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
 
 /**
- * Submit tier — strict, all 11 steps. Composes every Rules/Step{Name}Rules
- * class so it can never drift from ValidateStepRequest's per-step rules. See
- * docs/validation.md.
+ * Submit tier — all 11 steps, composed from the same Rules/Step{Name}Rules
+ * classes ValidateStepRequest uses, so the two can't drift.
  */
 class SubmitApplicationRequest extends FormRequest
 {
@@ -51,16 +51,22 @@ class SubmitApplicationRequest extends FormRequest
             throw new DomainException(ErrorCode::APP_AD_DEADLINE_PASSED);
         }
 
-        // Re-submit is intentionally allowed (a network retry or a user
-        // double-clicking Submit shouldn't error) — WizardController's
-        // isNewSubmission check is what keeps that idempotent, only
-        // suppressing the duplicate mail dispatch. Blocking it outright
-        // here would break that already-established behaviour; the
-        // applicant is stopped from even reaching the form again by
-        // showApplyForm() redirecting once status is 'submitted'.
+        // Fail fast before any upload is written to disk. SubmissionService
+        // repeats this check under a row lock, which is the real race guard.
+        $existing = JobApplication::where('user_id', $this->user()->id)
+            ->where('advertisement_id', $advertisement->id)
+            ->first();
+
+        if ($existing && $existing->status !== 'draft') {
+            throw new DomainException(ErrorCode::APP_ALREADY_SUBMITTED, ['application_id' => $existing->id]);
+        }
+
         return true;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         $currentYear = (int) date('Y');

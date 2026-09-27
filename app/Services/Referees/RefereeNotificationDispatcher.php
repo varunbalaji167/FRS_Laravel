@@ -9,13 +9,14 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 /**
- * Dedup + queue referee notification mail via the referee_notifications
- * table. The unique (job_application_id, referee_email) pair, enforced at
- * the DB level, is what actually guarantees no-duplicate — insertOrIgnore
- * only queues the mail for the row it actually inserted.
+ * The unique (job_application_id, referee_email) pair is what guarantees
+ * no duplicates: insertOrIgnore only queues mail for a row it inserted.
  */
 class RefereeNotificationDispatcher
 {
+    /**
+     * @param  list<array<string, mixed>>  $referees
+     */
     public function dispatch(JobApplication $application, array $referees, string $applicantName): void
     {
         foreach ($referees as $referee) {

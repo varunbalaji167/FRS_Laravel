@@ -13,28 +13,26 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Inertia\Response;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
 use Laravel\Socialite\Two\InvalidStateException;
+use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirectResponse;
 use Throwable;
 
 class SocialAuthController extends Controller
 {
     private const STAFF_ROLES = ['admin', 'hod'];
 
-    /**
-     * Redirect the user to the Google authentication page.
-     */
-    public function redirect(Request $request)
+    public function redirect(Request $request): SymfonyRedirectResponse
     {
         $intendedRole = $request->query('role', 'applicant');
         $request->session()->put('intended_role', $intendedRole);
 
         $driver = Socialite::driver('google');
 
-        // Restricts Google's account chooser to the institute's Workspace —
-        // convenience, not a real security boundary; the `hd` claim on the
-        // returned user is what's actually re-checked in callback().
+        // Steers Google's account chooser only; the returned `hd` claim is
+        // what callback() actually enforces.
         if (in_array($intendedRole, self::STAFF_ROLES, true) && $driver instanceof AbstractProvider) {
             $driver = $driver->with(['hd' => 'iiti.ac.in']);
         }
@@ -42,10 +40,7 @@ class SocialAuthController extends Controller
         return $driver->redirect();
     }
 
-    /**
-     * Obtain the user information from Google and log them in.
-     */
-    public function callback(Request $request)
+    public function callback(Request $request): RedirectResponse
     {
         try {
             $googleUser = Socialite::driver('google')->user();
@@ -63,18 +58,13 @@ class SocialAuthController extends Controller
         $intendedRole = $request->session()->pull('intended_role', 'applicant');
         $isStaffPortal = in_array($intendedRole, self::STAFF_ROLES, true);
 
-        // 1. Domain Clarity Check: staff MUST use the institute email —
-        // applies to any non-applicant portal, not just 'admin'.
+        // Staff must use the institute email, on any non-applicant portal.
         if ($isStaffPortal && ! str_ends_with($email, '@iiti.ac.in')) {
             return redirect()->route('login')->with('error', ErrorCode::AUTH_DOMAIN_NOT_ALLOWED->userMessage());
         }
 
-        // 2. Re-check the `hd` (hosted domain) claim Google actually
-        // returned, rather than trusting the `hd` param sent in redirect() —
-        // that param only steers the account chooser UI, it isn't enforced
-        // by Google, so a staff sign-in with a personal Gmail that merely
-        // happens to end in @iiti.ac.in-lookalike is still worth flagging
-        // when the claim is present and doesn't match.
+        // Google doesn't enforce the `hd` param we sent, so re-check the
+        // claim it actually returned.
         $hd = $googleUser->user['hd'] ?? null;
         if ($isStaffPortal && $hd !== null && $hd !== 'iiti.ac.in') {
             return redirect()->route('login')->with('error', ErrorCode::OAUTH_HD_MISMATCH->userMessage());
@@ -82,12 +72,8 @@ class SocialAuthController extends Controller
 
         $user = User::where('email', $email)->first();
 
-        // 3. Existing password-only account: don't silently attach this
-        // Google identity to it. Without this, an attacker who knows a
-        // victim's email could register a local account first, then the
-        // victim's own "Sign in with Google" click would get silently
-        // merged into the attacker's account. Require the human to prove
-        // they hold the password before linking.
+        // Never auto-link a Google identity to an existing password account:
+        // an attacker could pre-register the victim's email and inherit it.
         if ($user && $user->google_id === null) {
             $request->session()->put('google_link_pending', [
                 'google_id' => $googleUser->getId(),
@@ -96,7 +82,8 @@ class SocialAuthController extends Controller
                 'intended_role' => $intendedRole,
             ]);
 
-            return redirect()->route('google.link');
+            return redirect()->route('google.link')
+                ->with('error', ErrorCode::OAUTH_ACCOUNT_LINK_REQUIRED->userMessage());
         }
 
         if ($user && $user->google_id !== $googleUser->getId()) {
@@ -104,8 +91,7 @@ class SocialAuthController extends Controller
         }
 
         if (! $user) {
-            // Admins and HODs cannot self-register — they must be
-            // provisioned by the IT Center.
+            // Admins and HODs are provisioned by the IT Center, never self-registered.
             if ($isStaffPortal) {
                 return redirect()->route('login')->with('error', 'Access Denied. Administrative accounts must be pre-provisioned by the IT Center. You cannot self-register.');
             }
@@ -119,13 +105,10 @@ class SocialAuthController extends Controller
             ]);
         }
 
-        return $this->loginForPortal($user, $intendedRole);
+        return $this->loginForPortal($request, $user, $intendedRole);
     }
 
-    /**
-     * Show the "confirm your password to link this Google account" page.
-     */
-    public function showLinkAccount(Request $request)
+    public function showLinkAccount(Request $request): Response|RedirectResponse
     {
         $pending = $request->session()->get('google_link_pending');
 
@@ -137,8 +120,7 @@ class SocialAuthController extends Controller
     }
 
     /**
-     * Confirm ownership of the existing local account with its password,
-     * then link the pending Google identity to it and log in.
+     * Link the pending Google identity once the account's password is proven.
      */
     public function confirmLinkAccount(ConfirmAccountLinkRequest $request): RedirectResponse
     {
@@ -157,10 +139,10 @@ class SocialAuthController extends Controller
         $user->update(['google_id' => $pending['google_id']]);
         $request->session()->forget('google_link_pending');
 
-        return $this->loginForPortal($user, $pending['intended_role']);
+        return $this->loginForPortal($request, $user, $pending['intended_role']);
     }
 
-    private function loginForPortal(User $user, string $intendedRole): RedirectResponse
+    private function loginForPortal(Request $request, User $user, string $intendedRole): RedirectResponse
     {
         $isStaffPortal = in_array($intendedRole, self::STAFF_ROLES, true);
         $userIsStaff = in_array($user->role, self::STAFF_ROLES, true);
@@ -174,6 +156,8 @@ class SocialAuthController extends Controller
         }
 
         Auth::login($user);
+        // Same session-fixation guard the password login path applies.
+        $request->session()->regenerate();
 
         if ($userIsStaff) {
             return redirect()->route("{$user->role}.dashboard")->with('success', 'Welcome back to the Institute Portal!');

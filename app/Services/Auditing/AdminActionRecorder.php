@@ -7,13 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
 /**
- * Writes one row to admin_actions per sensitive admin/HOD action. Shared by
- * Admin\UserController, Admin\DepartmentController and
- * Admin\ApplicationController@updateStatus so the audit-row shape can't
- * drift between them. See docs/architecture.md.
+ * One admin_actions row per sensitive admin/HOD action, shared by every
+ * caller so the audit-row shape can't drift.
  */
 class AdminActionRecorder
 {
+    /**
+     * @param  array<string, mixed>|null  $before
+     * @param  array<string, mixed>|null  $after
+     */
     public function record(Request $request, string $action, Model $subject, ?array $before, ?array $after): void
     {
         AdminAction::create([

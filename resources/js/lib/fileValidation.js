@@ -1,6 +1,5 @@
-// Shared client-side file checks used by FileField/SignaturePadField so every
-// upload widget rejects the same way the server would (mime + size), instead
-// of only complaining after a slow multipart upload finishes.
+// Mime and size checks shared by every upload widget, so a bad file is
+// rejected before a slow multipart upload rather than after it.
 
 export function formatBytes(bytes) {
     if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;

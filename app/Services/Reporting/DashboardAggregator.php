@@ -9,24 +9,27 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Aggregate counts for the Admin + HOD dashboards, cached per
- * docs/architecture.md. Admin sees one global cache entry; each HOD's
- * department gets its own entry so one department's activity doesn't
- * evict another's. See PLAN.md Phase 8.
+ * Cached aggregate counts: one global entry for admins, one per department
+ * for HODs, so no department's activity can evict another's.
  */
 class DashboardAggregator
 {
     private const TTL_SECONDS = 120;
 
+    /**
+     * @return array<string, mixed>
+     */
     public function forUser(User $user): array
     {
-        return Cache::remember($this->keyFor($user->department), self::TTL_SECONDS, fn () => $this->build($user));
+        // Keyed on role, not just department: an admin who also has one set
+        // would otherwise overwrite that HOD's entry with global numbers.
+        $key = $user->role === 'hod' ? $this->keyFor($user->department) : $this->keyFor(null);
+
+        return Cache::remember($key, self::TTL_SECONDS, fn () => $this->build($user));
     }
 
     /**
-     * Bust the admin cache and, when given, one department's HOD cache.
-     * Safe to call with null — callers that don't know which department
-     * was affected still clear the admin-wide numbers.
+     * Bust the admin entry and, when given, one department's HOD entry.
      */
     public function forget(?string $department): void
     {
@@ -42,12 +45,19 @@ class DashboardAggregator
         return $department === null ? 'dashboard.admin.v1' : 'dashboard.hod.'.$department.'.v1';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function build(User $user): array
     {
         $applicationsQuery = JobApplication::query();
 
         if ($user->role === 'hod') {
-            $applicationsQuery->where('department', $user->department);
+            // Mirrors Admin\ApplicationController::getScopedQuery(); the FK
+            // is the boundary once the cutover flag is on.
+            config('features.department_fk')
+                ? $applicationsQuery->where('department_id', $user->department_id)
+                : $applicationsQuery->where('department', $user->department);
         }
 
         $statusCounts = (clone $applicationsQuery)

@@ -3,9 +3,8 @@
 namespace App\Support;
 
 /**
- * Canonical error codes for the JSON error contract.
- * Add a case here for every new business-rule failure — never
- * `abort(422, 'string')` from a controller. See docs/errors.md.
+ * Canonical codes for the JSON error contract. Every new case needs a row
+ * in docs/errors.md and a test that triggers it.
  */
 enum ErrorCode: string
 {

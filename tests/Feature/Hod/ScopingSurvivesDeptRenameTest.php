@@ -9,11 +9,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Phase 8 department FK cutover: with FEATURE_DEPARTMENT_FK on, HOD scoping
- * (Admin\ApplicationController::getScopedQuery/findVisibleOrFail) keys off
- * department_id, so renaming a department in Settings can't silently drop
- * an HOD's own applications out of scope or leak them to the wrong HOD.
- * See PLAN.md Phase 8 and config/features.php.
+ * With FEATURE_DEPARTMENT_FK on, HOD scoping keys off department_id, so a
+ * rename can't drop an HOD's own applications or leak them to another.
  */
 class ScopingSurvivesDeptRenameTest extends TestCase
 {
@@ -65,11 +62,8 @@ class ScopingSurvivesDeptRenameTest extends TestCase
         ]);
 
         $foreignApplication = JobApplication::factory()->submitted()->create([
-            // The legacy string column has drifted out of sync with
-            // department_id (e.g. a rename that only updated some rows) and
-            // now collides with the HOD's own department name. Under
-            // string-based scoping this would leak the row; department_id
-            // still correctly points at Mathematics.
+            // The legacy string has drifted and now collides with the HOD's
+            // own department name; department_id still points at Mathematics.
             'department' => $ownDepartment->name,
             'department_id' => $otherDepartment->id,
         ]);

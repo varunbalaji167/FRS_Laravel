@@ -33,8 +33,7 @@ export default function Welcome({ auth, advertisements = [] }) {
     };
 
     /**
-     * Called when a guest clicks "Apply Now".
-     * Shows a live countdown toast and redirects to the login page.
+     * Guest "Apply Now": countdown toast, then the login page.
      */
     const handleGuestApply = (e) => {
         e.preventDefault();
@@ -462,9 +461,7 @@ export default function Welcome({ auth, advertisements = [] }) {
     );
 }
 
-/* ─────────────────────────────────────────────────────────────
-   Advertisement Card 
-───────────────────────────────────────────────────────────── */
+/* Advertisement card */
 function AdvertisementCard({ advt, index, user, onGuestApply }) {
     const isApplicant = user?.role === "applicant";
     const isStaff = user?.role === "admin" || user?.role === "hod";

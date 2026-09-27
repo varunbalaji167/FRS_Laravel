@@ -48,8 +48,8 @@ use App\Support\ErrorCode;
 use Tests\TestCase;
 
 /**
- * Fails loudly if a later PR quietly moves or deletes a Phase 1 file. See
- * docs/architecture.md for what should live where.
+ * Fails loudly if a later PR quietly moves or deletes a file that
+ * docs/architecture.md places somewhere specific.
  */
 class ConventionsInPlaceTest extends TestCase
 {
@@ -71,9 +71,8 @@ class ConventionsInPlaceTest extends TestCase
 
     public function test_attach_request_id_sets_the_response_header(): void
     {
-        // /login renders through the 'web' middleware group without touching
-        // the database — unlike /up, which bypasses 'web' entirely and so
-        // never carries AttachRequestId.
+        // /login goes through the 'web' group without touching the database;
+        // /up bypasses 'web' entirely.
         $response = $this->get('/login');
 
         $response->assertHeader('X-Request-Id');
@@ -152,5 +151,43 @@ class ConventionsInPlaceTest extends TestCase
     public function test_generate_application_pdf_job_exists(): void
     {
         $this->assertTrue(class_exists(GenerateApplicationPdfJob::class));
+    }
+
+    /**
+     * Rules live in a FormRequest, never inline. The one exemption is a bare
+     * current_password check that no other endpoint shares.
+     */
+    public function test_controllers_do_not_validate_inline(): void
+    {
+        $offenders = [];
+
+        foreach ($this->controllerFiles() as $file) {
+            $source = file_get_contents($file);
+            $inline = substr_count($source, '$request->validate(') + substr_count($source, '$this->validate(');
+            $exempt = str_contains($source, "'current_password'") ? 1 : 0;
+
+            if ($inline > $exempt) {
+                $offenders[] = basename($file);
+            }
+        }
+
+        $this->assertSame([], $offenders, 'Move these controllers\' rules into a FormRequest (docs/architecture.md).');
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function controllerFiles(): array
+    {
+        $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(app_path('Http/Controllers')));
+        $paths = [];
+
+        foreach ($files as $file) {
+            if ($file->isFile() && str_ends_with($file->getFilename(), 'Controller.php')) {
+                $paths[] = $file->getPathname();
+            }
+        }
+
+        return $paths;
     }
 }

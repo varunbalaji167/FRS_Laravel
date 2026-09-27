@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\JobApplication;
 use App\Services\Applications\DossierExporter;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExportController extends Controller
 {
@@ -14,33 +16,25 @@ class ExportController extends Controller
         //
     }
 
-    /**
-     * Applicant: securely export their own PDF. Scoped to `submitted` — a
-     * draft has nothing to export yet, and hiding it as 404 keeps this
-     * consistent with how HOD/admin already hide drafts.
-     */
-    public function exportPdf($id)
+    public function exportPdf(int|string $id): Response
     {
-        $application = $this->ownedSubmittedApplication($id);
+        return $this->exporter->exportPdf($this->ownedSubmittedApplication($id));
+    }
 
-        return $this->exporter->exportPdf($application);
+    public function exportExcel(int|string $id): StreamedResponse
+    {
+        return $this->exporter->exportExcel($this->ownedSubmittedApplication($id));
     }
 
     /**
-     * Applicant: securely export their own dossier CSV.
+     * A draft 404s, as it does for admin/HOD. Shortlisted and rejected stay
+     * exportable: a review decision can't revoke the applicant's own copy.
      */
-    public function exportExcel($id)
-    {
-        $application = $this->ownedSubmittedApplication($id);
-
-        return $this->exporter->exportExcel($application);
-    }
-
-    private function ownedSubmittedApplication($id): JobApplication
+    private function ownedSubmittedApplication(int|string $id): JobApplication
     {
         return JobApplication::with(['user', 'advertisement'])
             ->where('user_id', Auth::id())
-            ->where('status', 'submitted')
+            ->whereIn('status', ['submitted', 'shortlisted', 'rejected'])
             ->findOrFail($id);
     }
 }

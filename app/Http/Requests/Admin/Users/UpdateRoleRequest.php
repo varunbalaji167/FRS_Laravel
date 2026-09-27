@@ -9,12 +9,14 @@ class UpdateRoleRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // ADMIN_SELF_DEMOTE_FORBIDDEN is thrown from the controller — it
-        // needs the route-bound $user compared against the acting admin,
-        // which isn't available here without a duplicate lookup.
+        // ADMIN_SELF_DEMOTE_FORBIDDEN is thrown from the controller, which
+        // already has the route-bound $user to compare.
         return true;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

@@ -9,18 +9,8 @@ use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 /**
- * Guards on the /admin/users delete + role-update endpoints. The self-delete
- * used to `back()->with('error')`, bypassing the ErrorCode contract; the
- * last-admin case had no guard at all, so a wrong click / future artisan
- * script / removed middleware could leave the Institute portal with zero
- * admins and no way to provision new ones.
- *
- * The last-admin guard on the HTTP path is unreachable under the current
- * `role:admin` middleware — the actor is always an admin, so deleting or
- * demoting a *different* admin still leaves at least one behind, and
- * targeting oneself trips the self-guard first. The two tests below drop
- * that middleware to exercise the guard directly, as if a future console
- * command or a middleware change had opened the code path.
+ * Guards on /admin/users delete and role-update. The last-admin guard is
+ * unreachable under `role:admin`, so those tests drop the middleware.
  */
 class UserDeletionGuardsTest extends TestCase
 {

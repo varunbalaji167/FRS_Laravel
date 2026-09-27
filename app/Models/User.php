@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,16 +11,15 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 /**
- * Implements MustVerifyEmail explicitly — the base Authenticatable class
- * already mixes in the trait (hasVerifiedEmail()/markEmailAsVerified()) but
- * without the interface the `verified` middleware guarding the apply
- * wizard (see routes/web.php) silently treats every user as verified,
- * since EnsureEmailIsVerified only enforces the check on instances of this
- * contract. Caught by PHPStan level 5 while typing VerifyEmailController.
+ * MustVerifyEmail is explicit: without it the `verified` middleware
+ * guarding the apply wizard treats every user as verified.
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable;
+    /** @use HasFactory<UserFactory> */
+    use HasFactory;
+
+    use Notifiable;
 
     protected $fillable = [
         'name',
@@ -31,9 +31,14 @@ class User extends Authenticatable implements MustVerifyEmail
         'google_id',
     ];
 
+    /**
+     * google_id is hidden because admin/HOD pages serialise the whole
+     * `user` relation off a JobApplication.
+     */
     protected $hidden = [
         'password',
         'remember_token',
+        'google_id',
     ];
 
     protected function casts(): array
@@ -53,9 +58,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * The department this user (typically an HOD) belongs to, via the
-     * Phase 8 FK cutover. Named departmentModel() to avoid colliding with
-     * the legacy `department` string attribute. See config/features.php.
+     * Named so it can't collide with the legacy `department` string.
      *
      * @return BelongsTo<Department, $this>
      */

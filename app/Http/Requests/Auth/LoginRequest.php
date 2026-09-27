@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Exceptions\DomainException;
+use App\Support\ErrorCode;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -12,21 +14,18 @@ use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
+        // Two portals, not three: an HOD signs in through the 'admin' portal
+        // and is routed by their DB role (see AuthenticatedSessionController).
         return [
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
@@ -35,8 +34,6 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Attempt to authenticate the request's credentials.
-     *
      * @throws ValidationException
      */
     public function authenticate(): void
@@ -55,9 +52,7 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Ensure the login request is not rate limited.
-     *
-     * @throws ValidationException
+     * @throws DomainException
      */
     public function ensureIsNotRateLimited(): void
     {
@@ -69,17 +64,13 @@ class LoginRequest extends FormRequest
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
-        throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
-        ]);
+        // Not a field error, so it goes out as the AUTH_RATE_LIMITED contract
+        // rather than a 422 hung off the email input.
+        throw new DomainException(ErrorCode::AUTH_RATE_LIMITED, [
+            'retry_after' => $seconds,
+        ], trans('auth.throttle', ['seconds' => $seconds, 'minutes' => (int) ceil($seconds / 60)]));
     }
 
-    /**
-     * Get the rate limiting throttle key for the request.
-     */
     public function throttleKey(): string
     {
         return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());

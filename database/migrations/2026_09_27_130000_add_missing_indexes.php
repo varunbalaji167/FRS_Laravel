@@ -7,12 +7,8 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Phase 8 cheap performance wins. job_applications already has single-
-     * column indexes on department/status/advertisement_id/user_id from an
-     * earlier migration — this adds the composite indexes the dashboard and
-     * HOD-scoped queries actually filter by, plus the columns other hot
-     * queries touch (role/department/google_id lookups on login, ad
-     * activity/deadline checks on the wizard and Welcome page).
+     * The composite indexes the dashboard and HOD-scoped queries actually
+     * filter by, plus the columns login and the ad lists touch.
      */
     public function up(): void
     {

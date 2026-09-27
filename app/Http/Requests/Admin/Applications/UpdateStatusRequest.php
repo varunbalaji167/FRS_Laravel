@@ -12,12 +12,14 @@ class UpdateStatusRequest extends FormRequest
         return true;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [
-            // 'draft' is intentionally excluded — draft -> * is not a valid
-            // admin/HOD transition, and getScopedQuery() already excludes
-            // draft rows from the query this status update runs against.
+            // 'draft' is excluded: it is not a valid admin/HOD transition,
+            // and getScopedQuery() already hides draft rows.
             'status' => ['required', Rule::in(['submitted', 'shortlisted', 'rejected'])],
         ];
     }

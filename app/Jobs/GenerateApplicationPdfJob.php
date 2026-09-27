@@ -15,10 +15,8 @@ use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 /**
- * Dispatched by SubmissionService on a new (null|draft → submitted)
- * transition. Generates the dossier PDF off the web request, stores it to
- * the private disk, then queues the applicant's confirmation mail with it
- * attached. See docs/architecture.md.
+ * Generates the dossier PDF off the web request, stores it privately, then
+ * queues the applicant's confirmation mail with it attached.
  */
 class GenerateApplicationPdfJob implements ShouldQueue
 {
@@ -26,6 +24,7 @@ class GenerateApplicationPdfJob implements ShouldQueue
 
     public int $tries = 3;
 
+    /** @var list<int> */
     public array $backoff = [30, 120, 300];
 
     public int $timeout = 60;

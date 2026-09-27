@@ -19,9 +19,8 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                // Whitelisted subset only — no google_id, email_verified_at, or the
-                // applicantProfile relation. Pages that need the profile fetch it
-                // explicitly (see ProfileController@edit).
+                // Whitelisted subset only. Pages needing the profile fetch
+                // it explicitly (see ProfileController@edit).
                 'user' => $request->user()?->only(['id', 'name', 'email', 'role', 'department']),
             ],
             'flash' => [

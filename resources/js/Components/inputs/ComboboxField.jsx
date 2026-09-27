@@ -3,9 +3,8 @@ import { Combobox, ComboboxInput, ComboboxOptions, ComboboxOption } from "@headl
 import FormField from "@/Components/inputs/FormField";
 import { cn } from "@/lib/utils";
 
-// Searchable dropdown backed by an in-app list (universities, cities,
-// departments). Falls back to the typed value ("Other") with a mild warning
-// when it doesn't match anything in `options`.
+// Searchable dropdown over an in-app list; falls back to the typed value
+// with a warning when it matches nothing in `options`.
 export default function ComboboxField({
     id,
     label,

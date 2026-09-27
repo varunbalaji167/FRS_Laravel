@@ -7,9 +7,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Nightly sweep: prune old failed_jobs rows and any rotated laravel-*.log
- * file past the configured retention window. Scheduled from
- * routes/console.php. See docs/architecture.md.
+ * Nightly sweep of failed_jobs rows and rotated laravel-*.log files past
+ * the retention window. Scheduled from routes/console.php.
  */
 class LogRetentionCommand extends Command
 {

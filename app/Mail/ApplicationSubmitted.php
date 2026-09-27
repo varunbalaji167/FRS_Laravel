@@ -17,11 +17,12 @@ class ApplicationSubmitted extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public $tries = 3;
+    public int $tries = 3;
 
-    public $backoff = [30, 120, 300];
+    /** @var list<int> */
+    public array $backoff = [30, 120, 300];
 
-    public $timeout = 60;
+    public int $timeout = 60;
 
     public JobApplication $application;
 
@@ -55,9 +56,12 @@ class ApplicationSubmitted extends Mailable implements ShouldQueue
         );
     }
 
+    /**
+     * @return list<Attachment>
+     */
     public function attachments(): array
     {
-        // Pull the PDF from the private disk during the background job
+        // Pulled off the private disk inside the queued job.
         return [
             Attachment::fromStorageDisk('local', $this->pdfPath)
                 ->as('IIT_Indore_Application.pdf')

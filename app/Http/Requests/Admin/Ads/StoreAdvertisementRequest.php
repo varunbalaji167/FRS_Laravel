@@ -7,11 +7,8 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * `departments` is posted as `{ "Dept Name": ["Grade 1", "Grade 2"] }` (see
- * Admin/Jobs/Create.jsx) — an associative map, not a list — so the keys
- * (department names) are checked against the departments table in
- * withValidator() rather than with a `Rule::exists` wildcard, which only
- * checks values.
+ * `departments` is a name-keyed map, not a list, so withValidator() checks
+ * the keys — Rule::exists only ever checks values.
  */
 class StoreAdvertisementRequest extends FormRequest
 {
@@ -20,6 +17,9 @@ class StoreAdvertisementRequest extends FormRequest
         return true;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

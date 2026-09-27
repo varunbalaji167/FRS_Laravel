@@ -7,11 +7,8 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
-     *
-     * Adds phone_code and alt_phone_code columns so that the country/STD
-     * dial prefix (e.g. "+91") is stored separately from the 10-digit
-     * number — matching the split-field pattern used in Step2Personal.
+     * Stores the dial prefix separately from the number, matching the
+     * split-field pattern in Step2Personal.
      */
     public function up(): void
     {

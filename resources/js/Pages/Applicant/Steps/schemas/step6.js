@@ -1,8 +1,7 @@
 import { z } from "zod";
 
-// Mirrors app/Http/Requests/Applicant/Rules/StepAdditionalInfoRules.php — no
-// mandatory fields today (see docs/wizard-steps.md), so this is a lax
-// pass-through kept for shape consistency with the other step schemas.
+// Mirrors StepAdditionalInfoRules.php. No mandatory fields today, so this is
+// a lax pass-through kept for shape consistency.
 export default function step6Schema() {
     return z.object({
         patents: z.array(z.any()).optional(),

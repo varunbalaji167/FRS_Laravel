@@ -7,14 +7,14 @@ use App\Models\Department;
 use App\Services\Reporting\DashboardAggregator;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class DashboardController extends Controller
 {
     /**
-     * Aggregate counts for the Admin and HOD dashboards. See
-     * DashboardAggregator for the query + caching (Phase 8).
+     * DashboardAggregator owns the query and the caching.
      */
-    public function dashboard(Request $request, DashboardAggregator $dashboard)
+    public function dashboard(Request $request, DashboardAggregator $dashboard): Response
     {
         $user = $request->user();
         $viewFolder = $this->adminOrHodViewFolder($user);
@@ -22,10 +22,7 @@ class DashboardController extends Controller
         return Inertia::render("{$viewFolder}/Dashboard", $dashboard->forUser($user));
     }
 
-    /**
-     * Display Settings page for Admin/HOD
-     */
-    public function settings(Request $request)
+    public function settings(Request $request): Response
     {
         $user = $request->user();
         $viewFolder = $this->adminOrHodViewFolder($user);

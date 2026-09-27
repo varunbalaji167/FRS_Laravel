@@ -11,15 +11,8 @@ use Symfony\Component\HttpFoundation\Response;
 class CheckRole
 {
     /**
-     * Handle an incoming request.
-     * Use the spread operator (...$roles) to accept multiple roles as an array.
-     *
-     * Guarded via DomainException so the FORBIDDEN failure flows through the
-     * single render pipeline in Handler.php — an axios/JSON caller gets the
-     * error contract, an Inertia visit gets the flash-and-back UX, and a
-     * plain browser hit gets the Inertia Error page. `abort(403)` here
-     * throws a plain HttpException that Handler's AccessDeniedHttpException
-     * branch does not match, so it would bypass the contract entirely.
+     * Throws a DomainException, not abort(403): a plain HttpException does
+     * not match Handler's branch and would bypass the error contract.
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {

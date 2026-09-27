@@ -8,6 +8,9 @@ use Illuminate\Validation\Rule;
 // SubmitApplicationRequest (all steps). See docs/validation.md.
 class StepPersonalRules
 {
+    /**
+     * @return array<string, mixed>
+     */
     public static function rules(int $currentYear): array
     {
         return [

@@ -23,10 +23,8 @@ const refereeShape = (mandatory) =>
                   .refine((v) => !v || v.replace(/\D/g, "").length === 10, "Phone must be exactly 10 digits."),
     });
 
-// Mirrors app/Http/Requests/Applicant/Rules/StepRefereesRules.php — keep the
-// two in sync (see docs/validation.md). Duplicate-email check across
-// referees lives here (not on the server) since it's a cross-field
-// convenience check, not a security boundary.
+// Mirrors StepRefereesRules.php — keep the two in sync. The duplicate-email
+// check is client-only: a convenience check, not a security boundary.
 export default function step10Schema() {
     return z.object({
         referees: z

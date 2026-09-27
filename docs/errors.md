@@ -89,9 +89,14 @@ export function formatErrorCode(code, fallback) { /* code → friendly sentence 
 - Every page mounts inside `<ErrorBoundary>` in `app.jsx`. Fallback shows the
   `request_id` when the boundary is given one.
 - `resources/js/lib/inertiaErrorInterceptor.js` registers `router.on('invalid', …)`:
-  419 ⇒ refresh CSRF and retry the same request once; 429 ⇒ toast with
-  `Retry-After`. 500 doesn't need a client branch — it's already a valid
+  419 ⇒ toast and a full reload, which re-issues the CSRF token; 429 ⇒ toast
+  with `Retry-After`. 500 doesn't need a client branch — it's already a valid
   Inertia response by the time it reaches the browser (see above).
+
+  A 419 is deliberately *not* replayed. The original request may be a
+  non-idempotent POST, and the session it was signed against may have been
+  invalidated by a logout elsewhere; a reload restores a consistent page and
+  the wizard's own draft autosave means no typed input is lost.
 
 ## ErrorCode table
 
@@ -99,20 +104,20 @@ export function formatErrorCode(code, fallback) { /* code → friendly sentence 
 |---|---|---|
 | `VALIDATION_FAILED` | 422 | Any FormRequest fails; `details.fields = { flatKey: [msgs] }` |
 | `AUTH_INVALID_CREDENTIALS` | 401 | Login password mismatch |
-| `AUTH_UNVERIFIED_EMAIL` | 403 | Applicant not verified |
+| `AUTH_UNVERIFIED_EMAIL` | 403 | Unverified applicant on a wizard route (JSON callers; browsers still redirect to the notice page) |
 | `AUTH_DOMAIN_NOT_ALLOWED` | 403 | Non-`iiti.ac.in` email for admin/hod |
 | `AUTH_ROLE_MISMATCH` | 403 | DB role != requested portal role |
-| `AUTH_RATE_LIMITED` | 429 | Login throttle exceeded |
+| `AUTH_RATE_LIMITED` | 429 | Login lockout after 5 failed attempts; carries `Retry-After` |
 | `OAUTH_STATE_INVALID` | 400 | Socialite state mismatch |
 | `OAUTH_ACCOUNT_LINK_REQUIRED` | 409 | Existing local account, no `google_id` |
 | `OAUTH_HD_MISMATCH` | 403 | Google `hd` claim != `iiti.ac.in` for staff |
-| `APP_ALREADY_SUBMITTED` | 409 | Second submit against submitted row |
+| `APP_ALREADY_SUBMITTED` | 409 | Second submit against a submitted row; the stored dossier is never overwritten |
 | `APP_DRAFT_CONFLICT` | 409 | `saveDraft` on non-draft row |
 | `APP_AD_DEADLINE_PASSED` | 422 | Submit after deadline |
 | `APP_AD_INACTIVE` | 422 | Submit against inactive ad |
 | `APP_STEP_INVALID` | 422 | Step rules failed |
-| `FILE_MIME_REJECTED` | 422 | Upload wrong MIME |
-| `FILE_TOO_LARGE` | 413 | Upload > cap |
+| `FILE_MIME_REJECTED` | 422 | Validation failed and *every* failing rule was a file-type rule |
+| `FILE_TOO_LARGE` | 413 | Request body over `post_max_size` (`PostTooLargeException`) |
 | `FILE_KEY_NOT_ALLOWED` | 422 | Upload key not on whitelist |
 | `HOD_DEPT_SCOPE_VIOLATION` | 403 | HOD accessed foreign dept |
 | `ADMIN_SELF_DEMOTE_FORBIDDEN` | 403 | Admin tries to change own role |
@@ -122,11 +127,21 @@ export function formatErrorCode(code, fallback) { /* code → friendly sentence 
 | `FORBIDDEN` | 403 | Any other authorisation failure |
 | `INTERNAL_ERROR` | 500 | Unhandled exception |
 
+### OAuth codes are redirects, not JSON
+
+The Google callback is always a browser `GET`, so a JSON body would be wrong
+there. `OAUTH_STATE_INVALID`, `OAUTH_HD_MISMATCH`, `OAUTH_ACCOUNT_LINK_REQUIRED`
+and `AUTH_DOMAIN_NOT_ALLOWED` reach the user as a redirect carrying
+`ErrorCode::X->userMessage()` in the `error` flash, which `ToastListener`
+renders. The enum is still the single source of the wording.
+
 ## How to add a new code
 
 1. Add the `case` to `app/Support/ErrorCode.php`, plus its `httpStatus()` and
    `userMessage()` arms.
 2. Add a row to the table above.
 3. Add a Feature test that triggers it and asserts the JSON shape.
+   `Feature\Errors\ErrorCodeCoverageTest` fails the build if a case has no
+   test and no row in this table.
 4. `throw new DomainException(ErrorCode::YOUR_CODE, $details)` from the
    controller/service — never `abort(422, 'string')`.

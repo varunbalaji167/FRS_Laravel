@@ -8,10 +8,11 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class WelcomeController extends Controller
 {
-    public function show()
+    public function show(): Response
     {
         return Inertia::render('Welcome', [
             'canLogin' => Route::has('login'),

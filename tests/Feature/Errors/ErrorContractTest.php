@@ -9,10 +9,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * End-to-end coverage of the docs/errors.md contract against real routes —
- * Unit\Exceptions\HandlerTest covers the full exception-to-code mapping in
- * isolation; this asserts the wiring (routes, middleware, FormRequests)
- * actually produces it.
+ * The docs/errors.md contract against real routes. HandlerTest covers the
+ * mapping itself; this asserts the wiring actually produces it.
  */
 class ErrorContractTest extends TestCase
 {

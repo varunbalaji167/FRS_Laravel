@@ -2,15 +2,13 @@
 
 namespace App\Http\Requests\Applicant\Rules;
 
-// Composed by both ValidateStepRequest (single step) and
-// SubmitApplicationRequest (all steps). See docs/validation.md.
-//
-// The first 3 referees are mandatory (index 0-2); any further referees are
-// optional but still format-checked if present. Explicit numeric-index rules
-// are merged by Laravel's validator alongside the `*` wildcard rules below,
-// so both apply to indices 0-2 — this is what makes those three required.
+// Indices 0-2 are mandatory; the numeric-index rules merge with the `*`
+// wildcard rules below, which is what makes those three required.
 class StepRefereesRules
 {
+    /**
+     * @return array<string, mixed>
+     */
     public static function rules(int $currentYear): array
     {
         $rules = [

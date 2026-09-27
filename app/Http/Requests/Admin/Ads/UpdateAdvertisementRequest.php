@@ -4,9 +4,8 @@ namespace App\Http\Requests\Admin\Ads;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-// Not yet wired to a controller method — AdvertisementController has no
-// update() endpoint today. Filled for symmetry with StoreAdvertisementRequest
-// so it's ready the moment that endpoint lands.
+// No update() endpoint exists yet; kept in step with
+// StoreAdvertisementRequest so it is ready when one lands.
 class UpdateAdvertisementRequest extends FormRequest
 {
     public function authorize(): bool
@@ -14,6 +13,9 @@ class UpdateAdvertisementRequest extends FormRequest
         return true;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

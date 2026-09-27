@@ -7,8 +7,7 @@ use App\Models\User;
 abstract class Controller
 {
     /**
-     * HOD and admin share the same controllers/routes for applications and
-     * the dashboard, but render into separate Inertia page folders.
+     * HOD and admin share controllers but render into separate page folders.
      */
     protected function adminOrHodViewFolder(User $user): string
     {

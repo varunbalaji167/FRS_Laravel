@@ -1,8 +1,7 @@
 import { z } from "zod";
 
-// Mirrors app/Http/Requests/Applicant/Rules/StepEducationRules.php — keep the
-// two in sync (see docs/validation.md). Only the PhD block has mandatory
-// fields today; PG/UG/School are lax arrays, matching wizard-steps.md.
+// Mirrors StepEducationRules.php — keep the two in sync. Only the PhD block
+// is mandatory; PG/UG/School are lax arrays.
 export default function step3Schema(currentYear = new Date().getFullYear()) {
     return z.object({
         phd: z.object({

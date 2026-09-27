@@ -8,11 +8,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * A submitted application outside an HOD's own department is a genuine
- * scope violation (ErrorCode::HOD_DEPT_SCOPE_VIOLATION), distinct from
- * Feature\Security\HodCannotSeeDraftsTest — a draft is hidden as 404
- * regardless of department, since an HOD has no legitimate reason to look
- * one up at all.
+ * A submitted application outside an HOD's department is a genuine scope
+ * violation; a draft is hidden as 404 regardless (HodCannotSeeDraftsTest).
  */
 class HodDepartmentScopeViolationTest extends TestCase
 {

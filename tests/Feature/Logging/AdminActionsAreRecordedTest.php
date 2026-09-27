@@ -11,9 +11,8 @@ use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 /**
- * admin_actions is the Phase 6 audit trail for sensitive admin/HOD actions —
- * separate from application_status_events (Phase 4), which only covers the
- * status-transition case. See docs/architecture.md.
+ * admin_actions is the audit trail for sensitive admin/HOD actions, separate
+ * from application_status_events, which only covers status transitions.
  */
 class AdminActionsAreRecordedTest extends TestCase
 {

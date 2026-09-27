@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class SubmitValidationTest extends TestCase
@@ -57,6 +58,12 @@ class SubmitValidationTest extends TestCase
             ->post("/apply/{$advertisement->id}/submit", array_replace_recursive($this->validPayload(), $overrides));
     }
 
+    private function submitJson(User $applicant, Advertisement $advertisement, array $overrides = []): TestResponse
+    {
+        return $this->actingAs($applicant)
+            ->postJson("/apply/{$advertisement->id}/submit", array_replace_recursive($this->validPayload(), $overrides));
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -83,7 +90,9 @@ class SubmitValidationTest extends TestCase
         $applicant = User::factory()->create();
         $advertisement = Advertisement::factory()->create(['deadline' => now()->subDay()]);
 
-        $this->submit($applicant, $advertisement)->assertStatus(422);
+        $this->submitJson($applicant, $advertisement)
+            ->assertStatus(422)
+            ->assertJsonPath('code', 'APP_AD_DEADLINE_PASSED');
     }
 
     public function test_submit_against_an_inactive_advertisement_is_rejected(): void
@@ -91,7 +100,9 @@ class SubmitValidationTest extends TestCase
         $applicant = User::factory()->create();
         $advertisement = Advertisement::factory()->create(['is_active' => false]);
 
-        $this->submit($applicant, $advertisement)->assertStatus(422);
+        $this->submitJson($applicant, $advertisement)
+            ->assertStatus(422)
+            ->assertJsonPath('code', 'APP_AD_INACTIVE');
     }
 
     public function test_an_unknown_document_upload_key_is_rejected(): void
@@ -103,8 +114,9 @@ class SubmitValidationTest extends TestCase
         $payload['documents']['hacked_key'] = UploadedFile::fake()->create('sneaky.pdf', 10, 'application/pdf');
 
         $this->actingAs($applicant)
-            ->post("/apply/{$advertisement->id}/submit", $payload)
-            ->assertStatus(422);
+            ->postJson("/apply/{$advertisement->id}/submit", $payload)
+            ->assertStatus(422)
+            ->assertJsonPath('code', 'FILE_KEY_NOT_ALLOWED');
     }
 
     public function test_a_previously_skipped_step_6_field_is_now_validated(): void

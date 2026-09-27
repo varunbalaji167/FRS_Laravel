@@ -7,9 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Audit trail for sensitive admin actions — written from
-     * Admin\UserController, Admin\DepartmentController and
-     * Admin\ApplicationController@updateStatus. See docs/architecture.md.
+     * Audit trail for sensitive admin actions; see AdminActionRecorder.
      */
     public function up(): void
     {

@@ -8,9 +8,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * One place for PDF + Excel/CSV export, shared by Applicant\ExportController
- * and Admin\ApplicationController (which Hod routes also delegate to). See
- * docs/architecture.md.
+ * One place for PDF and CSV export, shared by the applicant, admin and HOD
+ * controllers.
  */
 class DossierExporter
 {
@@ -34,8 +33,7 @@ class DossierExporter
     }
 
     /**
-     * Export a comprehensive CSV covering every field from every step.
-     * Fields aligned with application_format_blade.php (IIT Indore Faculty Application).
+     * Full-dossier CSV, aligned with pdf/application_format.blade.php.
      */
     public function exportExcel(JobApplication $application): StreamedResponse
     {
@@ -61,9 +59,6 @@ class DossierExporter
             // ── helper: write a blank separator row ──
             $blank = fn () => fputcsv($file, []);
 
-            // ════════════════════════════════════════════════════
-            // SECTION 0 — APPLICATION SUMMARY
-            // ════════════════════════════════════════════════════
             fputcsv($file, ['═══ APPLICATION SUMMARY ═══']);
             fputcsv($file, ['Field', 'Value']);
             fputcsv($file, ['Application ID',      $application->id]);
@@ -75,9 +70,6 @@ class DossierExporter
             fputcsv($file, ['Submitted At',         $application->created_at ? $application->created_at->format('d/m/Y H:i') : 'N/A']);
             $blank();
 
-            // ════════════════════════════════════════════════════
-            // SECTION 1 — PERSONAL DETAILS
-            // ════════════════════════════════════════════════════
             fputcsv($file, ['═══ SECTION 1: PERSONAL DETAILS ═══']);
             fputcsv($file, ['Field', 'Value']);
             // Blade renders full name as a combined field; export each part + combined
@@ -123,9 +115,6 @@ class DossierExporter
             fputcsv($file, ['Perm. PIN Code',  $p['perm_pincode'] ?? 'N/A']);
             $blank();
 
-            // ════════════════════════════════════════════════════
-            // SECTION 2 — EDUCATIONAL QUALIFICATIONS
-            // ════════════════════════════════════════════════════
             $edu = $data['education'] ?? [];
             $phd = $edu['phd'] ?? [];
 
@@ -212,9 +201,6 @@ class DossierExporter
             }
             $blank();
 
-            // ════════════════════════════════════════════════════
-            // SECTION 3 — EMPLOYMENT DETAILS
-            // ════════════════════════════════════════════════════
             $emp = $data['employment'] ?? [];
             $pres = $emp['present'] ?? [];
 
@@ -313,9 +299,6 @@ class DossierExporter
             }
             $blank();
 
-            // ════════════════════════════════════════════════════
-            // SECTION 4 — RESEARCH & PUBLICATIONS
-            // ════════════════════════════════════════════════════
             $res = $data['research'] ?? [];
             $spec = $res['specialization'] ?? [];
             $sum = $res['summary'] ?? [];
@@ -362,9 +345,6 @@ class DossierExporter
             }
             $blank();
 
-            // ════════════════════════════════════════════════════
-            // SECTION 5 — ADDITIONAL INFORMATION
-            // ════════════════════════════════════════════════════
             $info = $data['additional_info'] ?? [];
 
             fputcsv($file, ['═══ SECTION 5: ADDITIONAL INFORMATION ═══']);
@@ -460,9 +440,6 @@ class DossierExporter
             }
             $blank();
 
-            // ════════════════════════════════════════════════════
-            // SECTION 6 — AWARDS, SUPERVISION & PROJECTS
-            // ════════════════════════════════════════════════════
             $ap = $data['awards_projects'] ?? [];
 
             fputcsv($file, ['═══ SECTION 6: AWARDS, SUPERVISION & SPONSORED PROJECTS ═══']);
@@ -575,9 +552,6 @@ class DossierExporter
             }
             $blank();
 
-            // ════════════════════════════════════════════════════
-            // SECTION 7 — CONTRIBUTIONS & FUTURE PLANS
-            // ════════════════════════════════════════════════════
             $stmts = $data['statements'] ?? [];
 
             fputcsv($file, ['═══ SECTION 7: CONTRIBUTIONS & FUTURE PLANS ═══']);
@@ -594,9 +568,6 @@ class DossierExporter
             fputcsv($file, [$stmts['other_info'] ?? 'N/A']);
             $blank();
 
-            // ════════════════════════════════════════════════════
-            // SECTION 8 — DETAILED LIST OF PUBLICATIONS
-            // ════════════════════════════════════════════════════
             $dpubs = $data['detailed_pubs'] ?? [];
 
             fputcsv($file, ['═══ SECTION 8: DETAILED LIST OF PUBLICATIONS ═══']);
@@ -641,9 +612,6 @@ class DossierExporter
             }
             $blank();
 
-            // ════════════════════════════════════════════════════
-            // SECTION 9 — REFEREES
-            // ════════════════════════════════════════════════════
             fputcsv($file, ['═══ SECTION 9: REFEREES ═══']);
             fputcsv($file, ['#', 'Name', 'Position', 'Association', 'Institute / Organisation', 'E-mail', 'Contact No.']);
             foreach ($data['referees_section']['referees'] ?? [] as $i => $ref) {
@@ -666,9 +634,6 @@ class DossierExporter
             }
             $blank();
 
-            // ════════════════════════════════════════════════════
-            // SECTION 10 — DECLARATION
-            // ════════════════════════════════════════════════════
             $declared = ! empty($data['form_data']['declaration']) || ! empty($data['declaration']);
             fputcsv($file, ['═══ SECTION 10: DECLARATION ═══']);
             fputcsv($file, ['Declaration Agreed', $declared ? 'Yes – Agreed' : 'N/A']);

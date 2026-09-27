@@ -75,7 +75,7 @@ class SubmitIsIdempotentTest extends TestCase
         ];
     }
 
-    public function test_double_submit_only_queues_one_confirmation_and_one_set_of_referee_emails(): void
+    public function test_resubmit_is_rejected_and_leaves_the_stored_dossier_untouched(): void
     {
         Storage::fake('local');
         Mail::fake();
@@ -83,17 +83,25 @@ class SubmitIsIdempotentTest extends TestCase
         $applicant = User::factory()->create(['role' => 'applicant']);
         $advertisement = Advertisement::factory()->create();
 
-        $response = $this->actingAs($applicant)
-            ->post("/apply/{$advertisement->id}/submit", $this->validPayload());
-        $response->assertRedirect(route('dashboard'));
+        $this->actingAs($applicant)
+            ->post("/apply/{$advertisement->id}/submit", $this->validPayload())
+            ->assertRedirect(route('dashboard'));
 
-        $response = $this->actingAs($applicant)
-            ->post("/apply/{$advertisement->id}/submit", $this->validPayload());
-        $response->assertRedirect(route('dashboard'));
+        $stored = JobApplication::where('user_id', $applicant->id)->sole();
 
-        $this->assertSame(1, JobApplication::where('user_id', $applicant->id)
-            ->where('advertisement_id', $advertisement->id)
-            ->count());
+        $tampered = $this->validPayload();
+        $tampered['form_data']['personal_details']['first_name'] = 'Tampered';
+
+        $this->actingAs($applicant)
+            ->postJson("/apply/{$advertisement->id}/submit", $tampered)
+            ->assertStatus(409)
+            ->assertJsonPath('code', 'APP_ALREADY_SUBMITTED');
+
+        $this->assertSame(1, JobApplication::where('user_id', $applicant->id)->count());
+        $this->assertSame(
+            $stored->form_data['personal_details']['first_name'],
+            $stored->fresh()->form_data['personal_details']['first_name'],
+        );
 
         Mail::assertQueued(ApplicationSubmitted::class, 1);
         Mail::assertQueued(RefereeNotification::class, 3);

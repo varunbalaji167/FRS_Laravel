@@ -1,10 +1,5 @@
-// Client counterpart of docs/errors.md. `flattenServerErrors` normalises
-// every shape the backend can currently send into one flat
-// { flatKey: message } object so a step component can look a field's error
-// up by its own dot-notation key without caring which tier produced it:
-//   - the Phase 3 DomainException contract: { code, details: { fields } }
-//   - a plain Laravel ValidationException JSON body: { message, errors }
-//   - Inertia's page.props.errors bag: { field: "message" | ["message"] }
+// Client counterpart of docs/errors.md: normalises every error shape the
+// backend can send into one flat { flatKey: message } object.
 export function flattenServerErrors(errors) {
     if (!errors || typeof errors !== "object") return {};
 

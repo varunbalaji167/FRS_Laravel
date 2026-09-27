@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\JobApplicationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class JobApplication extends Model
 {
+    /** @use HasFactory<JobApplicationFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -49,8 +51,7 @@ class JobApplication extends Model
     }
 
     /**
-     * See User::departmentModel() — same Phase 8 FK cutover, same naming
-     * rationale (avoids colliding with the legacy `department` string).
+     * See User::departmentModel() for the naming.
      *
      * @return BelongsTo<Department, $this>
      */

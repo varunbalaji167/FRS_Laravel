@@ -6,25 +6,27 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Ads\StoreAdvertisementRequest;
 use App\Models\Advertisement;
 use App\Models\Department;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class AdvertisementController extends Controller
 {
-    public function index()
+    public function index(): Response
     {
         return Inertia::render('Admin/Jobs/Index', [
             'advertisements' => Advertisement::latest()->get(),
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('Admin/Jobs/Create', [
             'departments' => Department::allCached(),
         ]);
     }
 
-    public function store(StoreAdvertisementRequest $request)
+    public function store(StoreAdvertisementRequest $request): RedirectResponse
     {
         $validated = $request->validated();
 
@@ -38,9 +40,7 @@ class AdvertisementController extends Controller
             'document_path' => $filePath,
         ]);
 
-        // Keep the Phase 8 FK pivot in sync with the legacy JSON department
-        // map (`{ "Dept Name": ["Grade 1", ...] }` — see
-        // StoreAdvertisementRequest).
+        // Keeps the FK pivot in sync with the legacy JSON department map.
         $ids = collect(array_keys($validated['departments']))
             ->map(fn ($name) => Department::idForName($name))
             ->filter()

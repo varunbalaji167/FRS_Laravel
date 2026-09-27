@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ApplicationStatusEvent extends Model
 {
@@ -21,12 +22,18 @@ class ApplicationStatusEvent extends Model
         'at' => 'datetime',
     ];
 
-    public function application()
+    /**
+     * @return BelongsTo<JobApplication, $this>
+     */
+    public function application(): BelongsTo
     {
         return $this->belongsTo(JobApplication::class, 'application_id');
     }
 
-    public function actor()
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function actor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'actor_id');
     }

@@ -15,11 +15,12 @@ class AccountAccessNotification extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public $tries = 3;
+    public int $tries = 3;
 
-    public $backoff = [30, 120, 300];
+    /** @var list<int> */
+    public array $backoff = [30, 120, 300];
 
-    public $timeout = 60;
+    public int $timeout = 60;
 
     // Use safe strings instead of the Eloquent Model
     public string $name;

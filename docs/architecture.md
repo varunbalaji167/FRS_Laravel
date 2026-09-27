@@ -31,8 +31,9 @@ app/
 │  │  └─ FileAccessController.php         # signed/authorised download for the private disk
 │  ├─ Middleware/
 │  │  ├─ CheckRole.php
+│  │  ├─ EnsureEmailIsVerified.php        # `verified` alias; AUTH_UNVERIFIED_EMAIL for JSON callers
 │  │  ├─ HandleInertiaRequests.php
-│  │  └─ AttachRequestId.php              # generates a ULID request id, X-Request-Id header
+│  │  └─ AttachRequestId.php              # ULID request id, X-Request-Id header; prepended globally
 │  └─ Requests/
 │     ├─ Applicant/
 │     │  ├─ SaveDraftRequest.php          # lax
@@ -46,7 +47,7 @@ app/
 │     │  ├─ Ads/{Store,Update}AdvertisementRequest.php
 │     │  ├─ Users/{Store,UpdateRole,StoreDepartment}Request.php
 │     │  └─ Applications/UpdateStatusRequest.php
-│     ├─ Auth/RegisterRequest.php
+│     ├─ Auth/{Register,ResetPassword,PasswordResetLink,UpdatePassword}Request.php
 │     └─ ProfileUpdateRequest.php
 ├─ Services/                 # concrete classes, no interfaces
 │  ├─ Applications/
@@ -86,6 +87,8 @@ resources/js/
 │  │  ├─ TextField.jsx, NumberField.jsx, TextareaField.jsx, DatePicker.jsx, PhoneField.jsx,
 │  │  │  EmailField.jsx, SelectField.jsx, RadioField.jsx, ComboboxField.jsx, TagsField.jsx,
 │  │  │  YearField.jsx, PercentField.jsx, FileField.jsx, SignaturePadField.jsx
+│  ├─ applications/
+│  │  └─ ApplicationDossier.jsx  # the full dossier view, shared by applicant/HOD/admin
 │  ├─ ConfirmDialog.jsx      # Phase 5: replaces window.confirm + toast-as-confirm
 │  ├─ ErrorBoundary.jsx
 │  ├─ ToastListener.jsx      # one summary toast per response (Phase 3)
@@ -123,7 +126,8 @@ docs/
    (`Applicant/`, `Admin/`, `Hod/`, `Public/`). Never mix roles in one controller.
 2. **A controller method starts with input validation** → the rules live in a
    FormRequest under `app/Http/Requests/{role}/`. Naming: `{Verb}{Noun}Request`
-   (e.g. `StoreAdvertisementRequest`). No inline `$request->validate()` in new code.
+   (e.g. `StoreAdvertisementRequest`). No inline `$request->validate()` —
+   `Feature\Boot\ConventionsInPlaceTest` enforces this.
 3. **Two controllers doing the same thing** → extract into
    `app/Services/{domain}/`. One concrete class per file. Constructor injection
    only. No repositories, no interfaces.
@@ -137,6 +141,23 @@ docs/
    raw `<Input>`. If no widget fits, extend the widget set first.
 8. **A new user-visible error path** → add the `ErrorCode` to `docs/errors.md`
    and add a Feature test that triggers it.
+   `Feature\Errors\ErrorCodeCoverageTest` fails the build otherwise.
+9. **The same page for two roles** → one component under
+   `Components/{domain}/`, parameterised by layout and route, rendered by thin
+   per-role pages. See `ApplicationDossier.jsx`.
+
+## Configuration read at boot
+
+`config:cache` skips `.env` loading, so anything read with `env()` outside a
+`config/` file silently becomes its default on a deployed box. Two consequences
+worth knowing:
+
+- `TRUSTED_PROXIES` lives in `config/app.php` and is applied by
+  `AppServiceProvider::boot()` via `TrustProxies::at()`, not in
+  `bootstrap/app.php`. Reading it at bootstrap time would fall back to `'*'`
+  under `config:cache` and let any client spoof its IP.
+- The password policy is defined once in `AppServiceProvider::boot()` with
+  `Password::defaults()`, so register, reset and change can't drift apart.
 
 ## Guiding principles
 

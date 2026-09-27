@@ -62,11 +62,16 @@ jobs:
       - name: Clear config cache
         run: php artisan config:clear
 
+      - name: Audit PHP dependencies
+        run: composer audit
+
       - name: Check code style (Pint)
         run: vendor/bin/pint --test
 
+      # --memory-limit is explicit so the run can't silently die on a runner
+      # whose CLI php.ini caps memory.
       - name: Static analysis (PHPStan / Larastan)
-        run: vendor/bin/phpstan analyse --no-progress
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -76,6 +81,9 @@ jobs:
 
       - name: Install npm dependencies
         run: npm ci
+
+      - name: Audit npm dependencies
+        run: npm audit --omit=dev
 
       - name: Lint frontend (ESLint)
         run: npm run lint

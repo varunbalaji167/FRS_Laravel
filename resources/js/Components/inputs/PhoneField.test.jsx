@@ -4,9 +4,8 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import PhoneField from "./PhoneField";
 
-// PhoneField is a controlled component, so the mask can only be observed by
-// actually feeding each onChange back in as the next `value` — a bare mock
-// only ever sees a single keystroke applied to the initial (empty) value.
+// PhoneField is controlled, so the mask is only observable by feeding each
+// onChange back in as the next `value`.
 function ControlledPhoneField(props) {
     const [value, setValue] = useState("");
     const [code, setCode] = useState("");

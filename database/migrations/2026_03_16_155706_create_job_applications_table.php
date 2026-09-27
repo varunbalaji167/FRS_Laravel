@@ -14,9 +14,8 @@ return new class extends Migration
         Schema::create('job_applications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            // NOTE: job_openings was never created by a migration; this column is
-            // dropped a few migrations later (2026_03_19_050711) in favour of
-            // advertisement_id, so it's left unconstrained here for a fresh install.
+            // job_openings has no migration; this column is dropped later in
+            // favour of advertisement_id, so it stays unconstrained.
             $table->unsignedBigInteger('job_opening_id');
             $table->string('status')->default('pending'); // pending, shortlisted, rejected
             $table->timestamps();

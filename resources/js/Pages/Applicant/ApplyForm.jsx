@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Head, useForm, router, usePage } from "@inertiajs/react";
 import { Card, CardContent } from "@/Components/ui/card";
@@ -81,9 +81,8 @@ const STEP_SCHEMAS = {
     11: step11Schema,
 };
 
-// A handful of step schema field paths don't match the error keys the step
-// components have always displayed against (chosen before the schemas
-// existed) — remap those so inline errors keep landing on the right widget.
+// Some schema paths don't match the error keys the step components display
+// against, so remap those to keep inline errors on the right widget.
 function toLegacyErrorKey(step, path) {
     const key = path.join(".");
 
@@ -148,11 +147,8 @@ export default function ApplyForm({
         existingDraft?.current_step ? Number(existingDraft.current_step) : 1,
     );
     const [localErrors, setLocalErrors] = useState({});
-    // Tracks when a quiet background draft-save is in flight
     const [isSavingDraft, setIsSavingDraft] = useState(false);
-    // When the last successful draft-save (manual or autosave) completed
     const [lastSavedAt, setLastSavedAt] = useState(null);
-    // 0-100 while the final multipart submit is uploading
     const [uploadProgress, setUploadProgress] = useState(null);
 
     const idParts = (profile.id_proof || "").split(":");
@@ -240,11 +236,8 @@ export default function ApplyForm({
         }
     };
 
-    // The real request body for POST /apply/{ad}/step/{n}/validate — nested
-    // under `form_data.<container>` to match ValidateStepRequest's rules.
-    // File fields are stripped (see stripFiles) since this is a lightweight
-    // JSON probe, not a multipart upload; the final submit still validates
-    // files for real.
+    // Body for POST /apply/{ad}/step/{n}/validate, nested to match
+    // ValidateStepRequest. Files are stripped — the real submit checks those.
     const payloadForStep = (step) => {
         const fd = data.form_data || {};
         switch (step) {
@@ -283,67 +276,62 @@ export default function ApplyForm({
         });
     };
 
-    // -------------------------------------------------------------------
-    // DRAFT SAVE — no validation required; tracks loading state
-    // -------------------------------------------------------------------
-    const saveDraftQuietly = (showToast = false, stepToSave = currentStep) => {
-        const payload = {
-            department: data.department,
-            grade: data.grade,
-            form_data: { ...data.form_data, current_step: stepToSave },
-        };
+    // Assigned below, once the autosave hook exists — saveDraftQuietly has to
+    // tell it the content is already persisted.
+    const markSavedRef = useRef(null);
 
+    const saveDraftQuietly = (showToast = false, stepToSave = currentStep) => {
+        const formData = { ...data.form_data, current_step: stepToSave };
+
+        setData("form_data", formData);
+        markSavedRef.current?.(formData);
         setIsSavingDraft(true);
-        router.post(route("applicant.draft", advertisement.id), payload, {
-            forceFormData: true,
-            preserveScroll: true,
-            preserveState: true,
-            onSuccess: () => {
-                setData("form_data", payload.form_data);
-                setLastSavedAt(Date.now());
-                if (showToast) toast.success("Draft saved successfully! You can safely leave and return later.");
+
+        router.post(
+            route("applicant.draft", advertisement.id),
+            { department: data.department, grade: data.grade, form_data: formData },
+            {
+                forceFormData: true,
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    setLastSavedAt(Date.now());
+                    if (showToast) toast.success("Draft saved. You can safely leave and return later.");
+                },
+                onError: () => toast.error("Failed to save draft. Please check your inputs."),
+                onFinish: () => setIsSavingDraft(false),
             },
-            onError: () => {
-                toast.error("Failed to save draft. Please check your inputs.");
-            },
-            onFinish: () => setIsSavingDraft(false),
-        });
+        );
     };
 
-    // -------------------------------------------------------------------
-    // AUTOSAVE — 2s after the user stops typing anywhere in the form,
-    // quietly persist the draft. Any pending save is flushed on unmount so a
-    // quick navigate-away doesn't drop the last few keystrokes.
-    // -------------------------------------------------------------------
-    useDebouncedAutosave(data.form_data, () => saveDraftQuietly(false, currentStep), {
+    // Quietly persists 2s after the user stops typing; flushed on unmount so a
+    // quick navigate-away can't drop the last keystrokes.
+    const { markSaved } = useDebouncedAutosave(data.form_data, () => saveDraftQuietly(false, currentStep), {
         delay: 2000,
     });
+    markSavedRef.current = markSaved;
 
-    // Warn before an accidental tab-close/refresh while unsaved edits exist.
     useBeforeUnloadGuard(isDirty);
 
+    // Re-renders the "Saved Ns ago" label, and only while there is one to
+    // show — a permanent 1s interval would re-render the whole wizard forever.
     const [, forceTick] = useState(0);
     useEffect(() => {
-        const id = setInterval(() => forceTick((n) => n + 1), 1000);
+        if (!lastSavedAt) return;
+        const id = setInterval(() => forceTick((n) => n + 1), 15000);
         return () => clearInterval(id);
-    }, []);
+    }, [lastSavedAt]);
 
     const savedAgoLabel = (() => {
         if (!lastSavedAt) return null;
         const seconds = Math.max(0, Math.round((Date.now() - lastSavedAt) / 1000));
-        if (seconds < 5) return "Saved just now";
-        if (seconds < 60) return `Saved ${seconds}s ago`;
+        if (seconds < 60) return "Saved just now";
         const minutes = Math.round(seconds / 60);
         return `Saved ${minutes} min${minutes === 1 ? "" : "s"} ago`;
     })();
 
-    // -------------------------------------------------------------------
-    // VALIDATION GATEKEEPER — client zod schema first (immediate UX), then
-    // the server's per-step tier (the actual security boundary; see
-    // docs/validation.md). Step 11 skips the server probe — its files can't
-    // be JSON-serialised for a lightweight check, and the real submit
-    // request that immediately follows validates them for real.
-    // -------------------------------------------------------------------
+    // Client schema first for instant feedback, then the server's per-step
+    // tier. Step 11 skips the probe; the submit that follows checks its files.
     const validateStep = async (step) => {
         const schemaFactory = STEP_SCHEMAS[step];
         if (!schemaFactory) return true;
@@ -391,9 +379,6 @@ export default function ApplyForm({
         saveDraftQuietly(false, prevStep);
     };
 
-    // -------------------------------------------------------------------
-    // FINAL SUBMIT
-    // -------------------------------------------------------------------
     const submitFinal = async (e) => {
         e.preventDefault();
 
@@ -413,7 +398,6 @@ export default function ApplyForm({
 
     const isBusy = isSavingDraft || processing;
 
-    // Use combinedErrors instead of localErrors for all steps
     const renderCurrentStep = () => {
         switch (currentStep) {
             case 1:
@@ -527,8 +511,8 @@ export default function ApplyForm({
                     </div>
 
                     <div className="flex-1">
-                        {/* Step-summary chips — compact overview above the fold,
-                            most useful on mobile where the sidebar nav is hidden. */}
+                        {/* Compact progress chips, mainly for mobile where the
+                            sidebar nav is hidden. */}
                         <div className="mb-4 flex flex-wrap gap-1.5" aria-hidden="true">
                             {STEPS.map((step) => {
                                 const isActive = currentStep === step.id;

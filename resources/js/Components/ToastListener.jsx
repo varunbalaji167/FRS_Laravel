@@ -2,9 +2,8 @@ import { useEffect } from "react";
 import { usePage } from "@inertiajs/react";
 import { toast } from "sonner";
 
-// Per docs/errors.md: one summary toast per response — inline field errors
-// (via FormField/combinedErrors) already point the user at the specific
-// input, so a toast per field is redundant noise on top of that.
+// One summary toast per response (docs/errors.md); inline field errors
+// already point at the specific input.
 export default function ToastListener() {
     const { flash = {}, errors = {} } = usePage().props;
 

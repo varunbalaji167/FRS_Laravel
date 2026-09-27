@@ -5,11 +5,8 @@ namespace App\Http\Requests\Applicant;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Draft tier — lax. Types and sizes only, no required checks; see
- * docs/validation.md. `uploaded_documents` is stripped so an applicant can't
- * spoof already-stored file paths through the draft endpoint, and the
- * serialised form_data payload is bounded so a runaway client can't write an
- * unbounded JSON blob into the row.
+ * Draft tier — types and sizes only (docs/validation.md). Strips
+ * `uploaded_documents` so stored paths can't be spoofed, and bounds the blob.
  */
 class SaveDraftRequest extends FormRequest
 {
@@ -30,6 +27,9 @@ class SaveDraftRequest extends FormRequest
         }
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

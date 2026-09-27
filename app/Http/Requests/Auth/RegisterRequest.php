@@ -13,15 +13,17 @@ class RegisterRequest extends FormRequest
         return true;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => [
-                'required', 'confirmed',
-                Password::min(10)->mixedCase()->numbers()->symbols()->uncompromised(),
-            ],
+            // Policy lives in AppServiceProvider so register/reset/change
+            // can't drift apart.
+            'password' => ['required', 'confirmed', Password::defaults()],
         ];
     }
 }

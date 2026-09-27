@@ -3,10 +3,8 @@ import { z } from "zod";
 const requiredFile = (msg) => z.any().refine((v) => v instanceof File || (typeof v === "string" && v.length > 0), msg);
 const optionalFile = z.any().optional();
 
-// Mirrors app/Http/Requests/Applicant/Rules/StepDocumentsRules.php — keep the
-// two in sync (see docs/validation.md). Validates the flat `documents`/
-// `best_papers`/`declaration` slice ApplyForm.jsx actually sends (not nested
-// under form_data, except declaration).
+// Mirrors StepDocumentsRules.php — keep the two in sync. Validates the flat
+// documents/best_papers/declaration slice ApplyForm.jsx actually sends.
 export default function step11Schema() {
     return z.object({
         declaration: z.literal(true, {

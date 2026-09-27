@@ -7,13 +7,8 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Prepares the department-FK cutover: adds the new nullable FK columns
-     * and the advertisement/department pivot alongside the existing string
-     * `department`/`departments` columns. Purely additive — nothing here
-     * backfills data, enforces NOT NULL, or drops the string columns; that
-     * cutover (backfill + drop-behind-a-flag) is Phase 8's job, run against
-     * production once every reader/writer has moved onto the FK. See
-     * PLAN.md Phase 8.
+     * Purely additive: the nullable FK columns and the pivot, alongside the
+     * existing string columns. Backfill and cutover happen separately.
      */
     public function up(): void
     {

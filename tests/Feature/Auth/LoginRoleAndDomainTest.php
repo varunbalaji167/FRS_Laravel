@@ -7,9 +7,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * The login endpoint's role/domain checks must reach the client as the
- * intended ErrorCode, not as a generic VALIDATION_FAILED (which is what the
- * pre-Phase-4 code threw via ValidationException::withMessages).
+ * The role and domain checks must reach the client as their own ErrorCode,
+ * not as a generic VALIDATION_FAILED.
  */
 class LoginRoleAndDomainTest extends TestCase
 {

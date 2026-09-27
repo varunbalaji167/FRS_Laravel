@@ -1,9 +1,8 @@
 import { Input } from "@/Components/ui/input";
 import FormField from "@/Components/inputs/FormField";
 
-// Native date input with min/max clamping. A calendar-popover widget is a
-// nice-to-have (Phase 5 UX pass) — the min/max constraint is the part that
-// matters for validation and it works the same either way.
+// Native date input with min/max clamping; a calendar popover would be
+// nicer, but the clamp is the part validation depends on.
 export default function DatePicker({ id, label, value, onChange, error, required, min, max, disabled }) {
     return (
         <FormField label={label} htmlFor={id} error={error} required={required}>

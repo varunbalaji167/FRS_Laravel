@@ -4,9 +4,8 @@ import FormField from "@/Components/inputs/FormField";
 import { validateFile, formatBytes } from "@/lib/fileValidation";
 import { cn } from "@/lib/utils";
 
-// Drag+drop file picker with mime/size accept, an optional upload-progress
-// bar (0-100, driven by the caller's Inertia `onProgress`), and a remove
-// button.
+// Drag-and-drop picker with mime/size accept, a remove button, and an
+// optional progress bar driven by the caller's Inertia `onProgress`.
 export default function FileField({
     id,
     label,

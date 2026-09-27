@@ -7,9 +7,8 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Dedup log for RefereeNotificationDispatcher — the unique pair is what
-     * makes a re-run of the same submission idempotent even if SubmissionService
-     * is ever invoked twice for the same application (see docs/architecture.md).
+     * Dedup log for RefereeNotificationDispatcher; the unique pair is what
+     * makes a repeated submission idempotent.
      */
     public function up(): void
     {

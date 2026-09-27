@@ -6,11 +6,8 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration
 {
     /**
-     * Data-only backfill for the department_id FK columns added in
-     * 2026_09_27_031055_add_department_fk_columns. Runs regardless of the
-     * FEATURE_DEPARTMENT_FK flag so the FK columns stay in sync and the
-     * flag can be flipped without a follow-up migration. See PLAN.md
-     * Phase 8.
+     * Data-only backfill for the department_id columns. Runs regardless of
+     * FEATURE_DEPARTMENT_FK so the flag can be flipped without a migration.
      */
     public function up(): void
     {
@@ -24,8 +21,7 @@ return new class extends Migration
         $advertisements = DB::table('advertisements')->select('id', 'departments')->get();
 
         foreach ($advertisements as $advertisement) {
-            // `departments` is a JSON object keyed by department name (each
-            // value is the list of grades open for that department), not a
+            // `departments` is a JSON object keyed by department name, not a
             // flat array of names.
             $names = array_keys(json_decode($advertisement->departments ?? '{}', true) ?: []);
 

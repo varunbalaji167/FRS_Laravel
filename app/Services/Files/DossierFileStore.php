@@ -5,8 +5,7 @@ namespace App\Services\Files;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Private-disk read/write + signed URL helpers, wrapping the Phase 0
- * FileAccessController logic. Filled in Phase 4.
+ * Private-disk helpers behind FileAccessController.
  */
 class DossierFileStore
 {

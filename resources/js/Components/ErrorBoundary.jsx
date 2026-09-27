@@ -14,6 +14,12 @@ export default class ErrorBoundary extends Component {
         console.error("ErrorBoundary caught an error", error, info);
     }
 
+    // The id the server stamped on the document response, so a user can quote
+    // the same reference that appears in the logs.
+    get requestId() {
+        return this.props.requestId ?? document.querySelector('meta[name="request-id"]')?.content ?? null;
+    }
+
     render() {
         if (!this.state.error) {
             return this.props.children;
@@ -25,7 +31,7 @@ export default class ErrorBoundary extends Component {
                 <p className="text-sm text-gray-500">
                     Please refresh the page. If the problem persists, contact support with the reference below.
                 </p>
-                {this.props.requestId && <p className="text-xs text-gray-400">Reference: {this.props.requestId}</p>}
+                {this.requestId && <p className="text-xs text-gray-400">Reference: {this.requestId}</p>}
             </div>
         );
     }

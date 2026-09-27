@@ -12,9 +12,8 @@ import step10Schema from "./step10";
 import step11Schema from "./step11";
 import draftSchema from "./draft";
 
-// One happy + one failing case per step, mirroring the server's
-// Rules/Step{Name}Rules.php (see docs/validation.md) so client/server can't
-// silently drift.
+// One happy and one failing case per step, mirroring the server's
+// Rules/Step{Name}Rules.php so the two can't silently drift.
 
 describe("step1Schema", () => {
     it("accepts a chosen department and grade", () => {

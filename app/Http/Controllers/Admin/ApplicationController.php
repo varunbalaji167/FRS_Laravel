@@ -13,9 +13,14 @@ use App\Services\Applications\DossierExporter;
 use App\Services\Auditing\AdminActionRecorder;
 use App\Services\Reporting\DashboardAggregator;
 use App\Support\ErrorCode;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ApplicationController extends Controller
 {
@@ -25,15 +30,13 @@ class ApplicationController extends Controller
     }
 
     /**
-     * Enforce departmental security boundaries.
-     * Admins see all applications. HODs only see applications for their assigned department.
-     *
-     * Scopes by department_id when FEATURE_DEPARTMENT_FK is on (see
-     * config/features.php) so a department rename can't silently widen or
-     * break an HOD's scope — the string `department` column is only a
-     * display label at that point, no longer the security boundary.
+     * Admins see everything, HODs only their own department. Scopes by
+     * department_id once FEATURE_DEPARTMENT_FK is on, so renames are safe.
      */
-    private function getScopedQuery(Request $request)
+    /**
+     * @return Builder<JobApplication>
+     */
+    private function getScopedQuery(Request $request): Builder
     {
         $query = JobApplication::with(['user', 'advertisement'])
             ->whereIn('status', ['submitted', 'shortlisted', 'rejected']);
@@ -50,13 +53,10 @@ class ApplicationController extends Controller
     }
 
     /**
-     * Fetch a single application by id, still hiding drafts as 404 (an HOD
-     * or admin has no legitimate reason to look one up — see
-     * Feature\Security\HodCannotSeeDraftsTest), but distinguishing an HOD
-     * reaching outside their own department as a scope violation rather
-     * than folding it into the same "not found" as a missing/draft row.
+     * Drafts stay hidden as 404; an out-of-department HOD gets a scope
+     * violation instead.
      */
-    private function findVisibleOrFail(Request $request, $id): JobApplication
+    private function findVisibleOrFail(Request $request, int|string $id): JobApplication
     {
         $application = JobApplication::with(['user', 'advertisement'])
             ->whereIn('status', ['submitted', 'shortlisted', 'rejected'])
@@ -74,16 +74,15 @@ class ApplicationController extends Controller
         return $application;
     }
 
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
-        // 1. Secure the base query
         $query = $this->getScopedQuery($request);
 
         if ($request->filled('advertisement_id')) {
             $query->where('advertisement_id', $request->advertisement_id);
         }
 
-        // If user is HOD, this filter is somewhat redundant but safe. If Admin, it filters dynamically.
+        // Redundant for an HOD (already scoped), a real filter for an admin.
         if ($request->filled('department')) {
             $query->where('department', $request->department);
         }
@@ -92,45 +91,27 @@ class ApplicationController extends Controller
             $query->where('status', $request->status);
         }
 
-        // paginate() + withQueryString() bakes active filter params into next_page_url
-        // so the frontend never has to manually reconstruct the URL on each scroll fetch.
+        // withQueryString() bakes the active filters into next_page_url so the
+        // frontend never rebuilds it on each scroll fetch.
         $applications = $query->latest()->paginate(5)->withQueryString();
-
-        // CHANGE 1: Removed the stale $advertisements variable that sat on the
-        // original line 51. It fetched from DB and was immediately thrown away
-        // because the identical query was repeated inside the return block.
 
         $viewFolder = $this->adminOrHodViewFolder($request->user());
 
         return Inertia::render("{$viewFolder}/Applications/Index", [
-            // Always a plain value — evaluated and sent on every request.
-            // On scroll the frontend sends only:['applications'], so Inertia
-            // returns only this key in the JSON, keeping the payload tiny.
             'applications' => $applications,
 
-            // CHANGE 2: Converted to closures (fn() =>).
-            //
-            // Inertia behaviour for closures vs plain values:
-            //   Plain value  → PHP evaluates it immediately on every request,
-            //                  regardless of whether the frontend asked for it.
-            //   Closure      → Inertia calls it ONLY when the frontend explicitly
-            //                  requests that prop. On a scroll request that sends
-            //                  only:['applications'], these three closures are
-            //                  never called — zero DB queries for ads/depts/filters.
-            //
-            // On the initial full page load all props are requested, so all three
-            // closures run and their data reaches the frontend as normal.
+            // Closures, so a scroll fetch sending only:['applications'] never
+            // runs these queries. Full page loads request them as normal.
             'advertisements' => fn () => Advertisement::select('id', 'title', 'reference_number')->get(),
             'departments' => fn () => Department::allCached(),
             'filters' => fn () => $request->only(['advertisement_id', 'department', 'status']),
         ]);
     }
 
-    public function show(Request $request, $id)
+    public function show(Request $request, int|string $id): Response
     {
         $application = $this->findVisibleOrFail($request, $id);
 
-        // Dynamically choose view folder
         $viewFolder = $this->adminOrHodViewFolder($request->user());
 
         return Inertia::render("{$viewFolder}/Applications/Show", [
@@ -138,7 +119,7 @@ class ApplicationController extends Controller
         ]);
     }
 
-    public function updateStatus(UpdateStatusRequest $request, $id, AdminActionRecorder $adminActions, DashboardAggregator $dashboard)
+    public function updateStatus(UpdateStatusRequest $request, int|string $id, AdminActionRecorder $adminActions, DashboardAggregator $dashboard): RedirectResponse
     {
         $application = $this->findVisibleOrFail($request, $id);
         $from = $application->status;
@@ -162,22 +143,14 @@ class ApplicationController extends Controller
         return back()->with('success', "Application status updated to {$request->status}.");
     }
 
-    /**
-     * Generate and stream the PDF on the fly via DossierExporter, shared
-     * with Applicant\ExportController.
-     */
-    public function exportPdf(Request $request, $id)
+    public function exportPdf(Request $request, int|string $id): SymfonyResponse
     {
         $application = $this->findVisibleOrFail($request, $id);
 
         return $this->exporter->exportPdf($application);
     }
 
-    /**
-     * Export the dossier CSV via DossierExporter, shared with
-     * Applicant\ExportController.
-     */
-    public function exportExcel(Request $request, $id)
+    public function exportExcel(Request $request, int|string $id): StreamedResponse
     {
         $application = $this->findVisibleOrFail($request, $id);
 

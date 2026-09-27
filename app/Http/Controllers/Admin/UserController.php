@@ -12,22 +12,20 @@ use App\Models\User;
 use App\Services\Auditing\AdminActionRecorder;
 use App\Services\Reporting\DashboardAggregator;
 use App\Support\ErrorCode;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Inertia\Response;
 use Throwable;
 
 class UserController extends Controller
 {
-    /**
-     * Manage Users: View all Admins, HODs, and Applicants
-     */
-    public function users()
+    public function users(): Response
     {
-        // Fetch all users to allow full institutional management
         $users = User::select('id', 'name', 'email', 'role', 'department')
             ->latest()
             ->paginate(20);
@@ -39,13 +37,12 @@ class UserController extends Controller
     }
 
     /**
-     * Pre-provision a new Admin or HOD manually
+     * Pre-provision an Admin or HOD; they never self-register.
      */
-    public function storeUser(StoreUserRequest $request, AdminActionRecorder $adminActions, DashboardAggregator $dashboard)
+    public function storeUser(StoreUserRequest $request, AdminActionRecorder $adminActions, DashboardAggregator $dashboard): RedirectResponse
     {
         $isHod = $request->role === 'hod';
 
-        // 1. CAPTURE the created user into the $user variable
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -55,9 +52,6 @@ class UserController extends Controller
             'password' => Hash::make(Str::random(32)),
         ]);
 
-        // 2. Safely pass the $user variable into the Mailable. A down SMTP
-        // server must not swallow the fact that the account was already
-        // created — log it and let the admin retry the notification later.
         $this->sendAccountAccessNotification($user, $request->email, 'created');
 
         $adminActions->record($request, 'user.created', $user, null, $user->only(['id', 'name', 'email', 'role', 'department']));
@@ -67,20 +61,15 @@ class UserController extends Controller
         return back()->with('success', "New {$request->role} created successfully. Notification email sent.");
     }
 
-    /**
-     * Update an existing user's role/department
-     */
-    public function updateRole(UpdateRoleRequest $request, User $user, AdminActionRecorder $adminActions, DashboardAggregator $dashboard)
+    public function updateRole(UpdateRoleRequest $request, User $user, AdminActionRecorder $adminActions, DashboardAggregator $dashboard): RedirectResponse
     {
-        // Prevent the admin from accidentally demoting themselves and locking themselves out
+        // Stops an admin locking themselves out.
         if ($user->id === $request->user()->id && $request->role !== 'admin') {
             throw new DomainException(ErrorCode::ADMIN_SELF_DEMOTE_FORBIDDEN);
         }
 
-        // Independent of self-demote: refuse to demote the last remaining
-        // admin, even if a different admin is doing it. Otherwise the
-        // Institute portal can end up with zero admins and no way to
-        // provision new ones.
+        // Zero admins means no way to provision new ones, so the last one
+        // can't be demoted even by a different admin.
         if ($user->role === 'admin' && $request->role !== 'admin' && $this->isLastAdmin($user)) {
             throw new DomainException(ErrorCode::USER_LAST_ADMIN);
         }
@@ -88,14 +77,12 @@ class UserController extends Controller
         $before = $user->only(['role', 'department']);
         $isHod = $request->role === 'hod';
 
-        // Update the user
         $user->update([
             'role' => $request->role,
             'department' => $isHod ? $request->department : null,
             'department_id' => $isHod ? Department::idForName($request->department) : null,
         ]);
 
-        // Send Update Email (The $user variable is automatically provided by Laravel's route injection)
         $this->sendAccountAccessNotification($user, $user->email, 'updated');
 
         $adminActions->record($request, 'user.role_updated', $user, $before, $user->only(['role', 'department']));
@@ -106,27 +93,22 @@ class UserController extends Controller
         return back()->with('success', 'Role updated to '.strtoupper($request->role)." for {$user->name}. Notification email sent.");
     }
 
-    /**
-     * Delete a user from the system
-     */
-    public function destroyUser(Request $request, User $user, AdminActionRecorder $adminActions, DashboardAggregator $dashboard)
+    public function destroyUser(Request $request, User $user, AdminActionRecorder $adminActions, DashboardAggregator $dashboard): RedirectResponse
     {
-        // Prevent self-deletion — same failure mode as the self-demote
-        // guard in updateRole, so it reuses the same ErrorCode.
+        // Same failure mode as the self-demote guard, same ErrorCode.
         if ($user->id === $request->user()->id) {
             throw new DomainException(ErrorCode::ADMIN_SELF_DEMOTE_FORBIDDEN);
         }
 
-        // Refuse to delete the last remaining admin — see updateRole.
+        // See updateRole.
         if ($user->role === 'admin' && $this->isLastAdmin($user)) {
             throw new DomainException(ErrorCode::USER_LAST_ADMIN);
         }
 
-        // Capture the email BEFORE we delete the user
+        // Captured before the row goes away.
         $email = $user->email;
         $before = $user->only(['id', 'name', 'email', 'role', 'department']);
 
-        // Queue the email.
         $this->sendAccountAccessNotification($user, $email, 'deleted');
 
         $adminActions->record($request, 'user.deleted', $user, $before, null);
@@ -145,14 +127,13 @@ class UserController extends Controller
     }
 
     /**
-     * A down SMTP server must not swallow the fact that the underlying
-     * account action already happened — log it and let the admin retry the
-     * notification later. Shared by storeUser/updateRole/destroyUser.
+     * Failures only reach the log: a down mail server must not hide that
+     * the account change already happened.
      */
     private function sendAccountAccessNotification(User $user, string $email, string $action): void
     {
         try {
-            Mail::to($email)->send(new AccountAccessNotification($user->name, $user->role, $user->department, $action));
+            Mail::to($email)->queue(new AccountAccessNotification($user->name, $user->role, $user->department, $action));
         } catch (Throwable $e) {
             Log::error('AccountAccessNotification mail failed', [
                 'user_id' => $user->id,

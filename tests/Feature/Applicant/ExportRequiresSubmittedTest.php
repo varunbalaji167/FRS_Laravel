@@ -41,6 +41,25 @@ class ExportRequiresSubmittedTest extends TestCase
         $response->assertOk();
     }
 
+    /**
+     * A review decision is not a reason to revoke the applicant's own copy.
+     */
+    public function test_a_review_decision_does_not_revoke_the_applicants_export(): void
+    {
+        $applicant = User::factory()->create(['role' => 'applicant']);
+
+        foreach (['shortlisted', 'rejected'] as $status) {
+            $application = JobApplication::factory()->create([
+                'user_id' => $applicant->id,
+                'status' => $status,
+            ]);
+
+            $this->actingAs($applicant)
+                ->get("/applications/{$application->id}/export/pdf")
+                ->assertOk();
+        }
+    }
+
     public function test_applicant_cannot_export_someone_elses_submitted_application(): void
     {
         $applicant = User::factory()->create(['role' => 'applicant']);

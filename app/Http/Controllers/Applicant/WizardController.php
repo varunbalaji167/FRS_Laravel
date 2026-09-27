@@ -11,8 +11,10 @@ use App\Models\JobApplication;
 use App\Services\Applications\DraftService;
 use App\Services\Applications\SubmissionService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class WizardController extends Controller
 {
@@ -23,10 +25,7 @@ class WizardController extends Controller
         //
     }
 
-    /**
-     * Show the application form wizard.
-     */
-    public function showApplyForm(Advertisement $advertisement)
+    public function showApplyForm(Advertisement $advertisement): Response|RedirectResponse
     {
         $application = JobApplication::where('user_id', Auth::id())
             ->where('advertisement_id', $advertisement->id)
@@ -48,30 +47,22 @@ class WizardController extends Controller
         ]);
     }
 
-    // SAVE AS DRAFT — lax validation (types/sizes only); see SaveDraftRequest.
-
-    public function saveDraft(SaveDraftRequest $request, Advertisement $advertisement)
+    // Draft tier — lax validation; see SaveDraftRequest.
+    public function saveDraft(SaveDraftRequest $request, Advertisement $advertisement): RedirectResponse
     {
         $this->drafts->save($request, $advertisement);
 
         return redirect()->back();
     }
 
-    // STEP TIER — strict validation for the single step the wizard is
-    // transitioning away from. Called from the wizard's Next button.
-    // Validation itself happens in ValidateStepRequest; reaching this method
-    // body means it already passed.
-
+    // Step tier — reaching this body means ValidateStepRequest already passed.
     public function validateStep(ValidateStepRequest $request, Advertisement $advertisement): JsonResponse
     {
         return response()->json(['ok' => true]);
     }
 
-    // FINAL SUBMIT — strict validation across every step; see
-    // SubmitApplicationRequest. Reaching this method body means every field
-    // and required document already passed validation.
-
-    public function submitApplication(SubmitApplicationRequest $request, Advertisement $advertisement)
+    // Submit tier — every step and document validated by SubmitApplicationRequest.
+    public function submitApplication(SubmitApplicationRequest $request, Advertisement $advertisement): RedirectResponse
     {
         $this->submissions->submit($request, $advertisement);
 

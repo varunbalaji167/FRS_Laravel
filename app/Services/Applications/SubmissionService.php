@@ -44,9 +44,8 @@ class SubmissionService
 
         $documentPaths = $formData['uploaded_documents'] ?? [];
 
-        // allFiles() is typed array<string, ...> (see InteractsWithInput);
-        // $request->file('documents', []) resolves to the same data but its
-        // `mixed` return type loses the string keys under static analysis.
+        // allFiles() keeps its string keys under static analysis;
+        // $request->file() returns `mixed` and loses them.
         $allFiles = $request->allFiles();
 
         foreach (array_keys($allFiles['documents'] ?? []) as $key) {
@@ -88,19 +87,23 @@ class SubmissionService
 
         $formData['uploaded_documents'] = $documentPaths;
 
-        // ── Persist — locked so a duplicate submit can't race the status transition
-        $application = null;
-        $isNewSubmission = false;
-
-        DB::transaction(function () use ($user, $advertisement, $validated, $formData, &$application, &$isNewSubmission) {
+        // Locked so two concurrent submits can't both see a draft row and
+        // both fire the referee mails.
+        $application = DB::transaction(function () use ($user, $advertisement, $validated, $formData): JobApplication {
             $existing = JobApplication::where('user_id', $user->id)
                 ->where('advertisement_id', $advertisement->id)
                 ->lockForUpdate()
                 ->first();
 
-            $isNewSubmission = in_array($existing?->status, [null, 'draft'], true);
+            // A submitted dossier is the record of evaluation — it is frozen,
+            // never overwritten by a later POST.
+            if ($existing && $existing->status !== 'draft') {
+                throw new DomainException(ErrorCode::APP_ALREADY_SUBMITTED, [
+                    'application_id' => $existing->id,
+                ]);
+            }
 
-            $application = JobApplication::updateOrCreate(
+            return JobApplication::updateOrCreate(
                 ['user_id' => $user->id, 'advertisement_id' => $advertisement->id],
                 [
                     'department' => $validated['department'],
@@ -118,23 +121,17 @@ class SubmissionService
             'application_id' => $application->id,
             'user_id' => $user->id,
             'advertisement_id' => $advertisement->id,
-            'is_new_submission' => $isNewSubmission,
         ]);
 
-        // Only the null|draft → submitted transition generates the PDF and
-        // fires mail — a duplicate submit on an already-submitted row must
-        // not re-queue the applicant/referee emails.
-        if ($isNewSubmission) {
-            GenerateApplicationPdfJob::dispatch($application);
+        GenerateApplicationPdfJob::dispatch($application);
 
-            $referees = $formData['referees_section']['referees'] ?? [];
-            $applicantName = trim(
-                ($formData['personal_details']['first_name'] ?? '').' '.
-                ($formData['personal_details']['last_name'] ?? '')
-            );
+        $referees = $formData['referees_section']['referees'] ?? [];
+        $applicantName = trim(
+            ($formData['personal_details']['first_name'] ?? '').' '.
+            ($formData['personal_details']['last_name'] ?? '')
+        );
 
-            $this->refereeNotifications->dispatch($application, $referees, $applicantName);
-        }
+        $this->refereeNotifications->dispatch($application, $referees, $applicantName);
 
         return $application;
     }

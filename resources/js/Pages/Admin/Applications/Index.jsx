@@ -27,11 +27,8 @@ export default function ApplicationsIndex({ applications, advertisements, depart
     const nextPageRef = useRef(applications.current_page + 1);
     const sentinelRef = useRef(null); // invisible div at list bottom
 
-    // Sync incoming Inertia prop → local accumulated list
-    // Fires whenever Inertia delivers new `applications` data (filter change OR
-    // next page scroll). We distinguish them by checking current_page:
-    //   page 1  → filter/reset  → start fresh
-    //   page 2+ → scroll load   → append
+    // Fires on every new `applications` prop. current_page tells a filter
+    // reset (page 1, start fresh) from a scroll load (page 2+, append).
     useEffect(() => {
         if (applications.current_page === 1) {
             setAllItems(applications.data);
@@ -46,10 +43,8 @@ export default function ApplicationsIndex({ applications, advertisements, depart
         setLoading(false);
     }, [applications]);
 
-    // Fetch next page
-    // `only: ['applications']` tells Inertia to do a partial reload — the server
-    // returns just the paginated rows, not advertisements/departments/filters.
-    // This makes scroll requests significantly faster.
+    // `only` makes this a partial reload: the server returns just the rows,
+    // not advertisements/departments/filters.
     const loadNextPage = useCallback(() => {
         if (loading || !hasNextPage) return;
         setLoading(true);
@@ -85,9 +80,8 @@ export default function ApplicationsIndex({ applications, advertisements, depart
         return () => observer.disconnect();
     }, [loadNextPage]);
 
-    // Filter helpers─
-    // Always resets to page 1. We clear allItems immediately so the table
-    // doesn't flash stale rows while the request is in flight.
+    // Resets to page 1 and clears allItems immediately, so the table can't
+    // flash stale rows while the request is in flight.
     function applyFilters() {
         setAllItems([]);
         setLoading(true);

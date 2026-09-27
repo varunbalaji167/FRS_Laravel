@@ -7,14 +7,12 @@ use App\Http\Requests\Admin\Users\StoreDepartmentRequest;
 use App\Models\Department;
 use App\Services\Auditing\AdminActionRecorder;
 use App\Services\Reporting\DashboardAggregator;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
 {
-    /**
-     * Store a new department (Admin only)
-     */
-    public function storeDepartment(StoreDepartmentRequest $request, AdminActionRecorder $adminActions, DashboardAggregator $dashboard)
+    public function storeDepartment(StoreDepartmentRequest $request, AdminActionRecorder $adminActions, DashboardAggregator $dashboard): RedirectResponse
     {
         $department = Department::create($request->validated());
 
@@ -26,10 +24,7 @@ class DepartmentController extends Controller
         return back()->with('success', 'Department added successfully.');
     }
 
-    /**
-     * Delete a department (Admin only)
-     */
-    public function destroyDepartment(Request $request, Department $department, AdminActionRecorder $adminActions, DashboardAggregator $dashboard)
+    public function destroyDepartment(Request $request, Department $department, AdminActionRecorder $adminActions, DashboardAggregator $dashboard): RedirectResponse
     {
         $before = $department->only(['id', 'name']);
 

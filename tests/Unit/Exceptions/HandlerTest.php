@@ -18,10 +18,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Tests\TestCase;
 
 /**
- * Unit-level coverage of App\Exceptions\Handler::render() — the mapping
- * described in docs/errors.md — exercised directly against fabricated
- * requests rather than real routes, so every branch (including ones with
- * no matching real HTTP endpoint yet, like a throttle) is reachable.
+ * Handler::render() against fabricated requests, so every branch is reachable
+ * — including ones with no matching real endpoint yet, like a throttle.
  */
 class HandlerTest extends TestCase
 {
@@ -64,13 +62,8 @@ class HandlerTest extends TestCase
     }
 
     /**
-     * A raw JSON body isn't a valid Inertia response (Inertia's client
-     * checks for an X-Inertia response header + page payload), so it would
-     * surface as Inertia's own raw-JSON error dialog instead of the app's
-     * UI. An Inertia visit gets a redirect-back with the message flashed
-     * instead — exactly what a pre-Phase-3 `back()->with('error', ...)`
-     * controller already produced, so existing Inertia-driven forms keep
-     * their current UX.
+     * A raw JSON body is not a valid Inertia response, so an Inertia visit
+     * gets a redirect-back with the message flashed instead.
      */
     public function test_domain_exception_redirects_back_with_a_flashed_error_for_inertia_requests(): void
     {
@@ -85,10 +78,8 @@ class HandlerTest extends TestCase
     }
 
     /**
-     * A user typing a role-guarded URL directly (or clicking into one) hits
-     * this branch — CheckRole throws FORBIDDEN and the request is a plain
-     * browser GET, not JSON and not Inertia. The user should see the
-     * Inertia Error page, not a raw JSON body.
+     * A plain browser GET into a role-guarded URL should land on the Inertia
+     * Error page, not a raw JSON body.
      */
     public function test_domain_exception_renders_the_inertia_error_page_for_a_plain_browser_get(): void
     {
@@ -97,9 +88,8 @@ class HandlerTest extends TestCase
         $this->assertNotNull($response);
         $this->assertSame(403, $response->getStatusCode());
         $this->assertSame('01TESTREQUESTID', $response->headers->get('X-Request-Id'));
-        // Inertia embeds the page component name + props in the data-page
-        // attribute of the response HTML; asserting on 'FORBIDDEN' proves
-        // the ErrorCode reached the props bag.
+        // Inertia embeds the component name and props in data-page, so this
+        // proves the ErrorCode reached the props bag.
         $this->assertStringContainsString('FORBIDDEN', $response->getContent());
         $this->assertStringContainsString('Error', $response->getContent());
     }
@@ -166,10 +156,8 @@ class HandlerTest extends TestCase
     }
 
     /**
-     * Laravel's own Handler::prepareException() converts a raw
-     * ModelNotFoundException into this Symfony type before any renderable
-     * callback (including ours) ever runs — see findOrFail() in real
-     * controllers, exercised end-to-end in Feature\Errors\ErrorContractTest.
+     * Laravel converts ModelNotFoundException to this Symfony type before any
+     * renderable callback runs.
      */
     public function test_the_converted_not_found_http_exception_also_renders_not_found(): void
     {
@@ -180,8 +168,7 @@ class HandlerTest extends TestCase
     }
 
     /**
-     * Likewise, a status-less AuthorizationException (Gate::denies() without
-     * an explicit HTTP status) is converted to this Symfony type.
+     * Likewise for a status-less AuthorizationException.
      */
     public function test_the_converted_access_denied_http_exception_also_renders_forbidden(): void
     {

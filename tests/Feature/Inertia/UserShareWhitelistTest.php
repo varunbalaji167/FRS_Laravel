@@ -7,8 +7,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Phase 7: HandleInertiaRequests shares only a whitelisted subset of the
- * user from every page. See docs/architecture.md.
+ * HandleInertiaRequests shares only a whitelisted subset of the user.
  */
 class UserShareWhitelistTest extends TestCase
 {

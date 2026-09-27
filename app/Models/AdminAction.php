@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AdminAction extends Model
 {
@@ -25,7 +26,10 @@ class AdminAction extends Model
         'at' => 'datetime',
     ];
 
-    public function actor()
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function actor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'actor_id');
     }

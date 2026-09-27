@@ -43,6 +43,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Trusted Proxies
+    |--------------------------------------------------------------------------
+    |
+    | CIDR/IP list of the load balancers whose X-Forwarded-* headers may be
+    | trusted. It lives here rather than in bootstrap/app.php because
+    | `config:cache` skips .env loading, which would silently fall back to
+    | '*' and let any client spoof its IP. Applied in AppServiceProvider.
+    |
+    */
+
+    'trusted_proxies' => env('TRUSTED_PROXIES', '*'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application URL
     |--------------------------------------------------------------------------
     |

@@ -19,10 +19,8 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Step tier — strict, but only for the single step being transitioned away
- * from. Composes the same Rules/Step{Name}Rules class SubmitApplicationRequest
- * uses for that step, so step-transition and final-submit can't drift. See
- * docs/validation.md.
+ * Step tier — one step only, composed from the same Rules/Step{Name}Rules
+ * class SubmitApplicationRequest uses for it.
  */
 class ValidateStepRequest extends FormRequest
 {
@@ -45,6 +43,9 @@ class ValidateStepRequest extends FormRequest
         return true;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         $step = (int) $this->route('n');
@@ -57,9 +58,8 @@ class ValidateStepRequest extends FormRequest
     }
 
     /**
-     * Per C3, this endpoint's contract is { code: APP_STEP_INVALID,
-     * details: { fields } } rather than Laravel's default { message, errors }
-     * — see docs/errors.md.
+     * This endpoint answers with APP_STEP_INVALID, not Laravel's default
+     * { message, errors } shape. See docs/errors.md.
      */
     protected function failedValidation(Validator $validator)
     {

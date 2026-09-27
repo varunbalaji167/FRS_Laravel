@@ -18,9 +18,8 @@ class StepValidationTest extends TestCase
     }
 
     /**
-     * Failures on this endpoint use the Phase 3 error contract
-     * (App\Exceptions\Handler / docs/errors.md), not Laravel's default
-     * { message, errors } shape: { code, message, details: { fields } }.
+     * Failures here use the docs/errors.md contract, not Laravel's default
+     * { message, errors } shape.
      */
     private function assertStepInvalid($response, array $fields): void
     {
@@ -125,9 +124,8 @@ class StepValidationTest extends TestCase
         $applicant = User::factory()->create();
         $advertisement = Advertisement::factory()->create();
 
-        // Contract-shaped 404 (Phase 3 error framework), not Laravel's
-        // default {message: 'Not Found'} — a `abort(404)` in the FormRequest
-        // would slip past Handler's DomainException branch on Inertia.
+        // Contract-shaped 404: an abort(404) in the FormRequest would slip
+        // past Handler's DomainException branch on an Inertia visit.
         $this->validate($applicant, $advertisement, 12, [])
             ->assertNotFound()
             ->assertJson(['code' => 'NOT_FOUND']);

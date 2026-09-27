@@ -1,7 +1,5 @@
 /**
- * Calculates the exact age in Years, Months, and Days from a Date of Birth.
- * * @param {string|Date} dobString - The date of birth (e.g., '1990-05-15')
- * @returns {string|null} - Formatted age string (e.g., '34Y 10M 2D') or null if invalid
+ * Exact age from a date of birth, as '34Y 10M 2D', or null if invalid.
  */
 export function calculateAge(dobString) {
     if (!dobString) return null;

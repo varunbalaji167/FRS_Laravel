@@ -11,10 +11,8 @@ use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 /**
- * Phase 8: DashboardAggregator caches the admin/HOD dashboard for 120s
- * (docs/architecture.md). Every write path that changes the numbers must
- * bust the relevant cache entry, or the dashboard shows stale counts until
- * the TTL expires. See PLAN.md Phase 8.
+ * The dashboard is cached for 120s, so every write path that changes the
+ * numbers must bust its entry or the counts go stale until the TTL expires.
  */
 class DashboardCacheIsBustedTest extends TestCase
 {

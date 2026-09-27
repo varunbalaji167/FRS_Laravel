@@ -6,6 +6,9 @@ namespace App\Http\Requests\Applicant\Rules;
 // SubmitApplicationRequest (all steps). See docs/validation.md.
 class StepEducationRules
 {
+    /**
+     * @return array<string, mixed>
+     */
     public static function rules(int $currentYear): array
     {
         return [
