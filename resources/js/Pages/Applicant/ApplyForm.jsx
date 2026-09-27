@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { Head, useForm, router, usePage } from "@inertiajs/react";
 import { Card, CardContent } from "@/Components/ui/card";
 import { Button } from "@/Components/ui/button";
 import { flattenServerErrors } from "@/lib/errors";
+import useDebouncedAutosave from "@/lib/useDebouncedAutosave";
+import useBeforeUnloadGuard from "@/lib/useBeforeUnloadGuard";
 import step1Schema from "./Steps/schemas/step1";
 import step2Schema from "./Steps/schemas/step2";
 import step3Schema from "./Steps/schemas/step3";
@@ -140,10 +142,14 @@ export default function ApplyForm({
     const [localErrors, setLocalErrors] = useState({});
     // Tracks when a quiet background draft-save is in flight
     const [isSavingDraft, setIsSavingDraft] = useState(false);
+    // When the last successful draft-save (manual or autosave) completed
+    const [lastSavedAt, setLastSavedAt] = useState(null);
+    // 0-100 while the final multipart submit is uploading
+    const [uploadProgress, setUploadProgress] = useState(null);
 
     const idParts = (profile.id_proof || "").split(":");
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, isDirty } = useForm({
         department: existingDepartment || "",
         grade: existingGrade || "",
         documents: {},
@@ -287,6 +293,7 @@ export default function ApplyForm({
             preserveState: true,
             onSuccess: () => {
                 setData("form_data", payload.form_data);
+                setLastSavedAt(Date.now());
                 if (showToast)
                     toast.success(
                         "Draft saved successfully! You can safely leave and return later.",
@@ -298,6 +305,33 @@ export default function ApplyForm({
             onFinish: () => setIsSavingDraft(false),
         });
     };
+
+    // -------------------------------------------------------------------
+    // AUTOSAVE — 2s after the user stops typing anywhere in the form,
+    // quietly persist the draft. Any pending save is flushed on unmount so a
+    // quick navigate-away doesn't drop the last few keystrokes.
+    // -------------------------------------------------------------------
+    useDebouncedAutosave(data.form_data, () => saveDraftQuietly(false, currentStep), {
+        delay: 2000,
+    });
+
+    // Warn before an accidental tab-close/refresh while unsaved edits exist.
+    useBeforeUnloadGuard(isDirty);
+
+    const [, forceTick] = useState(0);
+    useEffect(() => {
+        const id = setInterval(() => forceTick((n) => n + 1), 1000);
+        return () => clearInterval(id);
+    }, []);
+
+    const savedAgoLabel = (() => {
+        if (!lastSavedAt) return null;
+        const seconds = Math.max(0, Math.round((Date.now() - lastSavedAt) / 1000));
+        if (seconds < 5) return "Saved just now";
+        if (seconds < 60) return `Saved ${seconds}s ago`;
+        const minutes = Math.round(seconds / 60);
+        return `Saved ${minutes} min${minutes === 1 ? "" : "s"} ago`;
+    })();
 
     // -------------------------------------------------------------------
     // VALIDATION GATEKEEPER — client zod schema first (immediate UX), then
@@ -363,11 +397,15 @@ export default function ApplyForm({
 
         post(route("applicant.store", advertisement.id), {
             forceFormData: true,
+            onProgress: (event) => {
+                if (event?.percentage != null) setUploadProgress(event.percentage);
+            },
             onError: () => {
                 toast.error(
                     "Submission failed! Please check the highlighted fields.",
                 );
             },
+            onFinish: () => setUploadProgress(null),
         });
     };
 
@@ -466,6 +504,7 @@ export default function ApplyForm({
                         data={data}
                         setData={setData}
                         localErrors={combinedErrors}
+                        uploadProgress={uploadProgress}
                     />
                 );
             default:
@@ -498,7 +537,7 @@ export default function ApplyForm({
             <div className="max-w-6xl mx-auto px-4 py-8">
                 <div className="flex flex-col md:flex-row gap-8">
                     <div className="w-full md:w-64 shrink-0">
-                        <div className="sticky top-8 space-y-2">
+                        <nav aria-label="Application steps" className="sticky top-8 space-y-2">
                             {STEPS.map((step) => {
                                 const isActive = currentStep === step.id;
                                 const isCompleted = currentStep > step.id;
@@ -506,6 +545,7 @@ export default function ApplyForm({
                                 return (
                                     <button
                                         key={step.id}
+                                        aria-current={isActive ? "step" : undefined}
                                         onClick={async () => {
                                             if (
                                                 step.id > currentStep &&
@@ -544,17 +584,39 @@ export default function ApplyForm({
                                     </button>
                                 );
                             })}
-                        </div>
+                        </nav>
                     </div>
 
                     <div className="flex-1">
+                        {/* Step-summary chips — compact overview above the fold,
+                            most useful on mobile where the sidebar nav is hidden. */}
+                        <div className="mb-4 flex flex-wrap gap-1.5" aria-hidden="true">
+                            {STEPS.map((step) => {
+                                const isActive = currentStep === step.id;
+                                const isCompleted = currentStep > step.id;
+                                return (
+                                    <span
+                                        key={step.id}
+                                        className={`h-1.5 flex-1 min-w-[8px] rounded-full ${
+                                            isActive
+                                                ? "bg-blue-600"
+                                                : isCompleted
+                                                  ? "bg-emerald-400"
+                                                  : "bg-slate-200"
+                                        }`}
+                                        title={step.title}
+                                    />
+                                );
+                            })}
+                        </div>
+
                         <Card className="shadow-lg border-none ring-1 ring-slate-200">
                             <CardContent className="p-8 min-h-[400px]">
                                 {renderCurrentStep()}
                             </CardContent>
 
                             <div className="bg-slate-50 p-6 border-t border-slate-100 flex items-center justify-between rounded-b-lg">
-                                <div>
+                                <div className="space-y-1.5">
                                     <Button
                                         variant="outline"
                                         onClick={() =>
@@ -575,6 +637,14 @@ export default function ApplyForm({
                                             </>
                                         )}
                                     </Button>
+                                    <p className="text-xs text-slate-400 pl-1">
+                                        {isSavingDraft
+                                            ? "Auto-saving…"
+                                            : savedAgoLabel || "Not saved yet"}
+                                        {" · "}Step {currentStep} of {STEPS.length}
+                                        {" · "}
+                                        {Math.round((currentStep / STEPS.length) * 100)}% complete
+                                    </p>
                                 </div>
                                 <div className="flex gap-3">
                                     {currentStep > 1 && (

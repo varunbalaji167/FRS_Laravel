@@ -22,7 +22,7 @@ const DOCUMENT_FIELDS = [
     },
 ];
 
-export default function Step11Documents({ data, setData, localErrors = {} }) {
+export default function Step11Documents({ data, setData, localErrors = {}, uploadProgress = null }) {
     const docs = data.documents || {};
     const bestPapers = data.best_papers || {};
     const declaration = data.form_data.declaration || false;
@@ -84,6 +84,7 @@ export default function Step11Documents({ data, setData, localErrors = {} }) {
                                 accept=".pdf"
                                 maxSizeBytes={MAX_FILE_SIZE}
                                 error={getFieldError(fieldKey)}
+                                progress={bestPapers[fieldKey] ? uploadProgress : null}
                             />
                         );
                     })}
@@ -110,6 +111,7 @@ export default function Step11Documents({ data, setData, localErrors = {} }) {
                                 accept=".pdf"
                                 maxSizeBytes={MAX_FILE_SIZE}
                                 error={getFieldError(key)}
+                                progress={docs[key] ? uploadProgress : null}
                             />
                         </div>
                     ))}

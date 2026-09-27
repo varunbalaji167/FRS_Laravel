@@ -2,12 +2,14 @@ import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, useForm, usePage, router } from "@inertiajs/react";
 import { Transition } from "@headlessui/react";
 import { CheckCircle2, User, Lock, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 import UpdatePasswordForm from "@/Pages/Profile/Partials/UpdatePasswordForm";
 import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
 import PrimaryButton from "@/Components/PrimaryButton";
 import TextInput from "@/Components/TextInput";
+import ConfirmDialog from "@/Components/ConfirmDialog";
 
 export default function Settings({
     mustVerifyEmail,
@@ -16,6 +18,9 @@ export default function Settings({
 }) {
     const { auth } = usePage().props;
     const user = auth?.user || {};
+
+    const [deletingDept, setDeletingDept] = useState(null);
+    const [isDeletingDept, setIsDeletingDept] = useState(false);
 
     // --- FORM 1: PROFILE UPDATE ---
     const profileForm = useForm({
@@ -43,12 +48,13 @@ export default function Settings({
         });
     };
 
-    const deleteDept = (id) => {
-        if (confirm("Are you sure you want to delete this department?")) {
-            router.delete(route("admin.departments.destroy", id), {
-                preserveScroll: true,
-            });
-        }
+    const confirmDeleteDept = () => {
+        setIsDeletingDept(true);
+        router.delete(route("admin.departments.destroy", deletingDept.id), {
+            preserveScroll: true,
+            onSuccess: () => setDeletingDept(null),
+            onFinish: () => setIsDeletingDept(false),
+        });
     };
 
     return (
@@ -194,7 +200,7 @@ export default function Settings({
                                         {dept.name}
                                     </span>
                                     <button
-                                        onClick={() => deleteDept(dept.id)}
+                                        onClick={() => setDeletingDept(dept)}
                                         className="text-slate-300 hover:text-red-600 transition-colors p-1"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -231,6 +237,16 @@ export default function Settings({
                     </section>
                 </div>
             </div>
+
+            <ConfirmDialog
+                open={!!deletingDept}
+                onOpenChange={(open) => !open && setDeletingDept(null)}
+                title={`Delete "${deletingDept?.name}"?`}
+                description="This action cannot be undone."
+                confirmLabel="Delete Department"
+                processing={isDeletingDept}
+                onConfirm={confirmDeleteDept}
+            />
         </AdminLayout>
     );
 }

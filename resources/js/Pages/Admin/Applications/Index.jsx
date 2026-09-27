@@ -1,6 +1,7 @@
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, Link, router } from "@inertiajs/react";
 import { useEffect, useRef, useState, useCallback } from "react";
+import TableRowSkeleton from "@/Components/skeletons/TableRowSkeleton";
 
 const statusColors = {
     submitted:  "bg-blue-100 text-blue-700 border-blue-200",
@@ -92,6 +93,7 @@ export default function ApplicationsIndex({
     // doesn't flash stale rows while the request is in flight.
     function applyFilters() {
         setAllItems([]);
+        setLoading(true);
         router.get(
             "/admin/applications",
             {
@@ -109,6 +111,7 @@ export default function ApplicationsIndex({
         setDeptFilter("");
         setStatusFilter("");
         setAllItems([]);
+        setLoading(true);
         router.get(
             "/admin/applications",
             { page: 1 },
@@ -196,6 +199,10 @@ export default function ApplicationsIndex({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
+                            {loading && allItems.length === 0 &&
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <TableRowSkeleton key={`skeleton-${i}`} />
+                                ))}
                             {allItems.map((app, i) => (
                                 <tr
                                     key={app.id}

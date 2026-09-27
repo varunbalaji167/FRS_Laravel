@@ -10,6 +10,7 @@ import {
     BookOpen,
 } from "lucide-react";
 import { toast } from "sonner";
+import ConfirmDialog from "@/Components/ConfirmDialog";
 
 const roleStyles = {
     admin: { bg: "bg-rose-100", text: "text-rose-700", icon: Shield },
@@ -21,6 +22,8 @@ export default function UsersIndex({ users, departments }) {
     const { auth } = usePage().props;
     const [editingUser, setEditingUser] = useState(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [deletingUser, setDeletingUser] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Form for editing an existing user
     const editForm = useForm({
@@ -106,18 +109,11 @@ export default function UsersIndex({ users, departments }) {
         });
     }
 
-    function deleteUser(user) {
-        toast.error(`Delete ${user.name}?`, {
-            description: "This action cannot be undone.",
-            duration: 8000,
-            action: {
-                label: "Confirm Delete",
-                onClick: () =>
-                    router.delete(route("admin.users.destroy", user.id)),
-            },
-            cancel: {
-                label: "Cancel",
-            },
+    function confirmDeleteUser() {
+        setIsDeleting(true);
+        router.delete(route("admin.users.destroy", deletingUser.id), {
+            onSuccess: () => setDeletingUser(null),
+            onFinish: () => setIsDeleting(false),
         });
     }
 
@@ -210,7 +206,7 @@ export default function UsersIndex({ users, departments }) {
                                             {!isSelf && (
                                                 <button
                                                     onClick={() =>
-                                                        deleteUser(user)
+                                                        setDeletingUser(user)
                                                     }
                                                     className="text-red-500 hover:text-red-700 transition"
                                                     title="Delete User"
@@ -510,6 +506,16 @@ export default function UsersIndex({ users, departments }) {
                     </div>
                 </div>
             )}
+
+            <ConfirmDialog
+                open={!!deletingUser}
+                onOpenChange={(open) => !open && setDeletingUser(null)}
+                title={`Delete ${deletingUser?.name}?`}
+                description="This action cannot be undone."
+                confirmLabel="Delete User"
+                processing={isDeleting}
+                onConfirm={confirmDeleteUser}
+            />
         </AdminLayout>
     );
 }
