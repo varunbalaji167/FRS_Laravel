@@ -265,4 +265,66 @@ class ConventionsInPlaceTest extends TestCase
 
         return $paths;
     }
+
+    /**
+     * The profile ↔ wizard compat layer was fully removed. It must never
+     * come back, and the retired column names must not resurface outside the
+     * migration that renamed them.
+     */
+    public function test_the_profile_wizard_compat_layer_is_not_reintroduced(): void
+    {
+        $whitelistedFiles = [
+            base_path('database/migrations/2026_09_29_130000_align_profile_field_shape.php'),
+            __FILE__,
+        ];
+
+        $offenders = [];
+
+        foreach ($this->allSourceFiles() as $file) {
+            if (in_array($file, $whitelistedFiles, true)) {
+                continue;
+            }
+
+            $source = file_get_contents($file);
+
+            if (str_contains($source, 'normalizeProfileGender')
+                || str_contains($source, 'normalizeProfileCategory')
+                || str_contains($source, 'profileFieldMapping')
+                || str_contains($source, '->father_name')
+                || str_contains($source, '->date_of_birth')
+                || preg_match('/[\'"]id_proof[\'"]\s*(,|=>|\])/', $source) === 1) {
+                $offenders[] = $file;
+            }
+        }
+
+        $this->assertSame([], $offenders, 'The retired profile/wizard compat layer must not be reintroduced.');
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function allSourceFiles(): array
+    {
+        $roots = [app_path(), base_path('resources/js'), base_path('database'), base_path('tests')];
+        $extensions = ['php', 'js', 'jsx'];
+        $paths = [];
+
+        foreach ($roots as $root) {
+            if (! is_dir($root)) {
+                continue;
+            }
+
+            $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root));
+
+            foreach ($files as $file) {
+                if ($file->isFile()
+                    && in_array($file->getExtension(), $extensions, true)
+                    && ! str_contains($file->getPathname(), 'node_modules')) {
+                    $paths[] = $file->getPathname();
+                }
+            }
+        }
+
+        return $paths;
+    }
 }

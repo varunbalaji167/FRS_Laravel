@@ -71,13 +71,7 @@ class StepValidationTest extends TestCase
         );
     }
 
-    /**
-     * A value the master profile used to offer ("General"/"Other") is a
-     * non-empty string, so it passes the client-side zod check silently —
-     * only the server's Rule::in catches it. Locks in that the field error
-     * key is exactly what resources/js/lib/wizardErrorKeys.js expects.
-     */
-    public function test_step_2_rejects_the_retired_profile_category_value(): void
+    public function test_step_2_rejects_a_non_canonical_category_value(): void
     {
         $applicant = User::factory()->create();
         $advertisement = Advertisement::factory()->create();

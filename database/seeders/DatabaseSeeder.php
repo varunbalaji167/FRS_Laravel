@@ -50,13 +50,14 @@ class DatabaseSeeder extends Seeder
             'user_id' => $applicant->id,
 
             // Core Identity
-            'father_name' => 'Robert ',
-            'date_of_birth' => '1990-05-15',
+            'fathers_name' => 'Robert ',
+            'dob' => '1990-05-15',
             'gender' => 'Male',
             'marital_status' => 'Unmarried',
-            'category' => 'General',
+            'category' => 'UR',
             'nationality' => 'Indian',
-            'id_proof' => 'AADHAR: 1234 5678 9012',
+            'id_proof_type' => 'Aadhar',
+            'id_proof_number' => '1234 5678 9012',
 
             // Contact
             'phone' => '9876543210',

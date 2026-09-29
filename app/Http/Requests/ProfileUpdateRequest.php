@@ -13,8 +13,9 @@ class ProfileUpdateRequest extends FormRequest
      * into `photo_path` once the file is stored.
      */
     public const PROFILE_FIELDS = [
-        'father_name', 'date_of_birth', 'gender', 'marital_status', 'category',
-        'nationality', 'id_proof', 'phone', 'phone_code', 'alt_phone',
+        'first_name', 'middle_name', 'last_name', 'fathers_name', 'dob', 'gender',
+        'marital_status', 'category', 'nationality', 'id_proof_type', 'id_proof_number',
+        'phone', 'phone_code', 'alt_phone',
         'alt_phone_code', 'alt_email', 'corr_address', 'corr_city', 'corr_state',
         'corr_pincode', 'corr_country', 'perm_address', 'perm_city', 'perm_state',
         'perm_pincode', 'perm_country', 'designation', 'affiliation',
@@ -30,31 +31,31 @@ class ProfileUpdateRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'profile_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
 
-            'father_name' => ['nullable', 'string', 'max:255'],
-            'date_of_birth' => ['nullable', 'date', 'before:today'],
-            // 'Other' and 'General' are no longer offered by the form but
-            // stay accepted so a profile saved before this change can still
-            // be re-submitted unchanged; the wizard's own Step 2 rules
-            // (StepPersonalRules) require the canonical values only.
-            'gender' => ['nullable', 'string', Rule::in(['Male', 'Female', 'Transgender', 'Prefer not to say', 'Other'])],
-            'marital_status' => ['nullable', 'string', Rule::in(['Married', 'Unmarried'])],
-            'category' => ['nullable', 'string', Rule::in(['UR', 'OBC', 'SC', 'ST', 'EWS', 'General'])],
-            'nationality' => ['nullable', 'string', 'max:100'],
-            'id_proof' => ['nullable', 'string', 'max:255'],
+            'first_name' => ['required', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'fathers_name' => ['nullable', 'string', 'max:255'],
+            'dob' => ['nullable', 'date', 'before:today'],
+            'gender' => ['nullable', 'string', Rule::in(['Male', 'Female', 'Transgender', 'Prefer not to say'])],
+            'marital_status' => ['nullable', 'string', Rule::in(['Unmarried', 'Married', 'Divorced', 'Widowed'])],
+            'category' => ['nullable', 'string', Rule::in(['UR', 'OBC', 'SC', 'ST', 'EWS'])],
+            'nationality' => ['nullable', 'string', Rule::in(['Indian', 'OCI', 'Foreign National'])],
+            'id_proof_type' => ['nullable', 'string', Rule::in(['Aadhar', 'PAN', 'Passport', 'Voter ID', 'Driving License'])],
+            'id_proof_number' => ['nullable', 'string', 'max:255'],
 
-            'phone' => ['nullable', 'string', 'max:20'],
-            'phone_code' => ['nullable', 'string', 'max:6'],
-            'alt_phone' => ['nullable', 'string', 'max:20'],
-            'alt_phone_code' => ['nullable', 'string', 'max:6'],
+            'phone' => ['nullable', 'string', 'regex:/^\d{10}$/'],
+            'phone_code' => ['nullable', 'string', 'regex:/^\+?\d{1,4}$/'],
+            'alt_phone' => ['nullable', 'string', 'regex:/^\d{10}$/'],
+            'alt_phone_code' => ['nullable', 'string', 'regex:/^\+?\d{1,4}$/'],
             'alt_email' => ['nullable', 'email', 'max:255'],
 
-            'corr_address' => ['nullable', 'string', 'max:500'],
+            'corr_address' => ['nullable', 'string', 'max:1000'],
             'corr_city' => ['nullable', 'string', 'max:100'],
             'corr_state' => ['nullable', 'string', 'max:100'],
             'corr_pincode' => ['nullable', 'string', 'max:20'],
             'corr_country' => ['nullable', 'string', 'max:100'],
 
-            'perm_address' => ['nullable', 'string', 'max:500'],
+            'perm_address' => ['nullable', 'string', 'max:1000'],
             'perm_city' => ['nullable', 'string', 'max:100'],
             'perm_state' => ['nullable', 'string', 'max:100'],
             'perm_pincode' => ['nullable', 'string', 'max:20'],

@@ -8,7 +8,6 @@ import SelectField from "@/Components/inputs/SelectField";
 import TextareaField from "@/Components/inputs/TextareaField";
 import PhoneField from "@/Components/inputs/PhoneField";
 import FileField from "@/Components/inputs/FileField";
-import { normalizeProfileGender, normalizeProfileCategory } from "@/lib/profileFieldMapping";
 
 const GENDER_OPTIONS = ["Male", "Female", "Transgender", "Prefer not to say"];
 const MARITAL_STATUS_OPTIONS = ["Unmarried", "Married", "Divorced", "Widowed"];
@@ -69,25 +68,23 @@ export default function Step2Personal({ data, setData, updateFormData, localErro
     };
 
     const copyFromProfile = () => {
-        const idParts = (profile.id_proof || "").split(":");
-        const parsedIdType = idParts[0]?.trim() || "";
-        const parsedIdNum = idParts.slice(1).join(":").trim();
         setData("form_data", {
             ...data.form_data,
             personal_details: {
                 ...p, // keep any fields not in profile
                 profile_image: profile.photo_path || p.profile_image || "",
-                first_name: (user.name || "").split(" ")[0] || p.first_name || "",
-                last_name: (user.name || "").split(" ").slice(1).join(" ") || p.last_name || "",
+                first_name: profile.first_name || p.first_name || "",
+                middle_name: profile.middle_name || p.middle_name || "",
+                last_name: profile.last_name || p.last_name || "",
                 email: user.email || p.email || "",
-                fathers_name: profile.father_name || p.fathers_name || "",
-                dob: profile.date_of_birth || p.dob || "",
-                gender: normalizeProfileGender(profile.gender) || p.gender || "",
+                fathers_name: profile.fathers_name || p.fathers_name || "",
+                dob: profile.dob || p.dob || "",
+                gender: profile.gender || p.gender || "",
                 marital_status: profile.marital_status || p.marital_status || "",
-                category: normalizeProfileCategory(profile.category) || p.category || "",
+                category: profile.category || p.category || "",
                 nationality: profile.nationality || p.nationality || "Indian",
-                id_proof_type: parsedIdType || p.id_proof_type || "",
-                id_proof_number: parsedIdNum || p.id_proof_number || "",
+                id_proof_type: profile.id_proof_type || p.id_proof_type || "",
+                id_proof_number: profile.id_proof_number || p.id_proof_number || "",
                 alt_email: profile.alt_email || p.alt_email || "",
                 phone: profile.phone || p.phone || "",
                 alt_phone: profile.alt_phone || p.alt_phone || "",

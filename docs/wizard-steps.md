@@ -11,7 +11,7 @@ descriptions rather than adding a third version.
 | # | Step component | Rules class | Mandatory today (`errorsForStep`) |
 |---|---|---|---|
 | 1 | `Step1Position.jsx` | `StepPositionRules` | department, grade |
-| 2 | `Step2Personal.jsx` | `StepPersonalRules` | first/last name, dob, gender, category, nationality, email, phone |
+| 2 | `Step2Personal.jsx` | `StepPersonalRules` | first/last name, dob, gender, category, nationality, email, phone (fields mirror `ProfileUpdateRequest::PROFILE_FIELDS`; drift is caught by `ProfileFormShapeMatchesWizardStepTwoTest`) |
 | 3 | `Step3Education.jsx` | `StepEducationRules` | PhD university, department, date of joining |
 | 4 | `Step4Employment.jsx` | `StepEmploymentRules` | present position, organization, date of joining, 3-years-experience flag |
 | 5 | `Step5Research.jsx` | `StepResearchRules` | area of specialization, current area of research |

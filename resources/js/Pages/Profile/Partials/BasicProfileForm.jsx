@@ -10,24 +10,38 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Kept in sync with Step2Personal's dropdown options
 const ID_PROOF_TYPES = ["Aadhar", "PAN", "Passport", "Voter ID", "Driving License"];
+const NATIONALITY_OPTIONS = ["Indian", "OCI", "Foreign National"];
 
 export default function BasicProfileForm({ user, className = "" }) {
     const profile = user.applicant_profile || {};
     const [isAddressCopied, setIsAddressCopied] = useState(false);
-    // ── Parse the stored "TYPE: NUMBER" string back into two display parts ──
-    const storedIdParts = (profile.id_proof || "").split(":");
-    const storedIdType = storedIdParts[0]?.trim() || "";
-    const storedIdNum = storedIdParts.slice(1).join(":").trim(); // safe if number itself contains ":"
+
+    // One-time fallback: split `user.name` into first/middle/last when the
+    // profile doesn't have them yet (e.g. a profile created before this field
+    // split existed).
+    const nameFallback = (() => {
+        if (profile.first_name || profile.middle_name || profile.last_name) {
+            return {
+                first_name: profile.first_name || "",
+                middle_name: profile.middle_name || "",
+                last_name: profile.last_name || "",
+            };
+        }
+
+        const parts = (user.name || "").trim().split(/\s+/).filter(Boolean);
+
+        return {
+            first_name: parts[0] || "",
+            middle_name: parts.length > 2 ? parts.slice(1, -1).join(" ") : "",
+            last_name: parts.length > 1 ? parts[parts.length - 1] : "",
+        };
+    })();
 
     const [preview, setPreview] = useState(
         profile.photo_path ? route("files.show", { path: profile.photo_path }) : null,
     );
     const [imageError, setImageError] = useState("");
     const [frontendErrors, setFrontendErrors] = useState({});
-
-    // Local display state for the split ID-proof UI; combined into `id_proof` on every change
-    const [idType, setIdType] = useState(storedIdType);
-    const [idNum, setIdNum] = useState(storedIdNum);
 
     const { data, setData, post, errors, processing, isDirty } = useForm({
         _method: "patch",
@@ -40,15 +54,17 @@ export default function BasicProfileForm({ user, className = "" }) {
         email: user.email || "",
 
         // Personal
-        father_name: profile.father_name || "",
-        date_of_birth: profile.date_of_birth || "",
+        first_name: nameFallback.first_name,
+        middle_name: nameFallback.middle_name,
+        last_name: nameFallback.last_name,
+        fathers_name: profile.fathers_name || "",
+        dob: profile.dob || "",
         gender: profile.gender || "",
         marital_status: profile.marital_status || "",
         category: profile.category || "",
         nationality: profile.nationality || "Indian",
-
-        // Stored as "TYPE: NUMBER" — updated via handleIdChange below
-        id_proof: profile.id_proof || "",
+        id_proof_type: profile.id_proof_type || "",
+        id_proof_number: profile.id_proof_number || "",
 
         // Contact — split code + number to mirror Step2Personal exactly
         phone_code: profile.phone_code || "+91",
@@ -71,10 +87,14 @@ export default function BasicProfileForm({ user, className = "" }) {
         perm_pincode: profile.perm_pincode || "",
         perm_country: profile.perm_country || "India",
 
-        // Professional Links
+        // Professional Details — separate fieldset, does not participate in
+        // the wizard's copy-from-profile.
+        designation: profile.designation || "",
+        affiliation: profile.affiliation || "",
         google_scholar_url: profile.google_scholar_url || "",
         orcid_url: profile.orcid_url || "",
         linkedin_url: profile.linkedin_url || "",
+        github_url: profile.github_url || "",
     });
 
     const allErrors = { ...errors, ...frontendErrors };
@@ -93,12 +113,6 @@ export default function BasicProfileForm({ user, className = "" }) {
             setData("profile_image", file);
             setPreview(URL.createObjectURL(file));
         }
-    };
-
-    // Sync combined id_proof whenever type or number changes
-    const handleIdChange = (newType, newNum) => {
-        const combined = newType && newNum ? `${newType}: ${newNum}` : newType || newNum || "";
-        setData("id_proof", combined);
     };
 
     const copyAddress = () => {
@@ -153,8 +167,12 @@ export default function BasicProfileForm({ user, className = "" }) {
         }
 
         // Type and number must both be present or both absent
-        if (idType && !idNum.trim()) errs.id_proof = "Please enter the ID number";
-        if (idNum.trim() && !idType) errs.id_proof = "Please select an ID type";
+        if (data.id_proof_type && !data.id_proof_number.trim()) {
+            errs.id_proof_number = "Please enter the ID number";
+        }
+        if (data.id_proof_number.trim() && !data.id_proof_type) {
+            errs.id_proof_type = "Please select an ID type";
+        }
 
         setFrontendErrors(errs);
         return Object.keys(errs).length === 0;
@@ -233,6 +251,40 @@ export default function BasicProfileForm({ user, className = "" }) {
                     </h3>
                     <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
                         <div>
+                            <InputLabel htmlFor="first_name" value="First Name" />
+                            <TextInput
+                                id="first_name"
+                                className={inputClass}
+                                value={data.first_name}
+                                onChange={(e) => setData("first_name", e.target.value)}
+                                required
+                            />
+                            <InputError message={allErrors.first_name} className="mt-2" />
+                        </div>
+
+                        <div>
+                            <InputLabel htmlFor="middle_name" value="Middle Name" />
+                            <TextInput
+                                id="middle_name"
+                                className={inputClass}
+                                value={data.middle_name}
+                                onChange={(e) => setData("middle_name", e.target.value)}
+                            />
+                        </div>
+
+                        <div>
+                            <InputLabel htmlFor="last_name" value="Last Name" />
+                            <TextInput
+                                id="last_name"
+                                className={inputClass}
+                                value={data.last_name}
+                                onChange={(e) => setData("last_name", e.target.value)}
+                                required
+                            />
+                            <InputError message={allErrors.last_name} className="mt-2" />
+                        </div>
+
+                        <div>
                             <InputLabel htmlFor="name" value="Full Name" />
                             <TextInput
                                 id="name"
@@ -245,23 +297,23 @@ export default function BasicProfileForm({ user, className = "" }) {
                         </div>
 
                         <div>
-                            <InputLabel htmlFor="father_name" value="Father's Name" />
+                            <InputLabel htmlFor="fathers_name" value="Father's Name" />
                             <TextInput
-                                id="father_name"
+                                id="fathers_name"
                                 className={inputClass}
-                                value={data.father_name}
-                                onChange={(e) => setData("father_name", e.target.value)}
+                                value={data.fathers_name}
+                                onChange={(e) => setData("fathers_name", e.target.value)}
                             />
                         </div>
 
                         <div>
-                            <InputLabel htmlFor="date_of_birth" value="Date of Birth" />
+                            <InputLabel htmlFor="dob" value="Date of Birth" />
                             <TextInput
-                                id="date_of_birth"
+                                id="dob"
                                 type="date"
                                 className={inputClass}
-                                value={data.date_of_birth}
-                                onChange={(e) => setData("date_of_birth", e.target.value)}
+                                value={data.dob}
+                                onChange={(e) => setData("dob", e.target.value)}
                             />
                         </div>
 
@@ -290,8 +342,10 @@ export default function BasicProfileForm({ user, className = "" }) {
                                 onChange={(e) => setData("marital_status", e.target.value)}
                             >
                                 <option value="">Select</option>
-                                <option value="Married">Married</option>
                                 <option value="Unmarried">Unmarried</option>
+                                <option value="Married">Married</option>
+                                <option value="Divorced">Divorced</option>
+                                <option value="Widowed">Widowed</option>
                             </select>
                         </div>
 
@@ -314,26 +368,30 @@ export default function BasicProfileForm({ user, className = "" }) {
 
                         <div>
                             <InputLabel htmlFor="nationality" value="Nationality" />
-                            <TextInput
+                            <select
                                 id="nationality"
                                 className={inputClass}
                                 value={data.nationality}
                                 onChange={(e) => setData("nationality", e.target.value)}
-                            />
+                            >
+                                {NATIONALITY_OPTIONS.map((n) => (
+                                    <option key={n} value={n}>
+                                        {n}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
 
-                        {/* ID Proof — dropdown + number, combined into "TYPE: NUMBER" for storage */}
+                        {/* ID Proof — type + number stored as two independent fields */}
                         <div className="sm:col-span-2">
                             <InputLabel value="ID Proof" />
                             <div className="flex gap-2 mt-1">
                                 <select
-                                    className={`w-44 rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${allErrors.id_proof ? "border-red-500" : ""}`}
-                                    value={idType}
+                                    className={`w-44 rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${allErrors.id_proof_type ? "border-red-500" : ""}`}
+                                    value={data.id_proof_type}
                                     onChange={(e) => {
-                                        const t = e.target.value;
-                                        setIdType(t);
-                                        handleIdChange(t, idNum);
-                                        clearErr("id_proof");
+                                        setData("id_proof_type", e.target.value);
+                                        clearErr("id_proof_type");
                                     }}
                                 >
                                     <option value="">— Select Type —</option>
@@ -344,18 +402,20 @@ export default function BasicProfileForm({ user, className = "" }) {
                                     ))}
                                 </select>
                                 <TextInput
-                                    className={`flex-1 rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${allErrors.id_proof ? "border-red-500" : ""}`}
-                                    value={idNum}
+                                    className={`flex-1 rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${allErrors.id_proof_number ? "border-red-500" : ""}`}
+                                    value={data.id_proof_number}
                                     placeholder="ID number"
                                     onChange={(e) => {
-                                        const n = e.target.value;
-                                        setIdNum(n);
-                                        handleIdChange(idType, n);
-                                        clearErr("id_proof");
+                                        setData("id_proof_number", e.target.value);
+                                        clearErr("id_proof_number");
                                     }}
                                 />
                             </div>
-                            {allErrors.id_proof && <p className="mt-1 text-sm text-red-600">{allErrors.id_proof}</p>}
+                            {(allErrors.id_proof_type || allErrors.id_proof_number) && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {allErrors.id_proof_type || allErrors.id_proof_number}
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -599,12 +659,33 @@ export default function BasicProfileForm({ user, className = "" }) {
                     </div>
                 </div>
 
-                {/* ── 4. Professional Links ──────────────────────────────────────── */}
+                {/* ── 4. Professional Information ────────────────────────────────── */}
                 <div>
                     <h3 className="text-base font-semibold leading-7 text-slate-900 border-b pb-2">
-                        4. Professional Links
+                        4. Professional Information
                     </h3>
+                    <p className="mt-2 text-xs text-slate-500 italic">
+                        These fields do not carry over to the application wizard&apos;s Step 2.
+                    </p>
                     <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
+                        <div>
+                            <InputLabel htmlFor="designation" value="Designation" />
+                            <TextInput
+                                id="designation"
+                                className={inputClass}
+                                value={data.designation}
+                                onChange={(e) => setData("designation", e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <InputLabel htmlFor="affiliation" value="Affiliation" />
+                            <TextInput
+                                id="affiliation"
+                                className={inputClass}
+                                value={data.affiliation}
+                                onChange={(e) => setData("affiliation", e.target.value)}
+                            />
+                        </div>
                         <div>
                             <InputLabel htmlFor="google_scholar_url" value="Google Scholar URL" />
                             <TextInput
@@ -636,6 +717,17 @@ export default function BasicProfileForm({ user, className = "" }) {
                                 value={data.linkedin_url}
                                 onChange={(e) => setData("linkedin_url", e.target.value)}
                                 placeholder="https://linkedin.com/in/..."
+                            />
+                        </div>
+                        <div>
+                            <InputLabel htmlFor="github_url" value="GitHub URL" />
+                            <TextInput
+                                id="github_url"
+                                type="url"
+                                className={inputClass}
+                                value={data.github_url}
+                                onChange={(e) => setData("github_url", e.target.value)}
+                                placeholder="https://github.com/..."
                             />
                         </div>
                     </div>

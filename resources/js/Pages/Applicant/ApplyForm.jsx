@@ -4,7 +4,6 @@ import { Head, useForm, router, usePage } from "@inertiajs/react";
 import { Card, CardContent } from "@/Components/ui/card";
 import { Button } from "@/Components/ui/button";
 import { flattenServerErrors } from "@/lib/errors";
-import { normalizeProfileGender, normalizeProfileCategory } from "@/lib/profileFieldMapping";
 import { flattenZodError, remapServerErrorKeys } from "@/lib/wizardErrorKeys";
 import useBeforeUnloadGuard from "@/lib/useBeforeUnloadGuard";
 import step1Schema from "./Steps/schemas/step1";
@@ -110,9 +109,6 @@ export default function ApplyForm({
     const [currentStep, setCurrentStep] = useState(
         existingDraft?.current_step ? Number(existingDraft.current_step) : 1,
     );
-    // The furthest step the applicant has reached. Any step up to here stays
-    // freely clickable (back and forth); only crossing into new territory
-    // re-validates. Seeded from the resumed draft's last saved step.
     const [maxStepReached, setMaxStepReached] = useState(
         existingDraft?.current_step ? Number(existingDraft.current_step) : 1,
     );
@@ -120,8 +116,6 @@ export default function ApplyForm({
     const [isSavingDraft, setIsSavingDraft] = useState(false);
     const [lastSavedAt, setLastSavedAt] = useState(null);
     const [uploadProgress, setUploadProgress] = useState(null);
-
-    const idParts = (profile.id_proof || "").split(":");
 
     const { data, setData, post, processing, errors, isDirty } = useForm({
         department: existingDepartment || "",
@@ -132,17 +126,18 @@ export default function ApplyForm({
             current_step: 1,
             personal_details: {
                 profile_image: profile.photo_path || "",
-                first_name: (user.name || "").split(" ")[0] || "",
-                last_name: (user.name || "").split(" ").slice(1).join(" ") || "",
+                first_name: profile.first_name || "",
+                middle_name: profile.middle_name || "",
+                last_name: profile.last_name || "",
                 email: user.email || "",
-                fathers_name: profile.father_name || "",
-                dob: profile.date_of_birth || "",
-                gender: normalizeProfileGender(profile.gender),
+                fathers_name: profile.fathers_name || "",
+                dob: profile.dob || "",
+                gender: profile.gender || "",
                 marital_status: profile.marital_status || "",
-                category: normalizeProfileCategory(profile.category),
+                category: profile.category || "",
                 nationality: profile.nationality || "Indian",
-                id_proof_type: idParts[0]?.trim() || "",
-                id_proof_number: idParts[1]?.trim() || "",
+                id_proof_type: profile.id_proof_type || "",
+                id_proof_number: profile.id_proof_number || "",
                 alt_email: profile.alt_email || "",
                 phone: profile.phone || "",
                 alt_phone: profile.alt_phone || "",

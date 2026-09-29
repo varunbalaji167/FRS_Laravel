@@ -35,6 +35,9 @@ files, so step-transition and final-submit can't drift.
 Result: users see almost no "invalid format" errors because widgets prevent
 the shape from being wrong in the first place.
 
+The profile's Personal fieldset uses the same widgets and value sets as the
+wizard's Step 2; the Professional fieldset is orthogonal.
+
 ## Picking a widget for a new field
 
 1. Is the set of valid values closed and small? → `SelectField` /
