@@ -72,7 +72,7 @@ sequenceDiagram
         App->>DB: POST /save-draft (Persist current step data)
         DB-->>App: 200 OK / Redirect
     else Save & Next
-        App->>App: Frontend Validation (Vue/React Check)
+        App->>App: Frontend Validation (React + Zod)
         Note right of App: No DB hit - UI State Update
         App->>App: Transition to Next Step
     end
@@ -168,7 +168,7 @@ Follow these steps to get the Faculty Recruitment System running locally using *
 #### 1. Clone the Repository & Environment Setup
 ```bash
 git clone https://github.com/varunbalaji167/FRS_Laravel.git
-cd frs_laravel
+cd FRS_Laravel
 cp .env.example .env
 ```
 
@@ -265,11 +265,21 @@ validation tiers are documented in:
 - [docs/validation.md](docs/validation.md) — the three validation tiers & widget-first guide
 - [docs/wizard-steps.md](docs/wizard-steps.md) — the canonical 11-step wizard list
 
-## API Endpoints & Role-Based Logic Flow
+## API Endpoints & Role-Based Access
 
-Each endpoint follows the **Inertia.js protocol**, where the backend provides
-a JSON state that the React frontend renders into a seamless SPA experience.
-For the current, authoritative endpoint-to-controller map, see
-[routes/web.php](routes/web.php) and [routes/auth.php](routes/auth.php) — run
-`php artisan route:list` for a live view, since this is the one place that
-can't silently drift from the code.
+All endpoints follow the **Inertia.js protocol** — GET requests return page
+component responses, POST/PATCH/DELETE return redirects. Endpoints are grouped
+by role using the `role:` middleware alias:
+
+| Prefix       | Guard              | Purpose                                          |
+| ------------ | ------------------ | ------------------------------------------------ |
+| `/`          | public             | Landing page, login, register, password reset    |
+| `/dashboard` | `auth`, `applicant`| Applicant dashboard, wizard, profile, `my applications` |
+| `/admin/*`   | `auth`, `admin`    | Global application review, user & advertisement management |
+| `/hod/*`     | `auth`, `hod`      | Department-scoped review and status updates      |
+| `/files/*`   | `auth`             | Authorized download of private-disk files (`FileAccessController`) |
+
+For the full, authoritative endpoint-to-controller map see [routes/web.php](routes/web.php)
+and [routes/auth.php](routes/auth.php). The tabulated version for humans lives
+in [docs/FRS_Maintenance.md §3](docs/FRS_Maintenance.md); for a live view run
+`php artisan route:list`.

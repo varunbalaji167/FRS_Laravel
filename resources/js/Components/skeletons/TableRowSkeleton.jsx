@@ -1,4 +1,4 @@
-// TODO(Phase 5): reused on Admin/Hod/Applicant application lists.
+// Shared loading placeholder for the Admin/HOD/Applicant application lists.
 export default function TableRowSkeleton() {
     return (
         <tr>

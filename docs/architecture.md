@@ -14,9 +14,9 @@ app/
 │  │  ├─ Applicant/          # applicant-facing (wizard, dashboard, export)
 │  │  │  ├─ WizardController.php          # showApplyForm, saveDraft, validateStep, submitApplication
 │  │  │  ├─ DashboardController.php       # index, myApplications, show
-│  │  │  └─ ExportController.php          # exportPdf, exportExcel (delegates to DossierExporter, Phase 4)
+│  │  │  └─ ExportController.php          # exportPdf, exportExcel (delegates to DossierExporter)
 │  │  ├─ Admin/              # admin-scoped
-│  │  │  ├─ DashboardController.php       # aggregate counts (delegates to DashboardAggregator, Phase 8)
+│  │  │  ├─ DashboardController.php       # aggregate counts (delegates to DashboardAggregator)
 │  │  │  ├─ AdvertisementController.php   # index, create, store (update/destroy/toggleActive land when needed)
 │  │  │  ├─ ApplicationController.php     # index, show, updateStatus, exportPdf, exportExcel
 │  │  │  ├─ UserController.php            # users, storeUser, updateRole, destroyUser
@@ -51,47 +51,47 @@ app/
 │     └─ ProfileUpdateRequest.php
 ├─ Services/                 # concrete classes, no interfaces
 │  ├─ Applications/
-│  │  ├─ SubmissionService.php            # transaction, lock, state transition, queue dispatch (Phase 4)
-│  │  ├─ DraftService.php                 # draft merge + guard against non-draft overwrite (Phase 4)
-│  │  └─ DossierExporter.php              # PDF/Excel/CSV pipeline (Phase 4)
+│  │  ├─ SubmissionService.php            # transaction, lock, state transition, queue dispatch
+│  │  ├─ DraftService.php                 # draft merge + guard against non-draft overwrite
+│  │  └─ DossierExporter.php              # PDF/Excel/CSV pipeline
 │  ├─ Files/
 │  │  └─ DossierFileStore.php             # private-disk read/write + signed URL helpers
 │  ├─ Reporting/
-│  │  └─ DashboardAggregator.php          # aggregate counts, cached (Phase 8)
+│  │  └─ DashboardAggregator.php          # aggregate counts, cached
 │  ├─ Referees/
-│  │  └─ RefereeNotificationDispatcher.php # dedup + queue (Phase 4)
+│  │  └─ RefereeNotificationDispatcher.php # dedup + queue
 │  └─ Auditing/
-│     └─ AdminActionRecorder.php          # writes admin_actions rows (Phase 6)
+│     └─ AdminActionRecorder.php          # writes admin_actions rows
 ├─ Support/
 │  └─ ErrorCode.php                       # backed string enum — canonical error codes
 ├─ Exceptions/
 │  ├─ DomainException.php                 # carries ErrorCode, details, message
-│  ├─ Handler.php                         # single render pipeline (wired into bootstrap/app.php in Phase 3)
+│  ├─ Handler.php                         # single render pipeline (wired into bootstrap/app.php)
 │  └─ Reporter.php                        # structured log emission; also logs to the `slack`
-│                                          # channel when LOG_SLACK_WEBHOOK_URL is set (Phase 6)
+│                                          # channel when LOG_SLACK_WEBHOOK_URL is set
 ├─ Jobs/
-│  └─ GenerateApplicationPdfJob.php       # queued PDF gen (Phase 4)
+│  └─ GenerateApplicationPdfJob.php       # queued PDF gen
 ├─ Console/
 │  └─ Commands/
 │     └─ LogRetentionCommand.php          # prunes failed_jobs + rotated logs, scheduled
-│                                          # nightly from routes/console.php (Phase 6)
-├─ Models/                   # unchanged, plus AdminAction.php (Phase 6)
+│                                          # nightly from routes/console.php
+├─ Models/                   # unchanged, plus AdminAction.php
 └─ Mail/                     # unchanged
 
 resources/js/
-├─ app.jsx                   # ErrorBoundary wraps <App> from Phase 3 onward
+├─ app.jsx                   # ErrorBoundary wraps <App> at the root
 ├─ Components/
 │  ├─ ui/                    # Shadcn primitives (unchanged)
-│  ├─ inputs/                # widget-first form controls (real implementations land in Phase 5)
+│  ├─ inputs/                # widget-first form controls
 │  │  ├─ FormField.jsx       # label + control + inline error, aria-* wired
 │  │  ├─ TextField.jsx, NumberField.jsx, TextareaField.jsx, DatePicker.jsx, PhoneField.jsx,
 │  │  │  EmailField.jsx, SelectField.jsx, RadioField.jsx, ComboboxField.jsx, TagsField.jsx,
 │  │  │  YearField.jsx, PercentField.jsx, FileField.jsx, SignaturePadField.jsx
 │  ├─ applications/
 │  │  └─ ApplicationDossier.jsx  # the full dossier view, shared by applicant/HOD/admin
-│  ├─ ConfirmDialog.jsx      # Phase 5: replaces window.confirm + toast-as-confirm
+│  ├─ ConfirmDialog.jsx      replaces window.confirm + toast-as-confirm
 │  ├─ ErrorBoundary.jsx
-│  ├─ ToastListener.jsx      # one summary toast per response (Phase 3)
+│  ├─ ToastListener.jsx      # one summary toast per response
 │  └─ skeletons/
 │     ├─ CardSkeleton.jsx
 │     └─ TableRowSkeleton.jsx
@@ -101,21 +101,21 @@ resources/js/
 │  │  ├─ ApplyForm.jsx
 │  │  └─ Steps/
 │  │     ├─ Step{1..11}*.jsx
-│  │     └─ schemas/         # one zod schema per step (Phase 2)
+│  │     └─ schemas/         # one zod schema per step
 │  ├─ Admin/, Hod/, Auth/, Profile/, Error.jsx
 └─ lib/
    ├─ utils.js, dateUtils.js  # unchanged
-   ├─ errors.js               # flattenServerErrors, formatErrorCode (Phase 3)
-   ├─ fileValidation.js       # (Phase 2)
-   ├─ useDebouncedAutosave.js # (Phase 5)
-   └─ useSectionArray.js      # (Phase 5)
+   ├─ errors.js               # flattenServerErrors, formatErrorCode
+   ├─ fileValidation.js       #
+   ├─ useDebouncedAutosave.js #
+   └─ useSectionArray.js      #
 
 docs/
 ├─ architecture.md           # this file
 ├─ errors.md                 # the ErrorCode table + how to add a code
 ├─ validation.md             # the three-tier table + widget-first guide
 ├─ wizard-steps.md           # single canonical step list
-├─ backups.md                # written in Phase 9
+├─ backups.md                # backup and restore procedures
 ├─ FRS_Maintenance.pdf
 └─ FRS_Testing_Document.pdf
 ```

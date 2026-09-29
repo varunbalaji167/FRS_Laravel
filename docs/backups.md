@@ -52,10 +52,9 @@ production server:
    channel. A failed drill is a P1 — fix before the next daily backup
    runs unattended.
 
-This is not yet scripted (no `RestoreDrillCommand` exists) — the
-Guiding principles say no new abstraction without duplication, and
-there's only one restore path so far. If restore drills start happening
-more than quarterly, script it then.
+The restore drill is a manual runbook today. Automate it as a
+`RestoreDrillCommand` (or CI job) once the cadence exceeds one drill per
+quarter.
 
 ## Failure handling
 

@@ -1,12 +1,7 @@
-// Maps both a client-side zod issue path and a server-side field name to the
-// flat key each Step*.jsx component actually looks up on its `localErrors`
-// prop. The two need separate entry points (a zod path is already an array;
-// a server field name is a dotted string mirroring Rules/Step{Name}Rules.php)
-// but both funnel through the same per-step remap table below, so a client
-// and a server failure on the same field always land on the same widget.
+// Maps zod issue paths and server field names to the flat key each Step*.jsx
+// component reads on its `localErrors` prop, so client and server failures on
+// the same field always highlight the same widget.
 
-// Some schema paths don't match the error keys the step components display
-// against, so remap those to keep inline errors on the right widget.
 export function toLegacyErrorKey(step, path) {
     const key = path.join(".");
 
@@ -42,8 +37,7 @@ export function flattenZodError(step, zodError) {
     return out;
 }
 
-// Maps a server field name's own prefix to the step whose Rules class owns
-// it, mirroring Rules/Step{Name}Rules.php's field naming exactly.
+// Server prefix → step, mirroring Rules/Step{Name}Rules.php field naming.
 const SERVER_CONTAINER_TO_STEP = {
     "form_data.personal_details.": 2,
     "form_data.education.": 3,
@@ -56,13 +50,9 @@ const SERVER_CONTAINER_TO_STEP = {
     "form_data.referees_section.": 10,
 };
 
-// The server (both the axios step-validate probe and a final-submit
-// validation failure) keys a field error by its full rule path, e.g.
-// "form_data.education.phd.university" — but every Step*.jsx component
-// looks up its own container-relative key, e.g. "phd.university" (see
-// toLegacyErrorKey above). Without this remap the mismatch is silent: the
-// summary toast fires but no field is ever actually highlighted, which
-// looks exactly like the form ignoring already-filled-in values.
+// Server errors use full rule paths (e.g. `form_data.education.phd.university`)
+// but widgets look up container-relative keys (e.g. `phd.university`). Without
+// this remap the mismatch is silent — the toast fires but no field highlights.
 export function serverKeyToStepPath(dottedKey) {
     if (dottedKey === "department" || dottedKey === "grade") return { step: 1, path: [dottedKey] };
     if (dottedKey === "form_data.declaration") return { step: 11, path: ["declaration"] };

@@ -111,7 +111,7 @@ export default function Settings() {
                             </div>
                         </header>
 
-                        {/* Since UpdatePasswordForm has its own header that we don't want to duplicate, we pass a custom class or hide its header via CSS if possible, but for simplicity we just render it here. If the double-header is an issue, you can modify UpdatePasswordForm.jsx to remove its <header> block. */}
+                        {/* Negative top margin collapses UpdatePasswordForm's own header into the section heading above. */}
                         <div className="-mt-6">
                             <UpdatePasswordForm className="max-w-xl" />
                         </div>

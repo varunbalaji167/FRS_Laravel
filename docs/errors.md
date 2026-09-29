@@ -34,8 +34,8 @@ class DomainException extends \RuntimeException {
 ```
 
 with the enum's `httpStatus()`. Registered from `bootstrap/app.php`'s
-`withExceptions()` (Phase 3). Every controller `abort()`/inline error has been
-replaced with `throw new DomainException(...)`.
+`withExceptions()`. Every controller `abort()`/inline error routes through
+`throw new DomainException(...)`.
 
 `DomainException` renders the contract for any non-Inertia caller — a curl
 request, the axios-driven step-validate probe, a JSON test client — but **not**

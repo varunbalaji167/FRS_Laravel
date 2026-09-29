@@ -1,7 +1,7 @@
 import { Label } from "@/Components/ui/label";
 
-// Layout wrapper every widget in this folder renders through: label + control
-// + inline error, aria-* wired so the control just needs `aria-describedby`.
+// Shared layout wrapper for every input in this folder: label, control and
+// inline error, with aria-* wiring so the control just supplies `aria-describedby`.
 export default function FormField({ label, error, htmlFor, required, children, hint }) {
     return (
         <div className="flex flex-col gap-1">

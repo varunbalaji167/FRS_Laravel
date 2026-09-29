@@ -14,9 +14,8 @@ class StepPersonalRules
     public static function rules(int $currentYear): array
     {
         return [
-            // Accepts a fresh upload OR the string path of an already-stored image
-            // (copy-from-profile, or a redrawn draft). File rules apply only to
-            // the upload branch; the path is already validated on original upload.
+            // Accepts a fresh upload or the string path of an already-stored image
+            // (copy-from-profile, redrawn draft). File rules apply only to uploads.
             'form_data.personal_details.profile_image' => [
                 'nullable',
                 function (string $attribute, mixed $value, \Closure $fail) {

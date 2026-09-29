@@ -22,8 +22,8 @@ descriptions rather than adding a third version.
 | 10 | `Step10Referees.jsx` | `StepRefereesRules` | at least 3 referees, each with name/position/association/institute/email/contact |
 | 11 | `Step11Documents.jsx` | `StepDocumentsRules` | PhD certificate, SSC certificate, signature, final declaration |
 
-Steps 6, 7, and 9 have no server-side required-field checks yet — Phase 2
-closes that gap per [docs/validation.md](validation.md).
+Steps 6, 7, and 9 have no server-side required-field checks — those sections
+are optional by design. See [docs/validation.md](validation.md).
 
 ## Adding a 12th step (or renaming one)
 

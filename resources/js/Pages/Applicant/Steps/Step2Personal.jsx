@@ -28,10 +28,8 @@ export default function Step2Personal({ data, setData, updateFormData, localErro
     const [isProfileCopied, setIsProfileCopied] = useState(false);
     const [isAddressCopied, setIsAddressCopied] = useState(false);
 
-    // A stored path is served off the private disk, which only answers to
-    // FileAccessController's authorized route, not a guessed /storage/ URL —
-    // that disk requires Laravel's own signed URL and 403s otherwise (see
-    // config/filesystems.php's `local` disk and FileAccessController).
+    // Private-disk files must go through FileAccessController's signed route;
+    // a raw /storage/ URL against the `local` disk returns 403.
     useEffect(() => {
         if (p.profile_image instanceof File) {
             setPreview(URL.createObjectURL(p.profile_image));
@@ -45,7 +43,6 @@ export default function Step2Personal({ data, setData, updateFormData, localErro
         }
     }, [p.profile_image]);
 
-    // Copy Address Logic
     const copyAddress = () => {
         setData("form_data", {
             ...data.form_data,

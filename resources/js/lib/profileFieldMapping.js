@@ -1,12 +1,5 @@
-// The applicant master profile and the wizard's Step 2 used to offer
-// different option sets for the same two fields (profile: gender "Other",
-// category "General"; wizard: no "Other", category "UR" instead of
-// "General"). A value the profile allowed but the wizard's Rule::in
-// rejects passed the client-side schema (a non-empty string) yet failed the
-// server's step-validate probe, with nothing on the screen to say why. These
-// normalize a profile's legacy value to its nearest wizard-accepted one
-// whenever it's pulled into the application (initial load and "Copy from
-// Profile"). See docs/validation.md and StepPersonalRules.php.
+// Normalises legacy profile values (`Other`, `General`) to the wizard's
+// canonical option set. Applied on initial load and Copy-from-Profile.
 const GENDER_MAP = { Other: "Prefer not to say" };
 const CATEGORY_MAP = { General: "UR" };
 

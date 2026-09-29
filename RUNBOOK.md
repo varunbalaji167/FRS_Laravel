@@ -164,6 +164,12 @@ $user->save();
 
 ---
 
-## Contacts
 
-- **Developer:** Marneni Varun Balaji — cse230001052@iiti.ac.in
+## Ownership & Escalation
+
+- **Application owner:** CITC — Maintenance & Operations Team, IIT Indore.
+- **Original development team:** Marneni Varun Balaji (cse230001052@iiti.ac.in), Tanishq Godha (cse230001074@iiti.ac.in), Vasav Jain (cse230001081@iiti.ac.in).
+- **Escalation path:**
+  1. On-call engineer (CITC internal roster).
+  2. CITC Maintenance & Operations Team lead.
+  3. Original development team, for architectural questions on legacy behaviour.

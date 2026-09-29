@@ -17,9 +17,6 @@ Rule composition is the invariant: both `ValidateStepRequest` and
 `SubmitApplicationRequest` compose from the same `Rules/Step{Name}Rules.php`
 files, so step-transition and final-submit can't drift.
 
-As of Phase 1 these FormRequests and rule classes exist as empty stubs
-(`rules(): []`) — Phase 2 fills them in and wires the client schemas.
-
 ## Widget-first client philosophy
 
 - Enumerated values (gender, category, marital status, nationality, referee
