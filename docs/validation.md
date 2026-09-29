@@ -11,7 +11,7 @@ one-off validation path.
 |---|---|---|---|---|
 | **Draft (lax)** | `POST /apply/{ad}/draft` | `SaveDraftRequest` | `Steps/schemas/draft.js` | Types + sizes only. No required checks. Files: MIME + size. Strip `form_data.uploaded_documents` from input. |
 | **Step (strict, per-step)** | `POST /apply/{ad}/step/{n}/validate` | `ValidateStepRequest` composing `Rules/Step{Name}Rules.php` | `Steps/schemas/step{n}.js` | Full rules for step `n`. Called from the wizard's Next button. Returns `{ ok: true }` or `422 { code:'APP_STEP_INVALID', details:{ fields:{…} } }`. |
-| **Submit (strict, all)** | `POST /apply/{ad}/submit` | `SubmitApplicationRequest` composing all 11 `Rules/*` | Steps composed on client before dispatch | Full nested `form_data`. `authorize()` enforces `deadline >= today`, `is_active`, and refuses re-submit. |
+| **Submit (strict, all)** | `POST /apply/{ad}/submit` | `SubmitApplicationRequest` composing all 11 `Rules/*` | Steps composed on client before dispatch | Full nested `form_data`. `authorize()` enforces `is_active` (computed from `deadline` — see `Advertisement::isActive()`), and refuses re-submit. |
 
 Rule composition is the invariant: both `ValidateStepRequest` and
 `SubmitApplicationRequest` compose from the same `Rules/Step{Name}Rules.php`

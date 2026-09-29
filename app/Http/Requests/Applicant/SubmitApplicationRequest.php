@@ -17,7 +17,6 @@ use App\Http\Requests\Applicant\Rules\StepStatementsRules;
 use App\Models\JobApplication;
 use App\Support\ErrorCode;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Carbon;
 
 /**
  * Submit tier — all 11 steps, composed from the same Rules/Step{Name}Rules
@@ -44,10 +43,6 @@ class SubmitApplicationRequest extends FormRequest
         $advertisement = $this->route('advertisement');
 
         if (! $advertisement->is_active) {
-            throw new DomainException(ErrorCode::APP_AD_INACTIVE);
-        }
-
-        if ($advertisement->deadline && Carbon::parse($advertisement->deadline)->isPast()) {
             throw new DomainException(ErrorCode::APP_AD_DEADLINE_PASSED);
         }
 

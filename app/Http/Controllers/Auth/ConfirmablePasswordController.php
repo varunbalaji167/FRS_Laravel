@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Exceptions\DomainException;
 use App\Http\Controllers\Controller;
+use App\Support\ErrorCode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,9 +30,7 @@ class ConfirmablePasswordController extends Controller
             'email' => $request->user()->email,
             'password' => $request->password,
         ])) {
-            throw ValidationException::withMessages([
-                'password' => __('auth.password'),
-            ]);
+            throw new DomainException(ErrorCode::AUTH_INVALID_CREDENTIALS);
         }
 
         $request->session()->put('auth.password_confirmed_at', time());

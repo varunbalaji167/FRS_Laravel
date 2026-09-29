@@ -113,8 +113,7 @@ export function formatErrorCode(code, fallback) { /* code → friendly sentence 
 | `OAUTH_HD_MISMATCH` | 403 | Google `hd` claim != `iiti.ac.in` for staff |
 | `APP_ALREADY_SUBMITTED` | 409 | Second submit against a submitted row; the stored dossier is never overwritten |
 | `APP_DRAFT_CONFLICT` | 409 | `saveDraft` on non-draft row |
-| `APP_AD_DEADLINE_PASSED` | 422 | Submit after deadline |
-| `APP_AD_INACTIVE` | 422 | Submit against inactive ad |
+| `APP_AD_DEADLINE_PASSED` | 422 | Submit against an ad past its deadline |
 | `APP_STEP_INVALID` | 422 | Step rules failed |
 | `FILE_MIME_REJECTED` | 422 | Validation failed and *every* failing rule was a file-type rule |
 | `FILE_TOO_LARGE` | 413 | Request body over `post_max_size` (`PostTooLargeException`) |

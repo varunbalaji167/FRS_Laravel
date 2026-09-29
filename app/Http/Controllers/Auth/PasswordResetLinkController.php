@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Exceptions\DomainException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\PasswordResetLinkRequest;
+use App\Support\ErrorCode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
@@ -31,6 +33,9 @@ class PasswordResetLinkController extends Controller
 
         if ($status == Password::RESET_LINK_SENT) {
             return back()->with('status', __($status));
+        }
+        if ($status == Password::RESET_THROTTLED) {
+            throw new DomainException(ErrorCode::AUTH_RATE_LIMITED);
         }
 
         throw ValidationException::withMessages([

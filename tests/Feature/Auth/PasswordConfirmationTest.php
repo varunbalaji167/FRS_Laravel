@@ -35,10 +35,23 @@ class PasswordConfirmationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/confirm-password', [
+        $response = $this->actingAs($user)->postJson('/confirm-password', [
             'password' => 'wrong-password',
         ]);
 
-        $response->assertSessionHasErrors();
+        $response->assertStatus(401)->assertJson(['code' => 'AUTH_INVALID_CREDENTIALS']);
+    }
+
+    public function test_invalid_password_flashes_a_toast_message_for_a_real_inertia_visit(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+            ->post('/confirm-password', ['password' => 'wrong-password']);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error');
+        $response->assertSessionDoesntHaveErrors();
     }
 }

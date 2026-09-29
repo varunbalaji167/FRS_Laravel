@@ -4,8 +4,11 @@ namespace App\Http\Requests\Admin\Ads;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-// No update() endpoint exists yet; kept in step with
-// StoreAdvertisementRequest so it is ready when one lands.
+/**
+ * Backs the one editable field on an advertisement: its deadline. There is
+ * no broader "edit advertisement" endpoint — reference number, title,
+ * departments and the PDF are set once at creation.
+ */
 class UpdateAdvertisementRequest extends FormRequest
 {
     public function authorize(): bool
@@ -19,14 +22,7 @@ class UpdateAdvertisementRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'reference_number' => ['sometimes', 'required', 'string', 'max:255', 'unique:advertisements,reference_number,'.$this->route('advertisement')?->id],
-            'title' => ['sometimes', 'required', 'string', 'max:255'],
-            'deadline' => ['sometimes', 'required', 'date', 'after:today'],
-            'document' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
-            'departments' => ['sometimes', 'required', 'array', 'min:1'],
-            'departments.*' => ['array', 'min:1'],
-            'departments.*.*' => ['string', 'max:255'],
-            'is_active' => ['sometimes', 'boolean'],
+            'deadline' => ['required', 'date', 'after_or_equal:today'],
         ];
     }
 }

@@ -10,7 +10,6 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
 {
@@ -34,7 +33,7 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * @throws ValidationException
+     * @throws DomainException
      */
     public function authenticate(): void
     {
@@ -43,9 +42,7 @@ class LoginRequest extends FormRequest
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
-            throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
-            ]);
+            throw new DomainException(ErrorCode::AUTH_INVALID_CREDENTIALS);
         }
 
         RateLimiter::clear($this->throttleKey());

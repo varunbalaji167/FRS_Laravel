@@ -33,6 +33,23 @@ describe("flattenServerErrors", () => {
         expect(flattenServerErrors(null)).toEqual({});
         expect(flattenServerErrors(undefined)).toEqual({});
     });
+
+    it("surfaces a field-less DomainException's own message under _global, not its raw code", () => {
+        const flat = flattenServerErrors({
+            code: "RATE_LIMITED",
+            message: "Too many attempts. Please try again later.",
+            details: {},
+            request_id: "abc-123",
+        });
+
+        expect(flat).toEqual({ _global: "Too many attempts. Please try again later." });
+    });
+
+    it("falls back to the friendly message when a field-less DomainException has no message", () => {
+        const flat = flattenServerErrors({ code: "FORBIDDEN" });
+
+        expect(flat).toEqual({ _global: "You are not authorised to perform this action." });
+    });
 });
 
 describe("formatErrorCode", () => {

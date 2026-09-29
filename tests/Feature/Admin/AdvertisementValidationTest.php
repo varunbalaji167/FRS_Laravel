@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Models\Advertisement;
 use App\Models\Department;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -79,5 +80,44 @@ class AdvertisementValidationTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors('document');
+    }
+
+    public function test_admin_can_change_an_advertisements_deadline_at_any_time(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $advertisement = Advertisement::factory()->create(['deadline' => now()->addWeek()]);
+        $newDeadline = now()->addMonths(2)->toDateString();
+
+        $response = $this->actingAs($admin)
+            ->patch("/admin/jobs/{$advertisement->id}/deadline", ['deadline' => $newDeadline]);
+
+        $response->assertRedirect(route('admin.jobs.index'));
+        $this->assertSame($newDeadline, $advertisement->fresh()->deadline->toDateString());
+    }
+
+    public function test_extending_a_lapsed_deadline_reactivates_the_advertisement(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $advertisement = Advertisement::factory()->create(['deadline' => now()->subWeek()]);
+
+        $this->assertFalse($advertisement->is_active);
+
+        $this->actingAs($admin)->patch("/admin/jobs/{$advertisement->id}/deadline", [
+            'deadline' => now()->addWeek()->toDateString(),
+        ]);
+
+        $this->assertTrue($advertisement->fresh()->is_active);
+    }
+
+    public function test_deadline_update_rejects_a_date_in_the_past(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $advertisement = Advertisement::factory()->create(['deadline' => now()->addWeek()]);
+
+        $response = $this->actingAs($admin)->patch("/admin/jobs/{$advertisement->id}/deadline", [
+            'deadline' => now()->subDay()->toDateString(),
+        ]);
+
+        $response->assertSessionHasErrors('deadline');
     }
 }

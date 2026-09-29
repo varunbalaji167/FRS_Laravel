@@ -62,9 +62,26 @@ class GoogleAccountLinkRequiredTest extends TestCase
 
         $this->withSession(['intended_role' => 'applicant'])->get('/auth/google/callback');
 
-        $response = $this->post('/auth/google/link', ['password' => 'wrong-password']);
+        $response = $this->postJson('/auth/google/link', ['password' => 'wrong-password']);
 
-        $response->assertSessionHasErrors('password');
+        $response->assertStatus(401)->assertJson(['code' => 'AUTH_INVALID_CREDENTIALS']);
+        $this->assertGuest();
+        $this->assertNull($existing->fresh()->google_id);
+    }
+
+    public function test_wrong_password_flashes_a_toast_message_for_a_real_inertia_visit(): void
+    {
+        $existing = User::factory()->create(['role' => 'applicant', 'google_id' => null]);
+        $this->fakeGoogleUserFor($existing->email);
+
+        $this->withSession(['intended_role' => 'applicant'])->get('/auth/google/callback');
+
+        $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+            ->post('/auth/google/link', ['password' => 'wrong-password']);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error');
+        $response->assertSessionDoesntHaveErrors();
         $this->assertGuest();
         $this->assertNull($existing->fresh()->google_id);
     }

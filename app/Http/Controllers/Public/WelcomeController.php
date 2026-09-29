@@ -19,7 +19,7 @@ class WelcomeController extends Controller
             'canRegister' => Route::has('register'),
             'laravelVersion' => Application::VERSION,
             'phpVersion' => PHP_VERSION,
-            'advertisements' => Cache::remember('welcome.active_ads.v1', 60, fn () => Advertisement::where('is_active', true)
+            'advertisements' => Cache::remember('welcome.active_ads.v3', 60, fn () => Advertisement::where('deadline', '>=', now()->toDateString())
                 ->latest()
                 ->take(5)
                 ->get(['id', 'reference_number', 'title', 'deadline', 'departments', 'document_path'])),

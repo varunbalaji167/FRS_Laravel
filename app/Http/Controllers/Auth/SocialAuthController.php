@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Exceptions\DomainException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ConfirmAccountLinkRequest;
 use App\Models\User;
@@ -133,7 +134,7 @@ class SocialAuthController extends Controller
         $user = User::where('email', $pending['email'])->first();
 
         if (! $user || ! Hash::check($request->validated()['password'], $user->password)) {
-            return back()->withErrors(['password' => 'Incorrect password.']);
+            throw new DomainException(ErrorCode::AUTH_INVALID_CREDENTIALS);
         }
 
         $user->update(['google_id' => $pending['google_id']]);

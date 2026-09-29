@@ -65,6 +65,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/jobs', [AdvertisementController::class, 'index'])->name('jobs.index');
     Route::get('/jobs/create', [AdvertisementController::class, 'create'])->name('jobs.create');
     Route::post('/jobs', [AdvertisementController::class, 'store'])->name('jobs.store');
+    Route::patch('/jobs/{advertisement}/deadline', [AdvertisementController::class, 'updateDeadline'])->name('jobs.update-deadline');
 
     // Users Management
     Route::get('/users', [UserController::class, 'users'])->name('users.index');

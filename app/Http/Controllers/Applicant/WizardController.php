@@ -10,6 +10,7 @@ use App\Models\Advertisement;
 use App\Models\JobApplication;
 use App\Services\Applications\DraftService;
 use App\Services\Applications\SubmissionService;
+use App\Support\ErrorCode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -33,7 +34,7 @@ class WizardController extends Controller
 
         if ($application && $application->status === 'submitted') {
             return redirect()->route('dashboard')
-                ->with('error', 'Application already submitted for this position.');
+                ->with('error', ErrorCode::APP_ALREADY_SUBMITTED->userMessage());
         }
 
         return Inertia::render('Applicant/ApplyForm', [

@@ -16,7 +16,9 @@ class DashboardController extends Controller
 
     public function index(): Response
     {
-        $advertisements = Advertisement::where('is_active', true)->latest()->get();
+        $advertisements = Advertisement::where('deadline', '>=', now()->toDateString())
+            ->latest()
+            ->get();
         $submittedAdvtIds = [];
         $draftAdvtIds = [];
 

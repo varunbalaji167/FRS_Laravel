@@ -3,7 +3,17 @@
 export function flattenServerErrors(errors) {
     if (!errors || typeof errors !== "object") return {};
 
-    const bag = errors.details?.fields ?? errors.errors ?? errors;
+    const fieldBag = errors.details?.fields ?? errors.errors;
+
+    // A DomainException with no field-shaped `details` (e.g. RATE_LIMITED,
+    // FORBIDDEN, AUTH_INVALID_CREDENTIALS) is one whole-form failure, not a
+    // set of field errors — spreading its own {code, message, request_id}
+    // keys as if they were fields would toast the raw code string.
+    if (!fieldBag && typeof errors.code === "string") {
+        return { _global: errors.message || formatErrorCode(errors.code) };
+    }
+
+    const bag = fieldBag ?? errors;
     const flat = {};
 
     for (const [key, value] of Object.entries(bag)) {
@@ -31,7 +41,6 @@ const FRIENDLY_MESSAGES = {
     APP_ALREADY_SUBMITTED: "This application has already been submitted.",
     APP_DRAFT_CONFLICT: "This draft can no longer be edited.",
     APP_AD_DEADLINE_PASSED: "The deadline for this advertisement has passed.",
-    APP_AD_INACTIVE: "This advertisement is no longer accepting applications.",
     APP_STEP_INVALID: "Please fix the highlighted fields on this step.",
     FILE_MIME_REJECTED: "That file type is not accepted.",
     FILE_TOO_LARGE: "That file is too large.",

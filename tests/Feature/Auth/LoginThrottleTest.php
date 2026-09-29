@@ -26,7 +26,7 @@ class LoginThrottleTest extends TestCase
                 'email' => $user->email,
                 'password' => 'wrong-password',
                 'role' => 'applicant',
-            ])->assertStatus(422);
+            ])->assertStatus(401)->assertJsonPath('code', 'AUTH_INVALID_CREDENTIALS');
         }
 
         $response = $this->postJson('/login', [

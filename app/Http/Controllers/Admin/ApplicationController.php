@@ -101,7 +101,9 @@ class ApplicationController extends Controller
 
             // Closures, so a scroll fetch sending only:['applications'] never
             // runs these queries. Full page loads request them as normal.
-            'advertisements' => fn () => Advertisement::select('id', 'title', 'reference_number')->get(),
+            // deadline is selected because Advertisement::isActive() (appended
+            // to every serialised advertisement) reads it.
+            'advertisements' => fn () => Advertisement::select('id', 'title', 'reference_number', 'deadline')->get(),
             'departments' => fn () => Department::allCached(),
             'filters' => fn () => $request->only(['advertisement_id', 'department', 'status']),
         ]);

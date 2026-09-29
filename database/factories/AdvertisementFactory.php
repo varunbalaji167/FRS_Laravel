@@ -21,7 +21,6 @@ class AdvertisementFactory extends Factory
             'document_path' => 'advertisements/sample.pdf',
             'deadline' => now()->addMonth(),
             'departments' => ['Computer Science' => ['Assistant Professor Grade II']],
-            'is_active' => true,
         ];
     }
 

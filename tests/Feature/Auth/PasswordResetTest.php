@@ -47,6 +47,19 @@ class PasswordResetTest extends TestCase
         });
     }
 
+    public function test_requesting_a_second_reset_link_too_soon_carries_the_rate_limited_code(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+
+        $this->post('/forgot-password', ['email' => $user->email]);
+
+        $response = $this->postJson('/forgot-password', ['email' => $user->email]);
+
+        $response->assertStatus(429)->assertJson(['code' => 'AUTH_RATE_LIMITED']);
+    }
+
     public function test_password_can_be_reset_with_valid_token(): void
     {
         Notification::fake();

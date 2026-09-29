@@ -77,7 +77,9 @@ class DashboardAggregator
         $byAdvertisement = (clone $applicationsQuery)
             ->select('advertisement_id', DB::raw('count(*) as count'))
             ->whereIn('status', ['submitted', 'shortlisted', 'rejected'])
-            ->with('advertisement:id,title,reference_number')
+            // deadline is included because Advertisement::isActive() (appended
+            // to every serialised advertisement) reads it.
+            ->with('advertisement:id,title,reference_number,deadline')
             ->groupBy('advertisement_id')
             ->orderByDesc('count')
             ->get();
@@ -97,7 +99,7 @@ class DashboardAggregator
         return [
             'stats' => [
                 'totalAdvertisements' => Advertisement::count(),
-                'activeAdvertisements' => Advertisement::where('is_active', true)->count(),
+                'activeAdvertisements' => Advertisement::where('deadline', '>=', now()->toDateString())->count(),
                 'totalApplications' => (clone $applicationsQuery)->whereIn('status', ['submitted', 'shortlisted', 'rejected'])->count(),
                 'submitted' => $statusCounts['submitted'] ?? 0,
                 'shortlisted' => $statusCounts['shortlisted'] ?? 0,

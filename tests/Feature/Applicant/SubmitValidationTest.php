@@ -95,16 +95,6 @@ class SubmitValidationTest extends TestCase
             ->assertJsonPath('code', 'APP_AD_DEADLINE_PASSED');
     }
 
-    public function test_submit_against_an_inactive_advertisement_is_rejected(): void
-    {
-        $applicant = User::factory()->create();
-        $advertisement = Advertisement::factory()->create(['is_active' => false]);
-
-        $this->submitJson($applicant, $advertisement)
-            ->assertStatus(422)
-            ->assertJsonPath('code', 'APP_AD_INACTIVE');
-    }
-
     public function test_an_unknown_document_upload_key_is_rejected(): void
     {
         $applicant = User::factory()->create();

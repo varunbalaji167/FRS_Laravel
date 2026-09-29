@@ -20,7 +20,6 @@ enum ErrorCode: string
     case APP_ALREADY_SUBMITTED = 'APP_ALREADY_SUBMITTED';
     case APP_DRAFT_CONFLICT = 'APP_DRAFT_CONFLICT';
     case APP_AD_DEADLINE_PASSED = 'APP_AD_DEADLINE_PASSED';
-    case APP_AD_INACTIVE = 'APP_AD_INACTIVE';
     case APP_STEP_INVALID = 'APP_STEP_INVALID';
     case FILE_MIME_REJECTED = 'FILE_MIME_REJECTED';
     case FILE_TOO_LARGE = 'FILE_TOO_LARGE';
@@ -36,7 +35,7 @@ enum ErrorCode: string
     public function httpStatus(): int
     {
         return match ($this) {
-            self::VALIDATION_FAILED, self::APP_AD_DEADLINE_PASSED, self::APP_AD_INACTIVE,
+            self::VALIDATION_FAILED, self::APP_AD_DEADLINE_PASSED,
             self::APP_STEP_INVALID, self::FILE_MIME_REJECTED, self::FILE_KEY_NOT_ALLOWED => 422,
             self::AUTH_INVALID_CREDENTIALS => 401,
             self::AUTH_UNVERIFIED_EMAIL, self::AUTH_DOMAIN_NOT_ALLOWED, self::AUTH_ROLE_MISMATCH,
@@ -67,7 +66,6 @@ enum ErrorCode: string
             self::APP_ALREADY_SUBMITTED => 'This application has already been submitted.',
             self::APP_DRAFT_CONFLICT => 'This draft can no longer be edited.',
             self::APP_AD_DEADLINE_PASSED => 'The deadline for this advertisement has passed.',
-            self::APP_AD_INACTIVE => 'This advertisement is no longer accepting applications.',
             self::APP_STEP_INVALID => 'Please fix the highlighted fields on this step.',
             self::FILE_MIME_REJECTED => 'That file type is not accepted.',
             self::FILE_TOO_LARGE => 'That file is too large.',

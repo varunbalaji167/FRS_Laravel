@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Ads\StoreAdvertisementRequest;
+use App\Http\Requests\Admin\Ads\UpdateAdvertisementRequest;
 use App\Models\Advertisement;
 use App\Models\Department;
 use Illuminate\Http\RedirectResponse;
@@ -49,5 +50,17 @@ class AdvertisementController extends Controller
 
         return redirect()->route('admin.jobs.create')
             ->with('success', 'Advertisement published successfully!');
+    }
+
+    /**
+     * The only field an admin can change after publishing — deadline is what
+     * drives whether an ad is "active" (see Advertisement::isActive()).
+     */
+    public function updateDeadline(UpdateAdvertisementRequest $request, Advertisement $advertisement): RedirectResponse
+    {
+        $advertisement->update($request->validated());
+
+        return redirect()->route('admin.jobs.index')
+            ->with('success', 'Deadline updated successfully!');
     }
 }

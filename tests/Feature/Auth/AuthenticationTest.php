@@ -43,6 +43,43 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
+    /**
+     * A wrong password is a DomainException, not a generic ValidationException
+     * — otherwise it renders as "Please fix the highlighted fields" instead
+     * of "Incorrect email or password."
+     */
+    public function test_invalid_password_carries_the_auth_invalid_credentials_code(): void
+    {
+        $user = User::factory()->create(['role' => 'applicant']);
+
+        $response = $this->postJson('/login', [
+            'email' => $user->email,
+            'password' => 'wrong-password',
+            'role' => 'applicant',
+        ]);
+
+        $response->assertStatus(401)
+            ->assertJson(['code' => 'AUTH_INVALID_CREDENTIALS']);
+        $this->assertGuest();
+    }
+
+    public function test_invalid_password_flashes_a_toast_message_for_a_real_inertia_login_visit(): void
+    {
+        $user = User::factory()->create(['role' => 'applicant']);
+
+        $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+            ->post('/login', [
+                'email' => $user->email,
+                'password' => 'wrong-password',
+                'role' => 'applicant',
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error');
+        $response->assertSessionDoesntHaveErrors();
+        $this->assertGuest();
+    }
+
     public function test_users_can_logout(): void
     {
         $user = User::factory()->create();
