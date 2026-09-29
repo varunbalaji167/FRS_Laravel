@@ -15,6 +15,7 @@ APP_DIR="${APP_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 cd "$APP_DIR"
 
 HEALTH_URL="${HEALTH_URL:-https://testfrs.iiti.ac.in/up}"
+HEALTH_CACERT="${HEALTH_CACERT:-}"
 BUILD_LINK="public/build"
 STATE_FILE=".deploy-state"
 
@@ -116,7 +117,12 @@ php artisan up
 
 # ── Post-deploy health check, automatic rollback on failure ─────────────
 echo "Health-checking ${HEALTH_URL} ..."
-if curl -fsS --max-time 10 "$HEALTH_URL" > /dev/null; then
+CURL_TLS_OPTS=(-k)
+if [ -n "$HEALTH_CACERT" ]; then
+    CURL_TLS_OPTS=(--cacert "$HEALTH_CACERT")
+fi
+
+if curl -fsS --max-time 10 "${CURL_TLS_OPTS[@]}" "$HEALTH_URL" > /dev/null; then
     echo "Deployment of ${DEPLOY_REF} finished successfully."
 else
     echo "Health check FAILED — rolling back to ${PREV_TAG}." >&2
