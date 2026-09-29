@@ -26,9 +26,22 @@ class UserController extends Controller
 {
     public function users(): Response
     {
-        $users = User::select('id', 'name', 'email', 'role', 'department')
+        $users = User::select('id', 'name', 'email', 'role', 'department_id')
+            ->with('department:id,name')
             ->latest()
             ->paginate(20);
+
+        // Built explicitly rather than serialised straight through: the
+        // frontend expects a plain 'department' name string, and the
+        // 'department' key would otherwise collide with the department()
+        // relation once it's eager-loaded onto each row.
+        $users->getCollection()->transform(fn (User $user) => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'department' => $user->department_name,
+        ]);
 
         return Inertia::render('Admin/Users/Index', [
             'users' => $users,
@@ -47,14 +60,19 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
-            'department' => $isHod ? $request->department : null,
             'department_id' => $isHod ? Department::idForName($request->department) : null,
             'password' => Hash::make(Str::random(32)),
         ]);
 
         $this->sendAccountAccessNotification($user, $request->email, 'created');
 
-        $adminActions->record($request, 'user.created', $user, null, $user->only(['id', 'name', 'email', 'role', 'department']));
+        $adminActions->record($request, 'user.created', $user, null, [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'department' => $user->department_name,
+        ]);
 
         $dashboard->forget(null);
 
@@ -74,21 +92,26 @@ class UserController extends Controller
             throw new DomainException(ErrorCode::USER_LAST_ADMIN);
         }
 
-        $before = $user->only(['role', 'department']);
+        $beforeDepartmentId = $user->department_id;
+        $before = ['role' => $user->role, 'department' => $user->department_name];
         $isHod = $request->role === 'hod';
 
         $user->update([
             'role' => $request->role,
-            'department' => $isHod ? $request->department : null,
             'department_id' => $isHod ? Department::idForName($request->department) : null,
         ]);
 
+        $user->unsetRelation('department');
+
         $this->sendAccountAccessNotification($user, $user->email, 'updated');
 
-        $adminActions->record($request, 'user.role_updated', $user, $before, $user->only(['role', 'department']));
+        $adminActions->record($request, 'user.role_updated', $user, $before, [
+            'role' => $user->role,
+            'department' => $user->department_name,
+        ]);
 
-        $dashboard->forget($before['department']);
-        $dashboard->forget($user->department);
+        $dashboard->forget($beforeDepartmentId);
+        $dashboard->forget($user->department_id);
 
         return back()->with('success', 'Role updated to '.strtoupper($request->role)." for {$user->name}. Notification email sent.");
     }
@@ -107,7 +130,14 @@ class UserController extends Controller
 
         // Captured before the row goes away.
         $email = $user->email;
-        $before = $user->only(['id', 'name', 'email', 'role', 'department']);
+        $departmentId = $user->department_id;
+        $before = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'department' => $user->department_name,
+        ];
 
         $this->sendAccountAccessNotification($user, $email, 'deleted');
 
@@ -115,7 +145,7 @@ class UserController extends Controller
 
         $user->delete();
 
-        $dashboard->forget($before['department']);
+        $dashboard->forget($departmentId);
 
         return back()->with('success', 'User permanently deleted.');
     }
@@ -133,7 +163,7 @@ class UserController extends Controller
     private function sendAccountAccessNotification(User $user, string $email, string $action): void
     {
         try {
-            Mail::to($email)->queue(new AccountAccessNotification($user->name, $user->role, $user->department, $action));
+            Mail::to($email)->queue(new AccountAccessNotification($user->name, $user->role, $user->department_name, $action));
         } catch (Throwable $e) {
             Log::error('AccountAccessNotification mail failed', [
                 'user_id' => $user->id,

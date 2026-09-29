@@ -49,7 +49,8 @@ class Department extends Model
     }
 
     /**
-     * Keeps the department_id FK columns in sync with the legacy names.
+     * Resolves a department name to its id. Case-insensitive to align with
+     * Rule::exists's default collation-driven matching.
      */
     public static function idForName(?string $name): ?int
     {
@@ -57,7 +58,7 @@ class Department extends Model
             return null;
         }
 
-        return static::allCached()->firstWhere('name', $name)?->id;
+        return static::whereRaw('LOWER(name) = ?', [strtolower($name)])->first()?->id;
     }
 
     public static function flushCache(): void

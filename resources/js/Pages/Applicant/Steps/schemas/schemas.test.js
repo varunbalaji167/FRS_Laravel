@@ -63,6 +63,17 @@ describe("step3Schema", () => {
         });
         expect(result.success).toBe(false);
     });
+
+    // An untouched step must fault the individual fields (phd.university, …),
+    // not the parent `phd`, so every widget highlights like step 2 does.
+    it("faults each phd field by name when the whole section is empty", () => {
+        const result = step3Schema(2026).safeParse({});
+        expect(result.success).toBe(false);
+        const paths = result.error.issues.map((i) => i.path.join("."));
+        expect(paths).toContain("phd.university");
+        expect(paths).toContain("phd.department");
+        expect(paths).toContain("phd.date_joining");
+    });
 });
 
 describe("step4Schema", () => {
@@ -77,6 +88,15 @@ describe("step4Schema", () => {
 
     it("rejects a missing has_three_years_exp answer", () => {
         expect(step4Schema().safeParse({ ...valid, has_three_years_exp: "" }).success).toBe(false);
+    });
+
+    it("faults each present field by name when the whole section is empty", () => {
+        const result = step4Schema().safeParse({});
+        expect(result.success).toBe(false);
+        const paths = result.error.issues.map((i) => i.path.join("."));
+        expect(paths).toContain("present.position");
+        expect(paths).toContain("present.organization");
+        expect(paths).toContain("present.date_joining");
     });
 });
 
@@ -93,6 +113,14 @@ describe("step5Schema", () => {
             specialization: { area_of_specialization: "ML", current_area_of_research: "" },
         });
         expect(result.success).toBe(false);
+    });
+
+    it("faults each specialization field by name when the whole section is empty", () => {
+        const result = step5Schema().safeParse({});
+        expect(result.success).toBe(false);
+        const paths = result.error.issues.map((i) => i.path.join("."));
+        expect(paths).toContain("specialization.area_of_specialization");
+        expect(paths).toContain("specialization.current_area_of_research");
     });
 });
 

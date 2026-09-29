@@ -18,11 +18,17 @@ export default function SignaturePadField({ id, label, onChange, error, required
     const padRef = useRef(null);
 
     const commit = () => {
-        if (!padRef.current || padRef.current.isEmpty()) {
+        const pad = padRef.current;
+        if (!pad || pad.isEmpty()) {
             onChange(null);
             return;
         }
-        const dataUrl = padRef.current.getTrimmedCanvas().toDataURL("image/png");
+        // Encode the full canvas, not getTrimmedCanvas(): the trim step
+        // (trim-canvas) throws IndexSizeError when a stroke's bounding box
+        // computes a 0 width/height, and because this runs in the onEnd
+        // handler the throw is swallowed — the drawn signature is silently
+        // never captured, so validation keeps reporting it as missing.
+        const dataUrl = pad.toDataURL("image/png");
         onChange(dataURLtoFile(dataUrl, "signature.png"));
     };
 

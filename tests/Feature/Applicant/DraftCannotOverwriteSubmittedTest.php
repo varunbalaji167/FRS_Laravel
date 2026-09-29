@@ -3,6 +3,7 @@
 namespace Tests\Feature\Applicant;
 
 use App\Models\Advertisement;
+use App\Models\Department;
 use App\Models\JobApplication;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -30,11 +31,13 @@ class DraftCannotOverwriteSubmittedTest extends TestCase
         $response->assertStatus(409);
         $fresh = $application->fresh();
         $this->assertSame('submitted', $fresh->status);
-        $this->assertNotSame('Mechanical Engineering', $fresh->department);
+        $this->assertNotSame('Mechanical Engineering', $fresh->department_name);
     }
 
     public function test_save_draft_on_an_existing_draft_still_succeeds(): void
     {
+        Department::firstOrCreate(['name' => 'Mechanical Engineering']);
+
         $applicant = User::factory()->create(['role' => 'applicant']);
         $advertisement = Advertisement::factory()->create();
         $application = JobApplication::factory()->draft()->create([
@@ -49,6 +52,6 @@ class DraftCannotOverwriteSubmittedTest extends TestCase
         ]);
 
         $response->assertRedirect();
-        $this->assertSame('Mechanical Engineering', $application->fresh()->department);
+        $this->assertSame('Mechanical Engineering', $application->fresh()->department_name);
     }
 }

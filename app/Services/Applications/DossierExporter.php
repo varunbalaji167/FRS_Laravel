@@ -56,75 +56,80 @@ class DossierExporter
             // UTF-8 BOM so Excel opens it correctly
             fwrite($file, "\xEF\xBB\xBF");
 
+            // Every row goes through this helper. Passing an explicit empty
+            // $escape disables fputcsv's legacy backslash escaping — that
+            // default is deprecated from PHP 8.4 and can mis-encode values
+            // containing \ or ", producing CSV Excel misreads.
+            $put = fn (array $row = []) => fputcsv($file, $row, ',', '"', '');
             // ── helper: write a blank separator row ──
-            $blank = fn () => fputcsv($file, []);
+            $blank = fn () => $put([]);
 
-            fputcsv($file, ['═══ APPLICATION SUMMARY ═══']);
-            fputcsv($file, ['Field', 'Value']);
-            fputcsv($file, ['Application ID',      $application->id]);
-            fputcsv($file, ['Advertisement Ref.',   $application->advertisement->reference_number ?? 'N/A']);
-            fputcsv($file, ['Advertisement Title',  $application->advertisement->title ?? 'N/A']);
-            fputcsv($file, ['Department / School',  $application->department ?? 'N/A']);
-            fputcsv($file, ['Grade / Post',         $application->grade ?? 'N/A']);
-            fputcsv($file, ['Status',               ucfirst($application->status ?? 'N/A')]);
-            fputcsv($file, ['Submitted At',         $application->created_at ? $application->created_at->format('d/m/Y H:i') : 'N/A']);
+            $put(['═══ APPLICATION SUMMARY ═══']);
+            $put(['Field', 'Value']);
+            $put(['Application ID',      $application->id]);
+            $put(['Advertisement Ref.',   $application->advertisement->reference_number ?? 'N/A']);
+            $put(['Advertisement Title',  $application->advertisement->title ?? 'N/A']);
+            $put(['Department / School',  $application->department_name ?? 'N/A']);
+            $put(['Grade / Post',         $application->grade ?? 'N/A']);
+            $put(['Status',               ucfirst($application->status ?? 'N/A')]);
+            $put(['Submitted At',         $application->created_at ? $application->created_at->format('d/m/Y H:i') : 'N/A']);
             $blank();
 
-            fputcsv($file, ['═══ SECTION 1: PERSONAL DETAILS ═══']);
-            fputcsv($file, ['Field', 'Value']);
+            $put(['═══ SECTION 1: PERSONAL DETAILS ═══']);
+            $put(['Field', 'Value']);
             // Blade renders full name as a combined field; export each part + combined
-            fputcsv($file, ['Full Name',
+            $put(['Full Name',
                 trim(($p['first_name'] ?? '').' '.($p['middle_name'] ?? '').' '.($p['last_name'] ?? '')) ?: 'N/A',
             ]);
-            fputcsv($file, ['First Name',        $p['first_name'] ?? 'N/A']);
-            fputcsv($file, ['Middle Name',        $p['middle_name'] ?? 'N/A']);
-            fputcsv($file, ['Last Name',          $p['last_name'] ?? 'N/A']);
-            fputcsv($file, ["Father's Name",      $p['fathers_name'] ?? 'N/A']);
-            fputcsv($file, ['Date of Birth',      $p['dob'] ?? 'N/A']);
-            fputcsv($file, ['Gender',             $p['gender'] ?? 'N/A']);
-            fputcsv($file, ['Category',           $p['category'] ?? 'N/A']);
-            fputcsv($file, ['Marital Status',     $p['marital_status'] ?? 'N/A']);
-            fputcsv($file, ['Nationality',        $p['nationality'] ?? 'N/A']);
+            $put(['First Name',        $p['first_name'] ?? 'N/A']);
+            $put(['Middle Name',        $p['middle_name'] ?? 'N/A']);
+            $put(['Last Name',          $p['last_name'] ?? 'N/A']);
+            $put(["Father's Name",      $p['fathers_name'] ?? 'N/A']);
+            $put(['Date of Birth',      $p['dob'] ?? 'N/A']);
+            $put(['Gender',             $p['gender'] ?? 'N/A']);
+            $put(['Category',           $p['category'] ?? 'N/A']);
+            $put(['Marital Status',     $p['marital_status'] ?? 'N/A']);
+            $put(['Nationality',        $p['nationality'] ?? 'N/A']);
             // Blade shows "ID Proof: type: number" combined
-            fputcsv($file, ['ID Proof Type',      $p['id_proof_type'] ?? 'N/A']);
-            fputcsv($file, ['ID Proof Number',    $p['id_proof_number'] ?? 'N/A']);
-            fputcsv($file, ['Primary E-mail',     $p['email'] ?? 'N/A']);
-            fputcsv($file, ['Alternate E-mail',   $p['alt_email'] ?? 'N/A']);
+            $put(['ID Proof Type',      $p['id_proof_type'] ?? 'N/A']);
+            $put(['ID Proof Number',    $p['id_proof_number'] ?? 'N/A']);
+            $put(['Primary E-mail',     $p['email'] ?? 'N/A']);
+            $put(['Alternate E-mail',   $p['alt_email'] ?? 'N/A']);
             // Blade: phone_code defaults to '+91' when phone is set
-            fputcsv($file, ['Primary Mobile',
+            $put(['Primary Mobile',
                 ! empty($p['phone'])
                     ? (($p['phone_code'] ?? '+91').' '.$p['phone'])
                     : 'N/A',
             ]);
-            fputcsv($file, ['Alternate Mobile',
+            $put(['Alternate Mobile',
                 ! empty($p['alt_phone'])
                     ? (($p['alt_phone_code'] ?? '+91').' '.$p['alt_phone'])
                     : 'N/A',
             ]);
             // Correspondence Address
-            fputcsv($file, ['Corr. Address',   $p['corr_address'] ?? 'N/A']);
-            fputcsv($file, ['Corr. City',      $p['corr_city'] ?? 'N/A']);
-            fputcsv($file, ['Corr. State',     $p['corr_state'] ?? 'N/A']);
-            fputcsv($file, ['Corr. Country',   $p['corr_country'] ?? 'N/A']);
-            fputcsv($file, ['Corr. PIN Code',  $p['corr_pincode'] ?? 'N/A']);
+            $put(['Corr. Address',   $p['corr_address'] ?? 'N/A']);
+            $put(['Corr. City',      $p['corr_city'] ?? 'N/A']);
+            $put(['Corr. State',     $p['corr_state'] ?? 'N/A']);
+            $put(['Corr. Country',   $p['corr_country'] ?? 'N/A']);
+            $put(['Corr. PIN Code',  $p['corr_pincode'] ?? 'N/A']);
             // Permanent Address
-            fputcsv($file, ['Perm. Address',   $p['perm_address'] ?? 'N/A']);
-            fputcsv($file, ['Perm. City',      $p['perm_city'] ?? 'N/A']);
-            fputcsv($file, ['Perm. State',     $p['perm_state'] ?? 'N/A']);
-            fputcsv($file, ['Perm. Country',   $p['perm_country'] ?? 'N/A']);
-            fputcsv($file, ['Perm. PIN Code',  $p['perm_pincode'] ?? 'N/A']);
+            $put(['Perm. Address',   $p['perm_address'] ?? 'N/A']);
+            $put(['Perm. City',      $p['perm_city'] ?? 'N/A']);
+            $put(['Perm. State',     $p['perm_state'] ?? 'N/A']);
+            $put(['Perm. Country',   $p['perm_country'] ?? 'N/A']);
+            $put(['Perm. PIN Code',  $p['perm_pincode'] ?? 'N/A']);
             $blank();
 
             $edu = $data['education'] ?? [];
             $phd = $edu['phd'] ?? [];
 
-            fputcsv($file, ['═══ SECTION 2: EDUCATIONAL QUALIFICATIONS ═══']);
+            $put(['═══ SECTION 2: EDUCATIONAL QUALIFICATIONS ═══']);
 
             // ── (A) PhD ──
-            fputcsv($file, ['--- (A) Ph.D. Details ---']);
-            fputcsv($file, ['University / Institute', 'Department', 'Supervisor', 'Date of Joining', 'Date of Defence', 'Date of Award', 'Duration (YY-MM-DD)']);
+            $put(['--- (A) Ph.D. Details ---']);
+            $put(['University / Institute', 'Department', 'Supervisor', 'Date of Joining', 'Date of Defence', 'Date of Award', 'Duration (YY-MM-DD)']);
             if (! empty($phd['university'])) {
-                fputcsv($file, [
+                $put([
                     $phd['university'] ?? 'N/A',
                     $phd['department'] ?? 'N/A',
                     $phd['supervisor'] ?? 'N/A',
@@ -133,20 +138,20 @@ class DossierExporter
                     $phd['date_award'] ?? 'N/A',
                     $phd['duration'] ?? 'N/A',
                 ]);
-                fputcsv($file, [
+                $put([
                     'Thesis Title',
                     $phd['title'] ?? $phd['thesis_title'] ?? 'N/A',
                 ]);
             } else {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             // ── (B) PG ──
-            fputcsv($file, ['--- (B) Post-Graduate (PG) Details ---']);
-            fputcsv($file, ['#', 'Degree', 'University / Institute', 'Subjects', 'Date Joined', 'Date Graduated', 'Duration (YY-MM-DD)', '% / CGPA', 'Class / Division']);
+            $put(['--- (B) Post-Graduate (PG) Details ---']);
+            $put(['#', 'Degree', 'University / Institute', 'Subjects', 'Date Joined', 'Date Graduated', 'Duration (YY-MM-DD)', '% / CGPA', 'Class / Division']);
             foreach ($edu['pg'] ?? [] as $i => $row) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $row['degree'] ?? 'N/A',
                     $row['university'] ?? 'N/A',
@@ -159,15 +164,15 @@ class DossierExporter
                 ]);
             }
             if (empty($edu['pg'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             // ── (C) UG ──
-            fputcsv($file, ['--- (C) Under-Graduate (UG) Details ---']);
-            fputcsv($file, ['#', 'Degree', 'University / Institute', 'Subjects', 'Date Joined', 'Date Graduated', 'Duration (YY-MM-DD)', '% / CGPA', 'Class / Division']);
+            $put(['--- (C) Under-Graduate (UG) Details ---']);
+            $put(['#', 'Degree', 'University / Institute', 'Subjects', 'Date Joined', 'Date Graduated', 'Duration (YY-MM-DD)', '% / CGPA', 'Class / Division']);
             foreach ($edu['ug'] ?? [] as $i => $row) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $row['degree'] ?? 'N/A',
                     $row['university'] ?? 'N/A',
@@ -180,15 +185,15 @@ class DossierExporter
                 ]);
             }
             if (empty($edu['ug'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             // ── (D) School ──
-            fputcsv($file, ['--- (D) School Details ---']);
-            fputcsv($file, ['Level', 'School / Board', 'Year of Passing', '% / CGPA', 'Division / Class']);
+            $put(['--- (D) School Details ---']);
+            $put(['Level', 'School / Board', 'Year of Passing', '% / CGPA', 'Division / Class']);
             foreach ($edu['school'] ?? [] as $i => $row) {
-                fputcsv($file, [
+                $put([
                     $row['level'] ?? ($i === 0 ? '12th/HSC/Diploma' : '10th'),
                     $row['school'] ?? $row['board'] ?? 'N/A',
                     $row['year_passing'] ?? $row['date_graduation'] ?? 'N/A',
@@ -197,20 +202,20 @@ class DossierExporter
                 ]);
             }
             if (empty($edu['school'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             $emp = $data['employment'] ?? [];
             $pres = $emp['present'] ?? [];
 
-            fputcsv($file, ['═══ SECTION 3: EMPLOYMENT DETAILS ═══']);
+            $put(['═══ SECTION 3: EMPLOYMENT DETAILS ═══']);
 
             // ── (A) Present Employment ──
-            fputcsv($file, ['--- (A) Present Employment ---']);
-            fputcsv($file, ['Position / Designation', 'Organization / Institute', 'Date of Joining', 'Date of Leaving', 'Duration (YY-MM-DD)']);
+            $put(['--- (A) Present Employment ---']);
+            $put(['Position / Designation', 'Organization / Institute', 'Date of Joining', 'Date of Leaving', 'Duration (YY-MM-DD)']);
             if (! empty($pres['position'])) {
-                fputcsv($file, [
+                $put([
                     $pres['position'] ?? 'N/A',
                     $pres['organization'] ?? 'N/A',
                     $pres['date_joining'] ?? 'N/A',
@@ -218,16 +223,16 @@ class DossierExporter
                     $pres['duration'] ?? 'N/A',
                 ]);
             } else {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
-            fputcsv($file, ['Minimum 3 Yrs Experience (excl. PhD period)', $emp['has_three_years_exp'] ?? 'N/A']);
+            $put(['Minimum 3 Yrs Experience (excl. PhD period)', $emp['has_three_years_exp'] ?? 'N/A']);
             $blank();
 
             // ── (B) Employment History ──
-            fputcsv($file, ['--- (B) Employment History (All Previous) ---']);
-            fputcsv($file, ['#', 'Position / Designation', 'Organization / Institute', 'Date of Joining', 'Date of Leaving', 'Duration (YY-MM-DD)']);
+            $put(['--- (B) Employment History (All Previous) ---']);
+            $put(['#', 'Position / Designation', 'Organization / Institute', 'Date of Joining', 'Date of Leaving', 'Duration (YY-MM-DD)']);
             foreach ($emp['history'] ?? [] as $i => $e) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $e['position'] ?? 'N/A',
                     $e['organization'] ?? 'N/A',
@@ -237,15 +242,15 @@ class DossierExporter
                 ]);
             }
             if (empty($emp['history'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             // ── (C) Teaching Experience ──
-            fputcsv($file, ['--- (C) Teaching Experience ---']);
-            fputcsv($file, ['#', 'Position', 'Employer', 'Course Taught', 'Level', 'No. of Students', 'Date of Joining', 'Date of Leaving', 'Duration (YY-MM-DD)']);
+            $put(['--- (C) Teaching Experience ---']);
+            $put(['#', 'Position', 'Employer', 'Course Taught', 'Level', 'No. of Students', 'Date of Joining', 'Date of Leaving', 'Duration (YY-MM-DD)']);
             foreach ($emp['teaching'] ?? [] as $i => $e) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $e['position'] ?? 'N/A',
                     $e['employer'] ?? 'N/A',
@@ -258,15 +263,15 @@ class DossierExporter
                 ]);
             }
             if (empty($emp['teaching'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             // ── (D) Research Experience ──
-            fputcsv($file, ['--- (D) Research Experience ---']);
-            fputcsv($file, ['#', 'Position', 'Institute', 'Supervisor', 'Date Joined', 'Date Left', 'Duration (YY-MM-DD)']);
+            $put(['--- (D) Research Experience ---']);
+            $put(['#', 'Position', 'Institute', 'Supervisor', 'Date Joined', 'Date Left', 'Duration (YY-MM-DD)']);
             foreach ($emp['research'] ?? [] as $i => $e) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $e['position'] ?? 'N/A',
                     $e['institute'] ?? 'N/A',
@@ -277,15 +282,15 @@ class DossierExporter
                 ]);
             }
             if (empty($emp['research'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             // ── (E) Industrial Experience ──
-            fputcsv($file, ['--- (E) Industrial Experience ---']);
-            fputcsv($file, ['#', 'Organization', 'Work Profile', 'Date Joined', 'Date Left', 'Duration (YY-MM-DD)']);
+            $put(['--- (E) Industrial Experience ---']);
+            $put(['#', 'Organization', 'Work Profile', 'Date Joined', 'Date Left', 'Duration (YY-MM-DD)']);
             foreach ($emp['industrial'] ?? [] as $i => $e) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $e['organization'] ?? 'N/A',
                     $e['profile'] ?? 'N/A',
@@ -295,7 +300,7 @@ class DossierExporter
                 ]);
             }
             if (empty($emp['industrial'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
@@ -303,18 +308,18 @@ class DossierExporter
             $spec = $res['specialization'] ?? [];
             $sum = $res['summary'] ?? [];
 
-            fputcsv($file, ['═══ SECTION 4: RESEARCH — SPECIALIZATION & PUBLICATION SUMMARY ═══']);
+            $put(['═══ SECTION 4: RESEARCH — SPECIALIZATION & PUBLICATION SUMMARY ═══']);
 
-            fputcsv($file, ['Area(s) of Specialization', 'Current Area(s) of Research']);
-            fputcsv($file, [
+            $put(['Area(s) of Specialization', 'Current Area(s) of Research']);
+            $put([
                 $spec['area_of_specialization'] ?? 'N/A',
                 $spec['current_area_of_research'] ?? 'N/A',
             ]);
             $blank();
 
-            fputcsv($file, ['--- Summary of Publications ---']);
-            fputcsv($file, ['Intl. Journal Papers', 'Natl. Journal Papers', 'Intl. Conferences', 'Natl. Conferences', 'Patents', 'Books', 'Book Chapters']);
-            fputcsv($file, [
+            $put(['--- Summary of Publications ---']);
+            $put(['Intl. Journal Papers', 'Natl. Journal Papers', 'Intl. Conferences', 'Natl. Conferences', 'Patents', 'Books', 'Book Chapters']);
+            $put([
                 $sum['intl_journals'] ?? '0',
                 $sum['natl_journals'] ?? '0',
                 $sum['intl_conferences'] ?? '0',
@@ -325,10 +330,10 @@ class DossierExporter
             ]);
             $blank();
 
-            fputcsv($file, ['--- List of Best Research Publications (up to 10) ---']);
-            fputcsv($file, ['#', 'Title', 'Author(s)', 'Journal / Conference', 'Year', 'Vol. & Page', 'Impact Factor', 'DOI / URL', 'Status']);
+            $put(['--- List of Best Research Publications (up to 10) ---']);
+            $put(['#', 'Title', 'Author(s)', 'Journal / Conference', 'Year', 'Vol. & Page', 'Impact Factor', 'DOI / URL', 'Status']);
             foreach ($res['publications'] ?? [] as $i => $pub) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $pub['title'] ?? 'N/A',
                     $pub['authors'] ?? 'N/A',
@@ -341,19 +346,19 @@ class DossierExporter
                 ]);
             }
             if (empty($res['publications'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             $info = $data['additional_info'] ?? [];
 
-            fputcsv($file, ['═══ SECTION 5: ADDITIONAL INFORMATION ═══']);
+            $put(['═══ SECTION 5: ADDITIONAL INFORMATION ═══']);
 
             // ── (A) Patents ──
-            fputcsv($file, ['--- (A) Patents ---']);
-            fputcsv($file, ['#', 'Inventor(s)', 'Title of Patent', 'Country', 'Patent No.', 'Date Filed', 'Date Published', 'Status']);
+            $put(['--- (A) Patents ---']);
+            $put(['#', 'Inventor(s)', 'Title of Patent', 'Country', 'Patent No.', 'Date Filed', 'Date Published', 'Status']);
             foreach ($info['patents'] ?? [] as $i => $pat) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $pat['inventors'] ?? 'N/A',
                     $pat['title'] ?? 'N/A',
@@ -365,15 +370,15 @@ class DossierExporter
                 ]);
             }
             if (empty($info['patents'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             // ── (B) Books ──
-            fputcsv($file, ['--- (B) Books ---']);
-            fputcsv($file, ['#', 'Author(s)', 'Title', 'Year', 'ISBN']);
+            $put(['--- (B) Books ---']);
+            $put(['#', 'Author(s)', 'Title', 'Year', 'ISBN']);
             foreach ($info['books'] ?? [] as $i => $bk) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $bk['authors'] ?? 'N/A',
                     $bk['title'] ?? 'N/A',
@@ -382,15 +387,15 @@ class DossierExporter
                 ]);
             }
             if (empty($info['books'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             // ── (C) Book Chapters ──
-            fputcsv($file, ['--- (C) Book Chapters ---']);
-            fputcsv($file, ['#', 'Author(s)', 'Title', 'Year', 'ISBN']);
+            $put(['--- (C) Book Chapters ---']);
+            $put(['#', 'Author(s)', 'Title', 'Year', 'ISBN']);
             foreach ($info['book_chapters'] ?? [] as $i => $bc) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $bc['authors'] ?? 'N/A',
                     $bc['title'] ?? 'N/A',
@@ -399,35 +404,35 @@ class DossierExporter
                 ]);
             }
             if (empty($info['book_chapters'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             // ── (D) Google Scholar ──
-            fputcsv($file, ['--- (D) Google Scholar Profile ---']);
-            fputcsv($file, ['Google Scholar URL', $info['google_scholar'] ?? 'N/A']);
+            $put(['--- (D) Google Scholar Profile ---']);
+            $put(['Google Scholar URL', $info['google_scholar'] ?? 'N/A']);
             $blank();
 
             // ── (E) Membership of Professional Societies ──
-            fputcsv($file, ['--- (E) Membership of Professional Societies ---']);
-            fputcsv($file, ['#', 'Name of Professional Society', 'Membership Status']);
+            $put(['--- (E) Membership of Professional Societies ---']);
+            $put(['#', 'Name of Professional Society', 'Membership Status']);
             foreach ($info['societies'] ?? [] as $i => $soc) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $soc['name'] ?? 'N/A',
                     $soc['status'] ?? 'N/A',
                 ]);
             }
             if (empty($info['societies'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             // ── (F) Professional Training ──
-            fputcsv($file, ['--- (F) Professional Training ---']);
-            fputcsv($file, ['#', 'Type of Training', 'Organisation', 'Year', 'Duration (YY-MM-DD)']);
+            $put(['--- (F) Professional Training ---']);
+            $put(['#', 'Type of Training', 'Organisation', 'Year', 'Duration (YY-MM-DD)']);
             foreach ($info['training'] ?? [] as $i => $tr) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $tr['type'] ?? 'N/A',
                     $tr['organization'] ?? 'N/A',
@@ -436,19 +441,19 @@ class DossierExporter
                 ]);
             }
             if (empty($info['training'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             $ap = $data['awards_projects'] ?? [];
 
-            fputcsv($file, ['═══ SECTION 6: AWARDS, SUPERVISION & SPONSORED PROJECTS ═══']);
+            $put(['═══ SECTION 6: AWARDS, SUPERVISION & SPONSORED PROJECTS ═══']);
 
             // ── (A) Awards ──
-            fputcsv($file, ['--- (A) Awards and Recognitions ---']);
-            fputcsv($file, ['#', 'Name of the Award / Recognition', 'Awarded By', 'Year']);
+            $put(['--- (A) Awards and Recognitions ---']);
+            $put(['#', 'Name of the Award / Recognition', 'Awarded By', 'Year']);
             foreach ($ap['awards'] ?? [] as $i => $aw) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $aw['name'] ?? 'N/A',
                     $aw['awarded_by'] ?? 'N/A',
@@ -456,15 +461,15 @@ class DossierExporter
                 ]);
             }
             if (empty($ap['awards'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             // ── (B-i) PhD Supervision ──
-            fputcsv($file, ['--- (B-i) PhD Thesis Supervision ---']);
-            fputcsv($file, ['#', 'Name of Scholar', 'Title of Thesis', 'Role', 'Status', 'Year']);
+            $put(['--- (B-i) PhD Thesis Supervision ---']);
+            $put(['#', 'Name of Scholar', 'Title of Thesis', 'Role', 'Status', 'Year']);
             foreach ($ap['phd_supervision'] ?? [] as $i => $sup) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $sup['student_name'] ?? 'N/A',
                     $sup['title'] ?? 'N/A',
@@ -474,15 +479,15 @@ class DossierExporter
                 ]);
             }
             if (empty($ap['phd_supervision'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             // ── (B-ii) PG / M.Tech Supervision ──
-            fputcsv($file, ['--- (B-ii) M.Tech / Masters Thesis Supervision ---']);
-            fputcsv($file, ['#', 'Name of Student', 'Title of Thesis / Project', 'Role', 'Status', 'Year']);
+            $put(['--- (B-ii) M.Tech / Masters Thesis Supervision ---']);
+            $put(['#', 'Name of Student', 'Title of Thesis / Project', 'Role', 'Status', 'Year']);
             foreach ($ap['pg_supervision'] ?? [] as $i => $sup) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $sup['student_name'] ?? 'N/A',
                     $sup['title'] ?? 'N/A',
@@ -492,15 +497,15 @@ class DossierExporter
                 ]);
             }
             if (empty($ap['pg_supervision'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             // ── (B-iii) UG / B.Tech Supervision ──
-            fputcsv($file, ['--- (B-iii) B.Tech / Bachelor\'s Project Supervision ---']);
-            fputcsv($file, ['#', 'Name of Student', 'Title of Project', 'Role', 'Status', 'Year']);
+            $put(['--- (B-iii) B.Tech / Bachelor\'s Project Supervision ---']);
+            $put(['#', 'Name of Student', 'Title of Project', 'Role', 'Status', 'Year']);
             foreach ($ap['ug_supervision'] ?? [] as $i => $sup) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $sup['student_name'] ?? 'N/A',
                     $sup['title'] ?? 'N/A',
@@ -510,15 +515,15 @@ class DossierExporter
                 ]);
             }
             if (empty($ap['ug_supervision'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             // ── (C-i) Sponsored Projects ──
-            fputcsv($file, ['--- (C-i) Sponsored Projects ---']);
-            fputcsv($file, ['#', 'Sponsoring Agency', 'Title of Project', 'Amount', 'Period', 'Role', 'Status']);
+            $put(['--- (C-i) Sponsored Projects ---']);
+            $put(['#', 'Sponsoring Agency', 'Title of Project', 'Amount', 'Period', 'Role', 'Status']);
             foreach ($ap['sponsored_projects'] ?? [] as $i => $proj) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $proj['agency'] ?? 'N/A',
                     $proj['title'] ?? 'N/A',
@@ -529,15 +534,15 @@ class DossierExporter
                 ]);
             }
             if (empty($ap['sponsored_projects'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             // ── (C-ii) Consultancy Projects ──
-            fputcsv($file, ['--- (C-ii) Consultancy Projects ---']);
-            fputcsv($file, ['#', 'Organisation / Agency', 'Title of Project', 'Amount', 'Period', 'Role', 'Status']);
+            $put(['--- (C-ii) Consultancy Projects ---']);
+            $put(['#', 'Organisation / Agency', 'Title of Project', 'Amount', 'Period', 'Role', 'Status']);
             foreach ($ap['consultancy_projects'] ?? [] as $i => $proj) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $proj['agency'] ?? 'N/A',
                     $proj['title'] ?? 'N/A',
@@ -548,34 +553,34 @@ class DossierExporter
                 ]);
             }
             if (empty($ap['consultancy_projects'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
             $stmts = $data['statements'] ?? [];
 
-            fputcsv($file, ['═══ SECTION 7: CONTRIBUTIONS & FUTURE PLANS ═══']);
-            fputcsv($file, ['(A) Significant Research Contribution and Future Plans']);
-            fputcsv($file, [$stmts['research_plan'] ?? 'N/A']);
+            $put(['═══ SECTION 7: CONTRIBUTIONS & FUTURE PLANS ═══']);
+            $put(['(A) Significant Research Contribution and Future Plans']);
+            $put([$stmts['research_plan'] ?? 'N/A']);
             $blank();
-            fputcsv($file, ['(B) Significant Teaching Contribution and Future Plans']);
-            fputcsv($file, [$stmts['teaching_plan'] ?? 'N/A']);
+            $put(['(B) Significant Teaching Contribution and Future Plans']);
+            $put([$stmts['teaching_plan'] ?? 'N/A']);
             $blank();
-            fputcsv($file, ['(C) Professional Service as Reviewer / Editor etc.']);
-            fputcsv($file, [$stmts['professional_service'] ?? 'N/A']);
+            $put(['(C) Professional Service as Reviewer / Editor etc.']);
+            $put([$stmts['professional_service'] ?? 'N/A']);
             $blank();
-            fputcsv($file, ['(D) Any Other Relevant Information']);
-            fputcsv($file, [$stmts['other_info'] ?? 'N/A']);
+            $put(['(D) Any Other Relevant Information']);
+            $put([$stmts['other_info'] ?? 'N/A']);
             $blank();
 
             $dpubs = $data['detailed_pubs'] ?? [];
 
-            fputcsv($file, ['═══ SECTION 8: DETAILED LIST OF PUBLICATIONS ═══']);
+            $put(['═══ SECTION 8: DETAILED LIST OF PUBLICATIONS ═══']);
 
-            fputcsv($file, ['--- (A) Journal Publications ---']);
-            fputcsv($file, ['#', 'Author(s)', 'Paper Title', 'Journal Name', 'Year', 'Volume', 'Issue', 'Pages', 'Impact Factor', 'DOI', 'Status']);
+            $put(['--- (A) Journal Publications ---']);
+            $put(['#', 'Author(s)', 'Paper Title', 'Journal Name', 'Year', 'Volume', 'Issue', 'Pages', 'Impact Factor', 'DOI', 'Status']);
             foreach ($dpubs['journals'] ?? [] as $i => $pub) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $pub['authors'] ?? 'N/A',
                     $pub['title'] ?? 'N/A',
@@ -590,14 +595,14 @@ class DossierExporter
                 ]);
             }
             if (empty($dpubs['journals'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
-            fputcsv($file, ['--- (B) Conference Publications ---']);
-            fputcsv($file, ['#', 'Author(s)', 'Paper Title', 'Conference Name', 'Year', 'Pages', 'DOI']);
+            $put(['--- (B) Conference Publications ---']);
+            $put(['#', 'Author(s)', 'Paper Title', 'Conference Name', 'Year', 'Pages', 'DOI']);
             foreach ($dpubs['conferences'] ?? [] as $i => $pub) {
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $pub['authors'] ?? 'N/A',
                     $pub['title'] ?? 'N/A',
@@ -608,18 +613,18 @@ class DossierExporter
                 ]);
             }
             if (empty($dpubs['conferences'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
-            fputcsv($file, ['═══ SECTION 9: REFEREES ═══']);
-            fputcsv($file, ['#', 'Name', 'Position', 'Association', 'Institute / Organisation', 'E-mail', 'Contact No.']);
+            $put(['═══ SECTION 9: REFEREES ═══']);
+            $put(['#', 'Name', 'Position', 'Association', 'Institute / Organisation', 'E-mail', 'Contact No.']);
             foreach ($data['referees_section']['referees'] ?? [] as $i => $ref) {
                 $contactNo = ! empty($ref['contact_number'])
                     ? (($ref['contact_code'] ?? '+91').' '.$ref['contact_number'])
                     : 'N/A';
 
-                fputcsv($file, [
+                $put([
                     $i + 1,
                     $ref['name'] ?? 'N/A',
                     $ref['position'] ?? 'N/A',
@@ -630,13 +635,13 @@ class DossierExporter
                 ]);
             }
             if (empty($data['referees_section']['referees'])) {
-                fputcsv($file, ['N/A']);
+                $put(['N/A']);
             }
             $blank();
 
-            $declared = ! empty($data['form_data']['declaration']) || ! empty($data['declaration']);
-            fputcsv($file, ['═══ SECTION 10: DECLARATION ═══']);
-            fputcsv($file, ['Declaration Agreed', $declared ? 'Yes – Agreed' : 'N/A']);
+            $declared = ! empty($data['declaration']);
+            $put(['═══ SECTION 10: DECLARATION ═══']);
+            $put(['Declaration Agreed', $declared ? 'Yes – Agreed' : 'N/A']);
 
             fclose($file);
         };

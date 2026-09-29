@@ -9,8 +9,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * With FEATURE_DEPARTMENT_FK on, HOD scoping keys off department_id, so a
- * rename can't drop an HOD's own applications or leak them to another.
+ * HOD scoping keys off department_id, so a rename can't drop an HOD's own
+ * applications or leak them to another.
  */
 class ScopingSurvivesDeptRenameTest extends TestCase
 {
@@ -18,18 +18,14 @@ class ScopingSurvivesDeptRenameTest extends TestCase
 
     public function test_hod_still_sees_their_departments_applications_after_a_rename(): void
     {
-        config(['features.department_fk' => true]);
-
         $department = Department::create(['name' => 'Computer Science']);
 
         $hod = User::factory()->create([
             'role' => 'hod',
-            'department' => $department->name,
             'department_id' => $department->id,
         ]);
 
         $application = JobApplication::factory()->submitted()->create([
-            'department' => $department->name,
             'department_id' => $department->id,
         ]);
 
@@ -50,21 +46,15 @@ class ScopingSurvivesDeptRenameTest extends TestCase
 
     public function test_hod_cannot_see_another_departments_application_after_a_rename(): void
     {
-        config(['features.department_fk' => true]);
-
         $ownDepartment = Department::create(['name' => 'Computer Science']);
         $otherDepartment = Department::create(['name' => 'Mathematics']);
 
         $hod = User::factory()->create([
             'role' => 'hod',
-            'department' => $ownDepartment->name,
             'department_id' => $ownDepartment->id,
         ]);
 
         $foreignApplication = JobApplication::factory()->submitted()->create([
-            // The legacy string has drifted and now collides with the HOD's
-            // own department name; department_id still points at Mathematics.
-            'department' => $ownDepartment->name,
             'department_id' => $otherDepartment->id,
         ]);
 

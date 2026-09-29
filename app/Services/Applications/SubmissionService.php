@@ -103,11 +103,16 @@ class SubmissionService
                 ]);
             }
 
+            $departmentId = Department::idForName($validated['department']);
+
+            if ($departmentId === null) {
+                throw new DomainException(ErrorCode::NOT_FOUND, ['department' => $validated['department']]);
+            }
+
             return JobApplication::updateOrCreate(
                 ['user_id' => $user->id, 'advertisement_id' => $advertisement->id],
                 [
-                    'department' => $validated['department'],
-                    'department_id' => Department::idForName($validated['department']),
+                    'department_id' => $departmentId,
                     'grade' => $validated['grade'],
                     'form_data' => $formData,
                     'status' => 'submitted',
@@ -115,7 +120,7 @@ class SubmissionService
             );
         });
 
-        $this->dashboard->forget($validated['department']);
+        $this->dashboard->forget($application->department_id);
 
         Log::info('Application submitted', [
             'application_id' => $application->id,

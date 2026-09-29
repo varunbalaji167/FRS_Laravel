@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Security;
 
+use App\Models\Department;
 use App\Models\JobApplication;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,9 +14,10 @@ class HodCannotSeeDraftsTest extends TestCase
 
     public function test_hod_gets_404_for_a_draft_application_in_their_own_department(): void
     {
-        $hod = User::factory()->create(['role' => 'hod', 'department' => 'Computer Science']);
+        $department = Department::firstOrCreate(['name' => 'Computer Science']);
+        $hod = User::factory()->create(['role' => 'hod', 'department_id' => $department->id]);
         $application = JobApplication::factory()->draft()->create([
-            'department' => 'Computer Science',
+            'department_id' => $department->id,
         ]);
 
         $response = $this->actingAs($hod)->get("/hod/applications/{$application->id}");
@@ -25,9 +27,10 @@ class HodCannotSeeDraftsTest extends TestCase
 
     public function test_hod_does_not_see_drafts_in_the_applications_index(): void
     {
-        $hod = User::factory()->create(['role' => 'hod', 'department' => 'Computer Science']);
-        JobApplication::factory()->draft()->create(['department' => 'Computer Science']);
-        $submitted = JobApplication::factory()->submitted()->create(['department' => 'Computer Science']);
+        $department = Department::firstOrCreate(['name' => 'Computer Science']);
+        $hod = User::factory()->create(['role' => 'hod', 'department_id' => $department->id]);
+        JobApplication::factory()->draft()->create(['department_id' => $department->id]);
+        $submitted = JobApplication::factory()->submitted()->create(['department_id' => $department->id]);
 
         $response = $this->actingAs($hod)->get('/hod/applications');
 

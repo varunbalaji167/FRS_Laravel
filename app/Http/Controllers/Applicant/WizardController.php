@@ -39,7 +39,7 @@ class WizardController extends Controller
         return Inertia::render('Applicant/ApplyForm', [
             'advertisement' => $advertisement,
             'existingDraft' => $application ? $application->form_data : null,
-            'existingDepartment' => $application ? $application->department : '',
+            'existingDepartment' => $application ? $application->department_name : '',
             'existingGrade' => $application ? $application->grade : '',
             // No longer on the global Inertia share (see HandleInertiaRequests) —
             // fetched explicitly to pre-fill a fresh wizard from the master profile.

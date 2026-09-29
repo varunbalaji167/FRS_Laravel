@@ -30,7 +30,10 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            // Only HODs carry a department; admins and applicants never do.
+            // A caller creating a `hod` must pass 'department_id' explicitly.
             'role' => 'applicant',
+            'department_id' => null,
         ];
     }
 

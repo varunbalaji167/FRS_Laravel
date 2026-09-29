@@ -217,7 +217,7 @@ export default function Dashboard({
                                         <div>
                                             <p className="font-medium text-gray-800 text-sm">{app.user?.name}</p>
                                             <p className="text-xs text-gray-400">{app.advertisement?.title}</p>
-                                            <p className="text-xs text-gray-400">{app.department}</p>
+                                            <p className="text-xs text-gray-400">{app.department_name}</p>
                                         </div>
                                         <div className="flex flex-col items-end gap-1">
                                             <span

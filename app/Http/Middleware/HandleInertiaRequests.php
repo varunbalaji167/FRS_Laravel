@@ -21,7 +21,15 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 // Whitelisted subset only. Pages needing the profile fetch
                 // it explicitly (see ProfileController@edit).
-                'user' => $request->user()?->only(['id', 'name', 'email', 'role', 'department']),
+                //
+                // 'department' is built explicitly rather than passed to
+                // only(): the relation method is now named department(), so
+                // Model::only() would auto-load the relation and serialise
+                // the whole Department row instead of its name.
+                'user' => $request->user() ? [
+                    ...$request->user()->only(['id', 'name', 'email', 'role']),
+                    'department' => $request->user()->department_name,
+                ] : null,
             ],
             'flash' => [
                 'status' => fn () => $request->session()->get('status'),

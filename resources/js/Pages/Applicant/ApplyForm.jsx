@@ -6,7 +6,6 @@ import { Button } from "@/Components/ui/button";
 import { flattenServerErrors } from "@/lib/errors";
 import { normalizeProfileGender, normalizeProfileCategory } from "@/lib/profileFieldMapping";
 import { flattenZodError, remapServerErrorKeys } from "@/lib/wizardErrorKeys";
-import useDebouncedAutosave from "@/lib/useDebouncedAutosave";
 import useBeforeUnloadGuard from "@/lib/useBeforeUnloadGuard";
 import step1Schema from "./Steps/schemas/step1";
 import step2Schema from "./Steps/schemas/step2";
@@ -109,6 +108,12 @@ export default function ApplyForm({
     const profile = applicantProfile || {};
 
     const [currentStep, setCurrentStep] = useState(
+        existingDraft?.current_step ? Number(existingDraft.current_step) : 1,
+    );
+    // The furthest step the applicant has reached. Any step up to here stays
+    // freely clickable (back and forth); only crossing into new territory
+    // re-validates. Seeded from the resumed draft's last saved step.
+    const [maxStepReached, setMaxStepReached] = useState(
         existingDraft?.current_step ? Number(existingDraft.current_step) : 1,
     );
     const [localErrors, setLocalErrors] = useState({});
@@ -241,15 +246,13 @@ export default function ApplyForm({
         });
     };
 
-    // Assigned below, once the autosave hook exists — saveDraftQuietly has to
-    // tell it the content is already persisted.
-    const markSavedRef = useRef(null);
-
+    // Explicit draft save (Save Draft & Exit, and the save half of Save &
+    // Continue). Never fires from typing — the button only spins on a real
+    // press.
     const saveDraftQuietly = (showToast = false, stepToSave = currentStep) => {
         const formData = { ...data.form_data, current_step: stepToSave };
 
         setData("form_data", formData);
-        markSavedRef.current?.(formData);
         setIsSavingDraft(true);
 
         router.post(
@@ -269,13 +272,33 @@ export default function ApplyForm({
         );
     };
 
-    // Quietly persists 2s after the user stops typing; flushed on unmount so a
-    // quick navigate-away can't drop the last keystrokes.
-    const { markSaved } = useDebouncedAutosave(data.form_data, () => saveDraftQuietly(false, currentStep), {
-        delay: 2000,
-    });
-    markSavedRef.current = markSaved;
+    // Set once the final submit lands, so leaving afterwards doesn't fire a
+    // doomed draft save against an already-submitted application.
+    const submittedRef = useRef(false);
 
+    // Best-effort draft save when the applicant leaves the wizard mid-edit
+    // (navigates away in-app). Fire-and-forget via axios so it survives the
+    // component unmounting; files are dropped since a draft never needs them.
+    // A ref keeps the latest values without re-subscribing the unmount effect.
+    const leaveStateRef = useRef({ data, currentStep, isDirty });
+    leaveStateRef.current = { data, currentStep, isDirty };
+
+    useEffect(() => {
+        return () => {
+            const { data: d, currentStep: s, isDirty: dirty } = leaveStateRef.current;
+            if (!dirty || submittedRef.current) return;
+            axios
+                .post(route("applicant.draft", advertisement.id), {
+                    department: d.department,
+                    grade: d.grade,
+                    form_data: stripFiles({ ...d.form_data, current_step: s }),
+                })
+                .catch(() => {});
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Native browser prompt if they try to close the tab with unsaved edits.
     useBeforeUnloadGuard(isDirty);
 
     // Re-renders the "Saved Ns ago" label, and only while there is one to
@@ -333,21 +356,26 @@ export default function ApplyForm({
         }
     };
 
+    // Move to an already-reached step. Pure back-and-forth — no validation,
+    // no network — so revisiting earlier steps is instant.
+    const goToStep = (step) => {
+        setLocalErrors({});
+        setCurrentStep(step);
+    };
+
+    // Save & Continue: the one explicit forward action. Validates, advances,
+    // records the new furthest step, and persists the draft.
     const handleNext = async () => {
         if (!(await validateStep(currentStep))) return;
 
-        setLocalErrors({});
         const nextStep = Math.min(currentStep + 1, STEPS.length);
+        setLocalErrors({});
         setCurrentStep(nextStep);
+        setMaxStepReached((m) => Math.max(m, nextStep));
         saveDraftQuietly(false, nextStep);
     };
 
-    const handlePrev = () => {
-        setLocalErrors({});
-        const prevStep = Math.max(currentStep - 1, 1);
-        setCurrentStep(prevStep);
-        saveDraftQuietly(false, prevStep);
-    };
+    const handlePrev = () => goToStep(Math.max(currentStep - 1, 1));
 
     const submitFinal = async (e) => {
         e.preventDefault();
@@ -358,6 +386,9 @@ export default function ApplyForm({
             forceFormData: true,
             onProgress: (event) => {
                 if (event?.percentage != null) setUploadProgress(event.percentage);
+            },
+            onSuccess: () => {
+                submittedRef.current = true;
             },
             onError: (serverErrors) => {
                 const firstMessage = Object.values(remapServerErrorKeys(serverErrors ?? {}))[0];
@@ -445,36 +476,33 @@ export default function ApplyForm({
                         <nav aria-label="Application steps" className="sticky top-8 space-y-2">
                             {STEPS.map((step) => {
                                 const isActive = currentStep === step.id;
-                                const isCompleted = currentStep > step.id;
+                                const isReached = step.id <= maxStepReached;
 
                                 return (
                                     <button
                                         key={step.id}
                                         aria-current={isActive ? "step" : undefined}
-                                        onClick={async () => {
-                                            if (step.id > currentStep && !(await validateStep(currentStep))) return;
-                                            setLocalErrors({});
-                                            setCurrentStep(step.id);
-                                            saveDraftQuietly(false, step.id);
-                                        }}
-                                        disabled={isBusy || (!isActive && !isCompleted && step.id > currentStep)}
+                                        onClick={() => goToStep(step.id)}
+                                        disabled={isBusy || step.id > maxStepReached}
                                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
                                             isActive
                                                 ? "bg-blue-600 text-white shadow-md"
-                                                : isCompleted
+                                                : isReached
                                                   ? "bg-white text-slate-700 hover:bg-slate-50 ring-1 ring-slate-200"
                                                   : "bg-slate-50 text-slate-400 cursor-not-allowed"
                                         }`}
                                     >
                                         <step.icon
-                                            className={`h-5 w-5 ${isActive ? "text-white" : isCompleted ? "text-blue-600" : "text-slate-400"}`}
+                                            className={`h-5 w-5 ${isActive ? "text-white" : isReached ? "text-blue-600" : "text-slate-400"}`}
                                         />
                                         <span
                                             className={`text-sm font-bold ${isActive ? "text-white" : "text-slate-700"}`}
                                         >
                                             {step.title}
                                         </span>
-                                        {isCompleted && <CheckCircle2 className="h-4 w-4 ml-auto text-green-500" />}
+                                        {isReached && !isActive && (
+                                            <CheckCircle2 className="h-4 w-4 ml-auto text-green-500" />
+                                        )}
                                     </button>
                                 );
                             })}
@@ -487,12 +515,12 @@ export default function ApplyForm({
                         <div className="mb-4 flex flex-wrap gap-1.5" aria-hidden="true">
                             {STEPS.map((step) => {
                                 const isActive = currentStep === step.id;
-                                const isCompleted = currentStep > step.id;
+                                const isReached = step.id <= maxStepReached;
                                 return (
                                     <span
                                         key={step.id}
                                         className={`h-1.5 flex-1 min-w-[8px] rounded-full ${
-                                            isActive ? "bg-blue-600" : isCompleted ? "bg-emerald-400" : "bg-slate-200"
+                                            isActive ? "bg-blue-600" : isReached ? "bg-emerald-400" : "bg-slate-200"
                                         }`}
                                         title={step.title}
                                     />
@@ -522,7 +550,7 @@ export default function ApplyForm({
                                         )}
                                     </Button>
                                     <p className="text-xs text-slate-400 pl-1">
-                                        {isSavingDraft ? "Auto-saving…" : savedAgoLabel || "Not saved yet"}
+                                        {isSavingDraft ? "Saving…" : savedAgoLabel || "Not saved yet"}
                                         {" · "}Step {currentStep} of {STEPS.length}
                                         {" · "}
                                         {Math.round((currentStep / STEPS.length) * 100)}% complete

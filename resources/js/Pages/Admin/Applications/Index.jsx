@@ -211,7 +211,7 @@ export default function ApplicationsIndex({ applications, advertisements, depart
                                             Ref: {app.advertisement?.reference_number}
                                         </p>
                                     </td>
-                                    <td className="px-5 py-4 text-slate-600 font-medium">{app.department}</td>
+                                    <td className="px-5 py-4 text-slate-600 font-medium">{app.department_name}</td>
                                     <td className="px-5 py-4 text-slate-600 font-medium italic">{app.grade}</td>
                                     <td className="px-5 py-4">
                                         <span

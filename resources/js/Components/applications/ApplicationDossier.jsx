@@ -188,7 +188,7 @@ export default function ApplicationDossier({ application, Layout, exportPdfUrl, 
                         <p className="text-slate-500 text-xs mt-0.5">
                             Ref:{" "}
                             <strong className="text-slate-700">{application.advertisement?.reference_number}</strong>
-                            &nbsp;·&nbsp;Dept: <strong className="text-slate-700">{application.department}</strong>
+                            &nbsp;·&nbsp;Dept: <strong className="text-slate-700">{application.department_name}</strong>
                             &nbsp;·&nbsp;Grade: <strong className="text-slate-700">{application.grade}</strong>
                         </p>
                     </div>

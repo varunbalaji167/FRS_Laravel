@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Models\Department;
 use App\Models\JobApplication;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,8 +30,9 @@ class StatusEventsRecordedTest extends TestCase
 
     public function test_hod_status_update_records_an_event(): void
     {
-        $hod = User::factory()->create(['role' => 'hod', 'department' => 'Computer Science']);
-        $application = JobApplication::factory()->submitted()->create(['department' => 'Computer Science']);
+        $department = Department::firstOrCreate(['name' => 'Computer Science']);
+        $hod = User::factory()->create(['role' => 'hod', 'department_id' => $department->id]);
+        $application = JobApplication::factory()->submitted()->create(['department_id' => $department->id]);
 
         $this->actingAs($hod)
             ->patch("/hod/applications/{$application->id}", ['status' => 'rejected']);

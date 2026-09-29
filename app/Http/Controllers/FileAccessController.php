@@ -71,8 +71,6 @@ class FileAccessController extends Controller
 
         // Mirrors Admin\ApplicationController::getScopedQuery() so a
         // department rename can't split dossier access from file access.
-        return config('features.department_fk')
-            ? $application->department_id === $user->department_id
-            : $application->department === $user->department;
+        return $application->department_id === $user->department_id;
     }
 }

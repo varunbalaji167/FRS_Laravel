@@ -43,7 +43,7 @@ class DashboardController extends Controller
 
     public function myApplications(): Response
     {
-        $applications = JobApplication::with('advertisement')
+        $applications = JobApplication::with(['advertisement', 'department:id,name'])
             ->where('user_id', Auth::id())
             ->orderBy('updated_at', 'desc')
             ->get()
@@ -51,7 +51,7 @@ class DashboardController extends Controller
                 return [
                     'id' => $app->id,
                     'advertisement' => $app->advertisement,
-                    'department' => $app->department,
+                    'department_name' => $app->department_name,
                     'grade' => $app->grade,
                     'status' => $app->status,
                     'current_step' => $app->form_data['current_step'] ?? 1,
@@ -70,7 +70,7 @@ class DashboardController extends Controller
 
     public function show(int|string $id): Response
     {
-        $application = JobApplication::with('advertisement')
+        $application = JobApplication::with(['advertisement', 'department:id,name'])
             ->where('user_id', Auth::id())
             ->findOrFail($id);
 

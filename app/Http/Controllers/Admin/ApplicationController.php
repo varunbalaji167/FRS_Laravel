@@ -31,22 +31,18 @@ class ApplicationController extends Controller
 
     /**
      * Admins see everything, HODs only their own department. Scopes by
-     * department_id once FEATURE_DEPARTMENT_FK is on, so renames are safe.
+     * department_id.
      */
     /**
      * @return Builder<JobApplication>
      */
     private function getScopedQuery(Request $request): Builder
     {
-        $query = JobApplication::with(['user', 'advertisement'])
+        $query = JobApplication::with(['user', 'advertisement', 'department:id,name'])
             ->whereIn('status', ['submitted', 'shortlisted', 'rejected']);
 
         if ($request->user()->role === 'hod') {
-            if (config('features.department_fk')) {
-                $query->where('department_id', $request->user()->department_id);
-            } else {
-                $query->where('department', $request->user()->department);
-            }
+            $query->where('department_id', $request->user()->department_id);
         }
 
         return $query;
@@ -58,14 +54,12 @@ class ApplicationController extends Controller
      */
     private function findVisibleOrFail(Request $request, int|string $id): JobApplication
     {
-        $application = JobApplication::with(['user', 'advertisement'])
+        $application = JobApplication::with(['user', 'advertisement', 'department:id,name'])
             ->whereIn('status', ['submitted', 'shortlisted', 'rejected'])
             ->findOrFail($id);
 
         $user = $request->user();
-        $outOfScope = config('features.department_fk')
-            ? $application->department_id !== $user->department_id
-            : $application->department !== $user->department;
+        $outOfScope = $application->department_id !== $user->department_id;
 
         if ($user->role === 'hod' && $outOfScope) {
             throw new DomainException(ErrorCode::HOD_DEPT_SCOPE_VIOLATION);
@@ -83,8 +77,13 @@ class ApplicationController extends Controller
         }
 
         // Redundant for an HOD (already scoped), a real filter for an admin.
+        // The query parameter stays a name so filtered URLs remain bookmarkable.
         if ($request->filled('department')) {
-            $query->where('department', $request->department);
+            $department = Department::firstWhere('name', $request->department);
+
+            abort_if($department === null, 404);
+
+            $query->where('department_id', $department->id);
         }
 
         if ($request->filled('status')) {
@@ -138,7 +137,7 @@ class ApplicationController extends Controller
 
         $adminActions->record($request, 'application.status_updated', $application, ['status' => $from], ['status' => $request->status]);
 
-        $dashboard->forget($application->department);
+        $dashboard->forget($application->department_id);
 
         return back()->with('success', "Application status updated to {$request->status}.");
     }

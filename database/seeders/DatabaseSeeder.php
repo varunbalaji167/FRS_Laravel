@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\ApplicantProfile;
+use App\Models\Department;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -17,6 +18,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(DepartmentSeeder::class);
+
         // 1. Faculty Affairs Admin
         User::factory()->create([
             'name' => 'Faculty Affairs Admin',
@@ -30,7 +33,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'CS Dept HOD',
             'email' => 'hod.cse@iiti.ac.in',
             'password' => Hash::make('password'),
-            'department' => 'Computer Science and Engineering',
+            'department_id' => Department::firstWhere('name', 'Computer Science and Engineering')->id,
             'role' => 'hod',
         ]);
 
@@ -80,5 +83,11 @@ class DatabaseSeeder extends Seeder
             'google_scholar_url' => 'https://scholar.google.com/citations?user=sample123',
             'linkedin_url' => 'https://linkedin.com/in/johnapplicant',
         ]);
+
+        // Demo applications (draft/submitted/shortlisted/rejected across
+        // departments) for local manual testing only — never in production.
+        if (app()->environment('local')) {
+            $this->call(DemoApplicationsSeeder::class);
+        }
     }
 }

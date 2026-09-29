@@ -157,7 +157,7 @@ function ApplicationCard({ app }) {
                 <div className="space-y-2 mb-4 flex-grow">
                     <div className="flex items-center text-sm text-slate-600">
                         <Building2 className="h-4 w-4 mr-2 text-slate-400 shrink-0" />
-                        <span className="truncate">{app.department || "Department not selected"}</span>
+                        <span className="truncate">{app.department_name || "Department not selected"}</span>
                     </div>
                     <div className="flex items-center text-sm text-slate-600">
                         <Briefcase className="h-4 w-4 mr-2 text-slate-400 shrink-0" />

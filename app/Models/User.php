@@ -26,7 +26,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'role',
-        'department',
         'department_id',
         'google_id',
     ];
@@ -58,12 +57,15 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Named so it can't collide with the legacy `department` string.
-     *
      * @return BelongsTo<Department, $this>
      */
-    public function departmentModel(): BelongsTo
+    public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'department_id');
+    }
+
+    public function getDepartmentNameAttribute(): ?string
+    {
+        return $this->department?->name;
     }
 }

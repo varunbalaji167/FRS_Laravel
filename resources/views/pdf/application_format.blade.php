@@ -192,7 +192,7 @@
 <table>
     <tr>
         <td class="lbl">Department / School</td>
-        <td class="val"><strong>{{ $application->department ?? 'N/A' }}</strong></td>
+        <td class="val"><strong>{{ $application->department_name ?? 'N/A' }}</strong></td>
         <td class="lbl">Grade / Post</td>
         <td class="val"><strong>{{ $application->grade ?? 'N/A' }}</strong></td>
     </tr>
@@ -1041,7 +1041,7 @@
     <br><br>
     <strong>Declaration agreed:</strong>
     <br>
-    {{ !empty($data['form_data']['declaration']) || !empty($data['declaration']) ? 'Yes – Agreed' : 'N/A' }}
+    {{ !empty($data['declaration']) ? 'Yes – Agreed' : 'N/A' }}
 </div>
 
 <div class="signature-box" style="float: right; width: 250px; text-align: center; margin-top: 20px;">

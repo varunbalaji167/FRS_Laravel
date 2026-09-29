@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Security;
 
+use App\Models\Department;
 use App\Models\JobApplication;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -17,8 +18,10 @@ class HodDepartmentScopeViolationTest extends TestCase
 
     public function test_hod_cannot_view_a_submitted_application_from_another_department(): void
     {
-        $hod = User::factory()->create(['role' => 'hod', 'department' => 'Computer Science']);
-        $application = JobApplication::factory()->submitted()->create(['department' => 'Mechanical Engineering']);
+        $cse = Department::firstOrCreate(['name' => 'Computer Science']);
+        $mech = Department::firstOrCreate(['name' => 'Mechanical Engineering']);
+        $hod = User::factory()->create(['role' => 'hod', 'department_id' => $cse->id]);
+        $application = JobApplication::factory()->submitted()->create(['department_id' => $mech->id]);
 
         $response = $this->actingAs($hod)->getJson("/hod/applications/{$application->id}");
 
@@ -27,8 +30,10 @@ class HodDepartmentScopeViolationTest extends TestCase
 
     public function test_hod_cannot_update_status_of_an_application_from_another_department(): void
     {
-        $hod = User::factory()->create(['role' => 'hod', 'department' => 'Computer Science']);
-        $application = JobApplication::factory()->submitted()->create(['department' => 'Mechanical Engineering']);
+        $cse = Department::firstOrCreate(['name' => 'Computer Science']);
+        $mech = Department::firstOrCreate(['name' => 'Mechanical Engineering']);
+        $hod = User::factory()->create(['role' => 'hod', 'department_id' => $cse->id]);
+        $application = JobApplication::factory()->submitted()->create(['department_id' => $mech->id]);
 
         $response = $this->actingAs($hod)
             ->patchJson("/hod/applications/{$application->id}", ['status' => 'shortlisted']);
@@ -39,8 +44,9 @@ class HodDepartmentScopeViolationTest extends TestCase
 
     public function test_hod_can_still_view_a_submitted_application_in_their_own_department(): void
     {
-        $hod = User::factory()->create(['role' => 'hod', 'department' => 'Computer Science']);
-        $application = JobApplication::factory()->submitted()->create(['department' => 'Computer Science']);
+        $department = Department::firstOrCreate(['name' => 'Computer Science']);
+        $hod = User::factory()->create(['role' => 'hod', 'department_id' => $department->id]);
+        $application = JobApplication::factory()->submitted()->create(['department_id' => $department->id]);
 
         $response = $this->actingAs($hod)->get("/hod/applications/{$application->id}");
 
@@ -50,7 +56,8 @@ class HodDepartmentScopeViolationTest extends TestCase
     public function test_admin_is_not_scoped_by_department(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        $application = JobApplication::factory()->submitted()->create(['department' => 'Mechanical Engineering']);
+        $mech = Department::firstOrCreate(['name' => 'Mechanical Engineering']);
+        $application = JobApplication::factory()->submitted()->create(['department_id' => $mech->id]);
 
         $response = $this->actingAs($admin)->get("/admin/applications/{$application->id}");
 

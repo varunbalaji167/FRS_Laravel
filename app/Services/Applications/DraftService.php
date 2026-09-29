@@ -5,6 +5,7 @@ namespace App\Services\Applications;
 use App\Exceptions\DomainException;
 use App\Http\Requests\Applicant\SaveDraftRequest;
 use App\Models\Advertisement;
+use App\Models\Department;
 use App\Models\JobApplication;
 use App\Support\ErrorCode;
 use Illuminate\Support\Facades\DB;
@@ -27,11 +28,10 @@ class DraftService
             $formData['personal_details']['profile_image'] = $path;
         }
 
-        $data = collect($request->only(['department', 'grade']))
-            ->map(fn ($value) => $value ?? '')
-            ->all();
+        $grade = $request->input('grade') ?? '';
+        $departmentId = Department::idForName($request->input('department'));
 
-        return DB::transaction(function () use ($user, $advertisement, $data, $formData) {
+        return DB::transaction(function () use ($user, $advertisement, $grade, $departmentId, $formData) {
             $existing = JobApplication::where('user_id', $user->id)
                 ->where('advertisement_id', $advertisement->id)
                 ->lockForUpdate()
@@ -43,10 +43,12 @@ class DraftService
 
             return JobApplication::updateOrCreate(
                 ['user_id' => $user->id, 'advertisement_id' => $advertisement->id],
-                array_merge($data, [
+                [
+                    'department_id' => $departmentId,
+                    'grade' => $grade,
                     'form_data' => $formData,
                     'status' => 'draft',
-                ])
+                ]
             );
         });
     }

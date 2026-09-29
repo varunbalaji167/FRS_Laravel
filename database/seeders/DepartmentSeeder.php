@@ -13,7 +13,7 @@ class DepartmentSeeder extends Seeder
     public function run(): void
     {
         $depts = [
-            'Astronomy, Astrophysics and Space Engineering', 'Chemical engineering', 'Chemistry',
+            'Astronomy, Astrophysics and Space Engineering', 'Chemical Engineering', 'Chemistry',
             'Civil Engineering', 'Computer Science and Engineering', 'Electrical Engineering',
             'Humanities and Social Sciences', 'Mathematics', 'Mechanical Engineering',
             'Mehta Family School of Biosciences and Biomedical Engineering',

@@ -33,7 +33,7 @@ class DepartmentController extends Controller
         $adminActions->record($request, 'department.deleted', $department, $before, null);
 
         Department::flushCache();
-        $dashboard->forget($before['name']);
+        $dashboard->forget($before['id']);
 
         return back()->with('success', 'Department deleted successfully.');
     }

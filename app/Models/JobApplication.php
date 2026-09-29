@@ -15,7 +15,6 @@ class JobApplication extends Model
     protected $fillable = [
         'user_id',
         'advertisement_id',
-        'department',
         'department_id',
         'grade',
         'form_data',
@@ -29,6 +28,16 @@ class JobApplication extends Model
         'form_data' => 'array',
         'submitted_at' => 'datetime',
     ];
+
+    // The string department column is gone; every serialization exposes the
+    // resolved name so the applications lists and dossier can display it.
+    // Callers that render these should eager-load `department` to avoid N+1.
+    protected $appends = ['department_name'];
+
+    // Keep the eager-loaded relation object out of the JSON payload — the
+    // frontend reads only the flat `department_name`, so `department_name`
+    // stays the single department field consumers see.
+    protected $hidden = ['department'];
 
     /**
      * Get the user that owns the application.
@@ -51,12 +60,19 @@ class JobApplication extends Model
     }
 
     /**
-     * See User::departmentModel() for the naming.
-     *
      * @return BelongsTo<Department, $this>
      */
-    public function departmentModel(): BelongsTo
+    public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'department_id');
+    }
+
+    public function getDepartmentNameAttribute(): ?string
+    {
+        // loadMissing (an explicit load) rather than $this->department, so
+        // serializing a model whose caller didn't eager-load the relation
+        // resolves the name instead of tripping lazy-loading prevention.
+        // Where callers do eager-load department, this is a no-op.
+        return $this->loadMissing('department')->getRelation('department')?->name;
     }
 }

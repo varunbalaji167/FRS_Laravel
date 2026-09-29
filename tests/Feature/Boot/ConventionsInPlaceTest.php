@@ -190,4 +190,79 @@ class ConventionsInPlaceTest extends TestCase
 
         return $paths;
     }
+
+    /**
+     * The department feature flag was fully removed. It must never come back.
+     */
+    public function test_the_department_feature_flag_is_not_reintroduced(): void
+    {
+        $offenders = [];
+
+        foreach ($this->phpSourceFiles() as $file) {
+            $source = file_get_contents($file);
+
+            if (str_contains($source, "config('features.department_fk')")
+                || str_contains($source, 'FEATURE_DEPARTMENT_FK')) {
+                $offenders[] = $file;
+            }
+        }
+
+        $this->assertSame([], $offenders, 'The department_fk feature flag must not be reintroduced.');
+    }
+
+    /**
+     * The string `department` columns are gone; only the FK, its accessor,
+     * and the relation names may be referenced.
+     */
+    public function test_no_source_file_references_the_retired_department_string_column(): void
+    {
+        $offenders = [];
+
+        foreach ($this->phpSourceFiles() as $file) {
+            $source = file_get_contents($file);
+            $lines = explode("\n", $source);
+
+            foreach ($lines as $lineNumber => $line) {
+                $trimmed = ltrim($line);
+
+                if ($trimmed === '' || str_starts_with($trimmed, '//') || str_starts_with($trimmed, '*') || str_starts_with($trimmed, '/*')) {
+                    continue;
+                }
+
+                // ->department_name, ->department_id, ->departments(...) are
+                // all fine, and so is $request->department (the query/input
+                // name, unrelated to the retired column) and $this->department
+                // inside the Eloquent relation itself (magic property access
+                // to the department() relation, or a Mailable's own plain
+                // property of the same name) — only a bare ->department read
+                // off the retired string column is disallowed.
+                if (preg_match('/->department(?!_name|_id|s\b)\b(?!\()/', $line) !== 1
+                    || str_contains($line, '$request->department')
+                    || str_contains($line, '$this->department')) {
+                    continue;
+                }
+
+                $offenders[] = basename($file).':'.($lineNumber + 1);
+            }
+        }
+
+        $this->assertSame([], $offenders, 'Use ->department_id or ->department_name instead of the retired ->department column.');
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function phpSourceFiles(): array
+    {
+        $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(app_path()));
+        $paths = [];
+
+        foreach ($files as $file) {
+            if ($file->isFile() && str_ends_with($file->getFilename(), '.php')) {
+                $paths[] = $file->getPathname();
+            }
+        }
+
+        return $paths;
+    }
 }

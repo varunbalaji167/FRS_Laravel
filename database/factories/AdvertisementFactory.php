@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Advertisement;
+use App\Models\Department;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -19,8 +20,19 @@ class AdvertisementFactory extends Factory
             'title' => fake()->jobTitle(),
             'document_path' => 'advertisements/sample.pdf',
             'deadline' => now()->addMonth(),
-            'departments' => ['Computer Science'],
+            'departments' => ['Computer Science' => ['Assistant Professor Grade II']],
             'is_active' => true,
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (Advertisement $advertisement) {
+            $ids = collect(array_keys($advertisement->departments))
+                ->map(fn ($name) => Department::firstOrCreate(['name' => $name])->id)
+                ->all();
+
+            $advertisement->departmentModels()->sync($ids);
+        });
     }
 }

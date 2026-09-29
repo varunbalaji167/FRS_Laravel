@@ -3,6 +3,7 @@
 namespace Tests\Feature\Cache;
 
 use App\Models\Advertisement;
+use App\Models\Department;
 use App\Models\JobApplication;
 use App\Models\User;
 use App\Services\Reporting\DashboardAggregator;
@@ -24,7 +25,7 @@ class DashboardCacheIsBustedTest extends TestCase
         $advertisement = Advertisement::factory()->create();
         $application = JobApplication::factory()->submitted()->create([
             'advertisement_id' => $advertisement->id,
-            'department' => 'Computer Science',
+            'department_id' => Department::firstOrCreate(['name' => 'Computer Science'])->id,
         ]);
 
         // Prime the cache.
@@ -51,21 +52,23 @@ class DashboardCacheIsBustedTest extends TestCase
 
     public function test_hod_dashboard_cache_is_scoped_per_department(): void
     {
-        $csHod = User::factory()->create(['role' => 'hod', 'department' => 'Computer Science']);
-        $mathHod = User::factory()->create(['role' => 'hod', 'department' => 'Mathematics']);
+        $cse = Department::firstOrCreate(['name' => 'Computer Science']);
+        $math = Department::firstOrCreate(['name' => 'Mathematics']);
+        $csHod = User::factory()->create(['role' => 'hod', 'department_id' => $cse->id]);
+        $mathHod = User::factory()->create(['role' => 'hod', 'department_id' => $math->id]);
 
         // Prime both HODs' cache entries.
         $this->actingAs($csHod)->get('/hod')->assertOk();
         $this->actingAs($mathHod)->get('/hod')->assertOk();
 
-        $this->assertTrue(Cache::has('dashboard.hod.Computer Science.v1'));
-        $this->assertTrue(Cache::has('dashboard.hod.Mathematics.v1'));
+        $this->assertTrue(Cache::has("dashboard.hod.{$cse->id}.v2"));
+        $this->assertTrue(Cache::has("dashboard.hod.{$math->id}.v2"));
 
-        app(DashboardAggregator::class)->forget('Computer Science');
+        app(DashboardAggregator::class)->forget($cse->id);
 
         // Busting is per-department: forgetting Computer Science's entry
         // (and the shared admin entry) must not evict Mathematics'.
-        $this->assertFalse(Cache::has('dashboard.hod.Computer Science.v1'));
-        $this->assertTrue(Cache::has('dashboard.hod.Mathematics.v1'));
+        $this->assertFalse(Cache::has("dashboard.hod.{$cse->id}.v2"));
+        $this->assertTrue(Cache::has("dashboard.hod.{$math->id}.v2"));
     }
 }

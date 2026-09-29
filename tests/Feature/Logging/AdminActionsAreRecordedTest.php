@@ -27,7 +27,7 @@ class AdminActionsAreRecordedTest extends TestCase
     public function test_creating_a_user_records_an_admin_action(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        Department::create(['name' => 'Computer Science']);
+        Department::firstOrCreate(['name' => 'Computer Science']);
 
         $this->actingAs($admin)->post('/admin/users', [
             'name' => 'New Hod',
@@ -49,8 +49,11 @@ class AdminActionsAreRecordedTest extends TestCase
     public function test_updating_a_role_records_before_and_after_state(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        $target = User::factory()->create(['role' => 'hod', 'department' => 'Mechanical Engineering']);
-        Department::create(['name' => 'Computer Science']);
+        $target = User::factory()->create([
+            'role' => 'hod',
+            'department_id' => Department::firstOrCreate(['name' => 'Mechanical Engineering'])->id,
+        ]);
+        Department::firstOrCreate(['name' => 'Computer Science']);
 
         $this->actingAs($admin)->patch("/admin/users/{$target->id}/role", [
             'role' => 'hod',

@@ -23,7 +23,7 @@ class DashboardAggregator
     {
         // Keyed on role, not just department: an admin who also has one set
         // would otherwise overwrite that HOD's entry with global numbers.
-        $key = $user->role === 'hod' ? $this->keyFor($user->department) : $this->keyFor(null);
+        $key = $user->role === 'hod' ? $this->keyFor($user->department_id) : $this->keyFor(null);
 
         return Cache::remember($key, self::TTL_SECONDS, fn () => $this->build($user));
     }
@@ -31,18 +31,18 @@ class DashboardAggregator
     /**
      * Bust the admin entry and, when given, one department's HOD entry.
      */
-    public function forget(?string $department): void
+    public function forget(?int $departmentId): void
     {
         Cache::forget($this->keyFor(null));
 
-        if ($department !== null) {
-            Cache::forget($this->keyFor($department));
+        if ($departmentId !== null) {
+            Cache::forget($this->keyFor($departmentId));
         }
     }
 
-    private function keyFor(?string $department): string
+    private function keyFor(?int $departmentId): string
     {
-        return $department === null ? 'dashboard.admin.v1' : 'dashboard.hod.'.$department.'.v1';
+        return $departmentId === null ? 'dashboard.admin.v2' : 'dashboard.hod.'.$departmentId.'.v2';
     }
 
     /**
@@ -53,11 +53,8 @@ class DashboardAggregator
         $applicationsQuery = JobApplication::query();
 
         if ($user->role === 'hod') {
-            // Mirrors Admin\ApplicationController::getScopedQuery(); the FK
-            // is the boundary once the cutover flag is on.
-            config('features.department_fk')
-                ? $applicationsQuery->where('department_id', $user->department_id)
-                : $applicationsQuery->where('department', $user->department);
+            // Mirrors Admin\ApplicationController::getScopedQuery().
+            $applicationsQuery->where('department_id', $user->department_id);
         }
 
         $statusCounts = (clone $applicationsQuery)
@@ -65,11 +62,16 @@ class DashboardAggregator
             ->groupBy('status')
             ->pluck('count', 'status');
 
+        // toBase(): this is a pure aggregate, not real application rows, and it
+        // aliases a `department` column — as Eloquent models that alias would
+        // collide with the appended department_name accessor.
         $byDepartment = (clone $applicationsQuery)
-            ->select('department', DB::raw('count(*) as count'))
+            ->join('departments', 'departments.id', '=', 'job_applications.department_id')
+            ->select('departments.name as department', DB::raw('count(*) as count'))
             ->whereIn('status', ['submitted', 'shortlisted', 'rejected'])
-            ->groupBy('department')
+            ->groupBy('job_applications.department_id', 'departments.name')
             ->orderByDesc('count')
+            ->toBase()
             ->get();
 
         $byAdvertisement = (clone $applicationsQuery)
@@ -89,6 +91,7 @@ class DashboardAggregator
             ->whereIn('status', ['submitted', 'shortlisted', 'rejected'])
             ->groupBy('date')
             ->orderBy('date')
+            ->toBase()
             ->get();
 
         return [
@@ -105,7 +108,7 @@ class DashboardAggregator
             'byDepartment' => $byDepartment,
             'byAdvertisement' => $byAdvertisement,
             'overTime' => $overTime,
-            'recentApplications' => (clone $applicationsQuery)->with(['user', 'advertisement'])
+            'recentApplications' => (clone $applicationsQuery)->with(['user', 'advertisement', 'department:id,name'])
                 ->whereIn('status', ['submitted', 'shortlisted', 'rejected'])
                 ->latest()
                 ->take(5)

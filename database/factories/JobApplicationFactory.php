@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Advertisement;
+use App\Models\Department;
 use App\Models\JobApplication;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -19,7 +20,7 @@ class JobApplicationFactory extends Factory
         return [
             'user_id' => User::factory(),
             'advertisement_id' => Advertisement::factory(),
-            'department' => 'Computer Science',
+            'department_id' => Department::firstOrCreate(['name' => 'Computer Science'])->id,
             'grade' => 'Assistant Professor',
             'form_data' => [
                 'personal_details' => [

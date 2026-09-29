@@ -11,7 +11,7 @@
     <div class="container">
         <p>Dear {{ $referee['name'] ?? 'Professor/Dr.' }},</p>
 
-        <p>We are writing to formally notify you that <strong>{{ $applicantName }}</strong> has submitted an application for the position of <strong>{{ $application->grade }}</strong> in the Department of <strong>{{ $application->department }}</strong> at the Indian Institute of Technology (IIT) Indore.</p>
+        <p>We are writing to formally notify you that <strong>{{ $applicantName }}</strong> has submitted an application for the position of <strong>{{ $application->grade }}</strong> in the Department of <strong>{{ $application->department_name }}</strong> at the Indian Institute of Technology (IIT) Indore.</p>
 
         <p>In their application dossier, the candidate has listed you as a referee.</p>
 

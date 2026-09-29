@@ -3,6 +3,7 @@
 namespace Tests\Feature\Files;
 
 use App\Models\Advertisement;
+use App\Models\Department;
 use App\Models\JobApplication;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -33,7 +34,7 @@ class FileAccessScopeTest extends TestCase
         JobApplication::factory()->submitted()->create([
             'user_id' => $this->owner->id,
             'advertisement_id' => $this->advertisement->id,
-            'department' => 'Computer Science',
+            'department_id' => Department::firstOrCreate(['name' => 'Computer Science'])->id,
         ]);
     }
 
@@ -44,14 +45,20 @@ class FileAccessScopeTest extends TestCase
 
     public function test_an_hod_from_another_department_gets_404(): void
     {
-        $hod = User::factory()->create(['role' => 'hod', 'department' => 'Mechanical Engineering']);
+        $hod = User::factory()->create([
+            'role' => 'hod',
+            'department_id' => Department::firstOrCreate(['name' => 'Mechanical Engineering'])->id,
+        ]);
 
         $this->actingAs($hod)->get("/files/{$this->path}")->assertNotFound();
     }
 
     public function test_an_hod_from_the_same_department_can_download(): void
     {
-        $hod = User::factory()->create(['role' => 'hod', 'department' => 'Computer Science']);
+        $hod = User::factory()->create([
+            'role' => 'hod',
+            'department_id' => Department::firstOrCreate(['name' => 'Computer Science'])->id,
+        ]);
 
         $this->actingAs($hod)->get("/files/{$this->path}")->assertOk();
     }
@@ -79,7 +86,7 @@ class FileAccessScopeTest extends TestCase
         JobApplication::factory()->draft()->create([
             'user_id' => $draftOwner->id,
             'advertisement_id' => $this->advertisement->id,
-            'department' => 'Computer Science',
+            'department_id' => Department::firstOrCreate(['name' => 'Computer Science'])->id,
         ]);
 
         $admin = User::factory()->create(['role' => 'admin']);
