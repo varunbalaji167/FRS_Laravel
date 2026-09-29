@@ -48,6 +48,28 @@ php artisan about
 
 ## Common Operations
 
+### First-Time Production Database Setup
+
+**Destructive — deletes every existing row.** Run this exactly once, right
+after the first `php artisan migrate --force` on a brand-new deployment (or
+to hard-reset a broken environment back to a known-empty state). It leaves
+only the department list and one fresh admin account; everything else
+(advertisements, HODs, applicants, applications) is created afterwards
+through the app itself.
+
+```bash
+php artisan app:init-production
+```
+
+- Prompts for confirmation before wiping (skip with `--force` in a
+  non-interactive shell — make sure you mean it).
+- Admin email defaults to `PROD_ADMIN_EMAIL` in `.env` (see
+  `.env.production.example`), or pass `--admin-email=...`.
+- Admin password comes from `PROD_ADMIN_PASSWORD` in `.env` if set, or
+  `--admin-password=...`; leave both unset and the command generates a
+  random one and prints it once — save it immediately, it is not stored
+  anywhere in plaintext.
+
 ### Deploy a Code Update
 
 **Run deploy script (Recommended)**
